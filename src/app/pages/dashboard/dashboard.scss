@@ -1,0 +1,7 @@
+@use 'index' as *;
+
+main {
+  .container {
+    max-width: $default-width;
+  }
+}

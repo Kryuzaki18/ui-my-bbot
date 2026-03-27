@@ -1,0 +1,110 @@
+<form [formGroup]="tradesForm" class="flex justify-center divide-x divide-gray-600 divide-dashed">
+  <ng-container formArrayName="trades">
+    @for (tradeGroup of tradesArray.controls; track tradeGroup.value.symbol; let i = $index) {
+      <div [formGroupName]="i" class="flex gap-2 px-5">
+        <div class="flex flex-col px-3">
+          <span class="text-red-400 text-center text-xl uppercase jetbrains-bold">{{
+            tradeGroup.value.symbol
+          }}</span>
+          <span class="text-red-500 text-center text-md text-left jetbrains-medium">{{
+            currentMarketPrice()(tradeGroup.value.symbol)
+          }}</span>
+
+          <div class="flex flex-col gap-1">
+            @for (price of prices()[tradeGroup.value.symbol]; track $index) {
+              <span class="text-xs text-emerald-700 jetbrains-light">
+                {{ price?.price }}
+              </span>
+            }
+          </div>
+        </div>
+
+        <div class="card flex flex-col gap-2">
+          <h1 class="text-center text-xl mb-2">Trade</h1>
+          <div class="flex flex-col gap-4">
+            <label for="leverage" class="text-xs"
+              >Leverage
+              <span
+                class="text-xs"
+                [class.text-emerald-300]="tradeGroup.value.leverage <= 30"
+                [class.text-red-300]="
+                  tradeGroup.value.leverage > 30 && tradeGroup.value.leverage <= 75
+                "
+                [class.text-red-700]="tradeGroup.value.leverage > 75"
+                >{{ tradeGroup.value.leverage }}x</span
+              ></label
+            >
+            <p-slider id="leverage" min="1" max="125" formControlName="leverage" class="w-full" />
+
+            <p-iftalabel>
+              <p-inputnumber
+                [id]="'amount-' + tradeGroup.value.symbol"
+                formControlName="amount"
+                autocomplete="off"
+                mode="currency"
+                currency="USD"
+                locale="en-US"
+              />
+              <label [for]="'amount-' + tradeGroup.value.symbol">Amount</label>
+            </p-iftalabel>
+          </div>
+
+          <p-iftalabel>
+            <p-inputnumber
+              [id]="'price-' + tradeGroup.value.symbol"
+              formControlName="price"
+              autocomplete="off"
+              mode="decimal"
+              [minFractionDigits]="0"
+              [maxFractionDigits]="7"
+            />
+            <label [for]="'price-' + tradeGroup.value.symbol">Price</label>
+          </p-iftalabel>
+
+          <div class="flex items-center gap-1 w-full">
+            <button
+              (click)="buy(tradeGroup.value)"
+              type="button"
+              class="w-1/2 bg-green-700 text-white cursor-pointer rounded text-sm py-1"
+            >
+              Buy
+            </button>
+            <button
+              (click)="sell(tradeGroup.value)"
+              type="button"
+              class="w-1/2 bg-red-700 text-white cursor-pointer rounded text-sm py-1"
+            >
+              Sell
+            </button>
+          </div>
+
+          <div class="border-t border-dashed border-gray-500 pt-2">
+            <h2 class="text-center text-md mb-2 text-gray-200">Current Trade</h2>
+            <p class="text-sm text-gray-400">Price: {{ tradeGroup.value.price }}</p>
+            <p class="text-sm text-gray-400">
+              Amount: {{ tradeGroup.value.amount ? '$' + tradeGroup.value.amount : '' }}
+            </p>
+            <p class="text-sm text-gray-400">Leverage: {{ tradeGroup.value.leverage }}x</p>
+          </div>
+
+          <div class="flex items-center gap-1 w-full">
+            <button
+              type="button"
+              class="w-1/2 bg-gray-700 text-white cursor-pointer rounded text-sm py-1 disabled:opacity-50"
+              [disabled]="tradeGroup.invalid"
+              (click)="startBot(i)"
+            >
+              Start Bot
+            </button>
+            <button
+              type="button"
+              class="w-1/2 bg-gray-700 text-white cursor-pointer rounded text-sm py-1"
+            >
+              Stop Bot
+            </button>
+          </div>
+        </div>
+      </div>
+    }
+  </ng-container>
+</form>

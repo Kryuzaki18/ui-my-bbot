@@ -1,0 +1,11 @@
+<app-header></app-header>
+<main class="flex justify-center items-center">
+  <div class="grid grid-cols-6 gap-1 container">
+    <div class="col-span-4">
+      <app-trades-terminal [prices]="prices()"> </app-trades-terminal>
+    </div>
+    <div class="col-span-2">
+      <app-mini-info></app-mini-info>
+    </div>
+  </div>
+</main>

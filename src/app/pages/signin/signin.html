@@ -1,0 +1,51 @@
+<div class="flex justify-center items-center h-screen">
+  <p-card header="Binance Trading Bot" subheader="Connect securely to proxy" class="w-[400px]">
+    <form [formGroup]="loginForm" (ngSubmit)="onSubmit()" class="p-fluid">
+      <div class="flex items-center field mb-4 gap-2">
+        <label class="w-20 flex-none" for="apiKey">API Key</label>
+        <input
+          id="apiKey"
+          type="text"
+          pInputText
+          formControlName="apiKey"
+          placeholder="Enter Binance API Key"
+          class="flex-auto"
+        />
+      </div>
+
+      <div class="flex items-center field mb-4 gap-2">
+        <label class="w-20 flex-none" for="apiSecret">API Secret</label>
+        <input
+          id="apiSecret"
+          type="password"
+          pInputText
+          formControlName="apiSecret"
+          placeholder="Enter Binance Secret Key"
+          class="flex-auto"
+        />
+      </div>
+
+      <div class="field-checkbox mb-4">
+        <p-checkbox formControlName="useTestnet" [binary]="true" inputId="testnet"></p-checkbox>
+        <label for="testnet" class="ml-2">Use Testnet Environment</label>
+      </div>
+
+      <p-message
+        *ngIf="errorMessage"
+        severity="error"
+        [text]="errorMessage"
+        styleClass="w-full mb-4 block"
+      ></p-message>
+
+      <p-button
+        type="submit"
+        label="Establish Secure Session"
+        icon="pi pi-lock"
+        [loading]="loading"
+        [disabled]="loginForm.invalid"
+        styleClass="w-full"
+      >
+      </p-button>
+    </form>
+  </p-card>
+</div>
