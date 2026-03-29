@@ -1,11 +1,17 @@
 <app-header></app-header>
-<main class="flex justify-center items-center">
-  <div class="grid grid-cols-6 gap-1 container">
-    <div class="col-span-4">
-      <app-trades-terminal [prices]="prices()"> </app-trades-terminal>
+<main class="flex flex-col justify-center items-center">
+  <div class="container flex flex-col">
+    <div class="flex justify-center items-center">
+      <div class="grid grid-cols-6 gap-1 container">
+        <div class="col-span-5">
+          <app-trades-terminal [prices]="prices()"> </app-trades-terminal>
+        </div>
+        <div class="col-span-1 bg-gray-900/20">
+          <app-mini-info></app-mini-info>
+        </div>
+      </div>
     </div>
-    <div class="col-span-2">
-      <app-mini-info></app-mini-info>
-    </div>
+
+    <app-open-orders></app-open-orders>
   </div>
 </main>

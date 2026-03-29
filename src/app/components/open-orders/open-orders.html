@@ -1,0 +1,87 @@
+<div class="card border-y border-gray-700 text-white">
+  @if (loading && openOrders.length === 0) {
+    <p-progressbar mode="indeterminate" [style]="{ height: '6px' }" color="bg-gray-600" />
+  }
+
+  <div class="flex justify-between items-center mt-2">
+    <h1 class="text-md jetbrains-bold text-emerald-400">Open Orders</h1>
+    <div class="flex gap-2">
+      <p-button
+        (click)="fetchOrders()"
+        variant="outlined"
+        severity="success"
+        size="small"
+        [disabled]="loading || openOrders.length === 0"
+      >
+        Refresh
+      </p-button>
+      <p-button
+        (click)="cancelAllOrders()"
+        variant="outlined"
+        severity="danger"
+        size="small"
+        [disabled]="loading || openOrders.length === 0"
+      >
+        Cancel All
+      </p-button>
+    </div>
+  </div>
+
+  @if (openOrders.length === 0) {
+    <div class="text-center text-gray-700 jetbrains-thin text-sm py-2">No open orders.</div>
+  } @else {
+    <p-table [value]="openOrders" styleClass="p-datatable-sm">
+      <ng-template pTemplate="header">
+        <tr class="text-left text-sm text-gray-400 font-medium">
+          <th>Symbol</th>
+          <th>Side</th>
+          <th>Type</th>
+          <th>Price</th>
+          <th>Amount</th>
+          <th>Filled</th>
+          <th class="w-30">Action</th>
+        </tr>
+      </ng-template>
+      <ng-template pTemplate="body" let-order>
+        <tr class="border-b border-gray-800 hover:bg-gray-800 transition-colors">
+          <td class="jetbrains-bold text-sm py-2">{{ order.symbol }}</td>
+          <td class="text-sm py-2">
+            <span
+              [class.text-green-500]="order.side === 'BUY'"
+              [class.text-red-500]="order.side === 'SELL'"
+            >
+              {{ order.side }}
+            </span>
+          </td>
+          <td class="text-sm py-2 text-gray-300">{{ order.type }}</td>
+          <td class="text-sm py-2 text-gray-300">{{ order.price }}</td>
+          <td class="text-sm py-2 text-gray-300">{{ order.origQty }}</td>
+          <td class="text-sm py-2 text-gray-300">
+            {{ ((order.executedQty / order.origQty) * 100).toFixed(0) }}%
+          </td>
+          <td class="flex gap-2">
+            <p-button
+              (click)="editOrder(order)"
+              icon="pi pi-pencil"
+              [text]="true"
+              [rounded]="true"
+              [outlined]="true"
+              severity="info"
+            >
+            </p-button>
+
+            <p-button
+              (click)="cancelOrder(order)"
+              icon="pi pi-times"
+              [text]="true"
+              [rounded]="true"
+              [outlined]="true"
+              severity="danger"
+            >
+            </p-button>
+          </td>
+        </tr>
+      </ng-template>
+    </p-table>
+  }
+</div>

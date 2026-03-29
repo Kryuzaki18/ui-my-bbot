@@ -8,10 +8,11 @@ import { BinanceService, BinanceWsPrice } from '../../core/services/binance.serv
 import { Header } from '../../commons/header/header';
 import { TradesTerminal } from '../../components/trades-terminal/trades-terminal';
 import { MiniInfo } from "../../components/mini-info/mini-info";
+import { OpenOrders } from "../../components/open-orders/open-orders";
 
 @Component({
   selector: 'app-dashboard',
-  imports: [Header, TradesTerminal, MiniInfo],
+  imports: [Header, TradesTerminal, MiniInfo, OpenOrders],
   templateUrl: './dashboard.html',
   styleUrl: './dashboard.scss',
   standalone: true,

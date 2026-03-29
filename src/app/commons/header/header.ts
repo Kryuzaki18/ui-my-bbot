@@ -1,21 +1,29 @@
-import { Component } from '@angular/core';
+import { Component, inject } from '@angular/core';
+import { Router } from '@angular/router';
+import { BinanceService } from '../../core/services/binance.service';
 
-import { SplitButtonModule } from 'primeng/splitbutton';
+import { ButtonModule } from 'primeng/button';
 @Component({
   selector: 'app-header',
-  imports: [SplitButtonModule],
+  imports: [ButtonModule],
   templateUrl: './header.html',
   styleUrl: './header.scss',
 })
 export class Header {
-  items = [
-    {
-      label: 'Binance',
-      command: () => {this.connectWallet()},
-    },
-  ];
+  private router = inject(Router);
+  private binanceService = inject(BinanceService);
 
-  connectWallet(): void {
-    console.log('Connect Wallet button clicked');
+  logout(): void {
+    if (this.binanceService.token) {
+      this.binanceService.signOut().subscribe({
+        next: () => {
+          this.binanceService.token = null;
+          this.router.navigate(['/binance/signin']);
+        },
+        error: (err) => {
+          console.error(err);
+        },
+      });
+    }
   }
 }
