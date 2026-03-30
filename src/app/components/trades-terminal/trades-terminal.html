@@ -2,25 +2,49 @@
   <ng-container formArrayName="trades">
     @for (tradeGroup of tradesArray.controls; track tradeGroup.value.symbol; let i = $index) {
       <div [formGroupName]="i" class="flex gap-2 px-5">
-        <div class="flex flex-col px-3">
-          <span class="text-red-400 text-center text-xl uppercase jetbrains-bold">{{
+        <div class="flex flex-col p-3">
+          <span class="text-blue-400 text-md uppercase jetbrains-bold">{{
             tradeGroup.value.symbol
           }}</span>
-          <span class="text-red-500 text-center text-md text-left jetbrains-medium">{{
-            currentMarketPrice()(tradeGroup.value.symbol)
-          }}</span>
 
-          <div class="flex flex-col gap-1 h-[400px]">
+          <div
+            class="flex items-center justify-between gap-1 group cursor-pointer"
+            (click)="
+              addToCurrentPrice(
+                tradeGroup.value.symbol,
+                currentMarketPrice()(tradeGroup.value.symbol)
+              )
+            "
+          >
+            <span
+              class="text-red-500 text-center text-md text-left jetbrains-medium cursor-pointer"
+              >{{ currentMarketPrice()(tradeGroup.value.symbol) }}</span
+            >
+
+            <span
+              class="pi pi-arrow-circle-right opacity-0 group-hover:opacity-100 transition-opacity"
+            ></span>
+          </div>
+
+          <div class="flex flex-col gap-1 h-[400px] w-[100px]">
             @for (price of prices()[tradeGroup.value.symbol]; track $index) {
-              <span class="text-xs text-emerald-700 jetbrains-light">
-                {{ price?.price }}
-              </span>
+              <div
+                class="flex items-center justify-between gap-1 group cursor-pointer"
+                (click)="addToCurrentPrice(tradeGroup.value.symbol, price.price)"
+              >
+                <span class="text-xs text-emerald-700 jetbrains-light group-hover:text-blue-600">{{
+                  price?.price
+                }}</span>
+                <span
+                  class="pi pi-arrow-circle-right opacity-0 group-hover:opacity-100 transition-opacity"
+                ></span>
+              </div>
             }
           </div>
         </div>
 
         <div class="card flex flex-col gap-2">
-          <h1 class="text-center text-xl mb-2">Trade</h1>
+          <h1 class="text-center text-lg">Trade</h1>
           <div class="flex flex-col gap-4">
             <label for="leverage" class="text-xs"
               >Leverage
@@ -34,7 +58,14 @@
                 >{{ tradeGroup.value.leverage }}x</span
               ></label
             >
-            <p-slider id="leverage" min="1" max="125" formControlName="leverage" class="w-full" />
+            <p-slider
+              [disabled]="tradeGroup.value.entryPrice > 0"
+              id="leverage"
+              min="1"
+              max="125"
+              formControlName="leverage"
+              class="w-full"
+            />
 
             <p-iftalabel>
               <p-inputnumber
@@ -44,6 +75,10 @@
                 mode="currency"
                 currency="USD"
                 locale="en-US"
+                [showButtons]="true"
+                [inputSize]="22"
+                [min]="5"
+                [disabled]="tradeGroup.value.entryPrice > 0"
               />
               <label [for]="'amount-' + tradeGroup.value.symbol">Amount</label>
             </p-iftalabel>
@@ -57,15 +92,69 @@
               mode="decimal"
               [minFractionDigits]="0"
               [maxFractionDigits]="7"
+              [showButtons]="true"
+              [inputSize]="22"
+              [disabled]="tradeGroup.value.entryPrice > 0"
             />
+
             <label [for]="'price-' + tradeGroup.value.symbol">Price</label>
           </p-iftalabel>
+
+          <div class="flex flex-col gap-2">
+            <div class="flex items-center gap-2">
+              <p-checkbox
+                [inputId]="'tpsl-' + tradeGroup.value.symbol"
+                formControlName="isTPSL"
+                [binary]="true"
+                [disabled]="tradeGroup.value.entryPrice > 0"
+              />
+              <label [for]="'tpsl-' + tradeGroup.value.symbol" class="text-xs"> TP/SL </label>
+            </div>
+
+            @if (tradeGroup.get('isTPSL')?.value) {
+              <div class="flex flex-col gap-2">
+                <p-iftalabel>
+                  <p-inputnumber
+                    [id]="'tp-' + tradeGroup.value.symbol"
+                    formControlName="takeProfitPrice"
+                    autocomplete="off"
+                    mode="decimal"
+                    [minFractionDigits]="0"
+                    [maxFractionDigits]="7"
+                    [showButtons]="true"
+                    [inputSize]="22"
+                    [disabled]="tradeGroup.value.entryPrice > 0"
+                  />
+                  <label [for]="'tp-' + tradeGroup.value.symbol">Take Profit</label>
+                </p-iftalabel>
+
+                <p-iftalabel>
+                  <p-inputnumber
+                    [id]="'sl-' + tradeGroup.value.symbol"
+                    formControlName="stopLossPrice"
+                    autocomplete="off"
+                    mode="decimal"
+                    [minFractionDigits]="0"
+                    [maxFractionDigits]="7"
+                    [showButtons]="true"
+                    [inputSize]="22"
+                    [disabled]="tradeGroup.value.entryPrice > 0"
+                  />
+                  <label [for]="'sl-' + tradeGroup.value.symbol">Stop loss</label>
+                </p-iftalabel>
+              </div>
+            }
+          </div>
 
           <div class="flex items-center gap-1 w-full">
             <button
               (click)="buy(tradeGroup)"
               type="button"
               class="w-1/2 bg-green-700 text-white cursor-pointer rounded text-sm py-1"
+              [ngClass]="{
+                'bg-gray-900!': tradeGroup.value.entryPrice > 0,
+              }"
+              [disabled]="tradeGroup.value.entryPrice > 0"
             >
               Buy
             </button>
@@ -73,85 +162,102 @@
               (click)="sell(tradeGroup)"
               type="button"
               class="w-1/2 bg-red-700 text-white cursor-pointer rounded text-sm py-1"
+              [ngClass]="{
+                'bg-gray-900!': tradeGroup.value.entryPrice > 0,
+              }"
+              [disabled]="tradeGroup.value.entryPrice > 0"
             >
               Sell
             </button>
           </div>
 
-          <div
-            class="flex flex-col gap-2 text-sm py-2 mt-2 border-t border-gray-700 border-dashed pnl-section"
-          >
-            <div class="flex justify-between">
-              <span class="text-xs text-gray-500">Entry Price:</span>
-              <span class="text-sm text-gray-300">{{
-                tradeGroup.value.entryPrice | number: '1.0-7'
-              }}</span>
-            </div>
-            <ng-container
-              *ngIf="
-                currentPnL()(
-                  tradeGroup.value.symbol,
-                  tradeGroup.value.entryPrice,
-                  tradeGroup.value.positionAmt,
-                  tradeGroup.value.leverage
-                ) as livePnl
-              "
+          @if (tradeGroup.value.entryPrice > 0) {
+            <div
+              class="flex flex-col gap-2 text-sm py-2 mt-2 border-t border-gray-700 border-dashed pnl-section"
             >
               <div class="flex justify-between">
-                <span class="text-xs text-gray-500">PnL:</span>
-                <span
-                  class="text-xs"
-                  [ngClass]="{
-                    'text-green-500': !livePnl.isLoss,
-                    'text-red-500': livePnl.isLoss,
-                  }"
-                >
-                  {{ livePnl.pnl }}
-                </span>
+                <span class="text-xs text-gray-500">Entry Price:</span>
+                <span class="text-sm text-gray-300">{{
+                  tradeGroup.value.entryPrice | number: '1.0-7'
+                }}</span>
+              </div>
+              <ng-container
+                *ngIf="
+                  currentPnL()(
+                    tradeGroup.value.symbol,
+                    tradeGroup.value.entryPrice,
+                    tradeGroup.value.positionAmt,
+                    tradeGroup.value.leverage
+                  ) as livePnl
+                "
+              >
+                <div class="flex justify-between">
+                  <span class="text-xs text-gray-500">PnL:</span>
+                  <span
+                    class="text-xs"
+                    [ngClass]="{
+                      'text-green-500': !livePnl.isLoss,
+                      'text-red-500': livePnl.isLoss,
+                    }"
+                  >
+                    {{ livePnl.pnl }}
+                  </span>
+                </div>
+                <div class="flex justify-between">
+                  <span class="text-xs text-gray-500">PnL %:</span>
+                  <span
+                    class="text-xs"
+                    [ngClass]="{
+                      'text-green-500': !livePnl.isLoss,
+                      'text-red-500': livePnl.isLoss,
+                    }"
+                  >
+                    {{ livePnl.pnlPercent }}
+                  </span>
+                </div>
+              </ng-container>
+
+              <div class="flex justify-between">
+                <span class="text-xs text-gray-500">Stop Loss:</span>
+                <span class="text-xs text-red-300">{{ tradeGroup.value.stopLoss }}</span>
               </div>
               <div class="flex justify-between">
-                <span class="text-xs text-gray-500">PnL %:</span>
-                <span
-                  class="text-xs"
-                  [ngClass]="{
-                    'text-green-500': !livePnl.isLoss,
-                    'text-red-500': livePnl.isLoss,
-                  }"
-                >
-                  {{ livePnl.pnlPercent }}
-                </span>
+                <span class="text-xs text-gray-500">Take Profit:</span>
+                <span class="text-xs text-emerald-300">{{ tradeGroup.value.takeProfit }}</span>
               </div>
-            </ng-container>
 
-            <div class="flex justify-between">
-              <span class="text-xs text-gray-500">Stop Loss:</span>
-              <span class="text-xs text-red-300">{{ tradeGroup.value.stopLoss }}</span>
-            </div>
-            <div class="flex justify-between">
-              <span class="text-xs text-gray-500">Take Profit:</span>
-              <span class="text-xs text-emerald-300">{{ tradeGroup.value.takeProfit }}</span>
-            </div>
+              <div class="flex justify-around gap-1">
+                <p-button
+                  [disabled]="!tradeGroup.value.positionAmt"
+                  size="small"
+                  variant="outlined"
+                  severity="danger"
+                  (click)="openRiskDialog(tradeGroup, 'STOP_LOSS')"
+                >
+                  <span class="text-xs">Stop Loss</span>
+                </p-button>
 
-            <div class="flex justify-between">
-              <p-button
-                [disabled]="!tradeGroup.value.positionAmt"
-                size="small"
-                variant="outlined"
-                severity="danger"
-                (click)="openRiskDialog(tradeGroup, 'STOP_LOSS')"
-              >
-                Stop Loss
-              </p-button>
-              <p-button
-                [disabled]="!tradeGroup.value.positionAmt"
-                size="small"
-                variant="outlined"
-                (click)="openRiskDialog(tradeGroup, 'TAKE_PROFIT')"
-              >
-                Take Profit
-              </p-button>
+                <p-button
+                  [disabled]="!tradeGroup.value.positionAmt"
+                  size="small"
+                  variant="outlined"
+                  severity="warn"
+                  (click)="closePosition(tradeGroup)"
+                >
+                  <span class="text-xs">Close Position</span>
+                </p-button>
+
+                <p-button
+                  [disabled]="!tradeGroup.value.positionAmt"
+                  size="small"
+                  variant="outlined"
+                  (click)="openRiskDialog(tradeGroup, 'TAKE_PROFIT')"
+                >
+                  <span class="text-xs">Take Profit</span>
+                </p-button>
+              </div>
             </div>
-          </div>
+          }
         </div>
       </div>
     }
@@ -169,26 +275,122 @@
     {{ riskDialogSide === 'SELL' ? 'Long' : 'Short' }} position.
   </span>
 
-  <div class="flex items-center gap-3 mb-4">
-    <label class="font-semibold w-24 text-gray-400">Target %</label>
-    <div class="flex-auto flex items-center gap-4">
-      <p-slider
-        class="w-full flex-auto"
-        [(ngModel)]="riskDialogPercent"
-        (ngModelChange)="updatePriceFromPercent()"
-        [min]="1"
-        [max]="riskDialogType === 'STOP_LOSS' ? 100 : 500"
-      ></p-slider>
-      <span
-        class="text-sm font-bold border border-gray-700 bg-gray-900 px-3 py-1 rounded w-16 text-center"
-      >
-        {{ riskDialogPercent }}%
-      </span>
+  <div class="flex flex-col gap-3 bg-gray-900/90 p-2 mb-2 rounded">
+    <label class="font-semibold text-gray-400 text-center">Target</label>
+
+    <div class="flex items-center gap-3">
+      <div class="flex-auto flex items-center gap-4">
+        <p-slider
+          class="w-full flex-auto"
+          [(ngModel)]="riskDialogPercent"
+          (ngModelChange)="updatePriceFromPercent()"
+          [min]="1"
+          [max]="500"
+        ></p-slider>
+
+        <p-floatlabel variant="on" styleClass="w-20">
+          <p-inputnumber
+            [(ngModel)]="riskDialogPercent"
+            (ngModelChange)="updatePriceFromPercent()"
+            inputId="target-percent"
+            [min]="1"
+            [max]="500"
+            [minlength]="1"
+            [maxlength]="3"
+            [inputSize]="8"
+            [showClear]="true"
+            suffix="%"
+            size="small"
+          />
+          <label for="target-percent">Input %</label>
+        </p-floatlabel>
+      </div>
+    </div>
+
+    <div class="flex flex-col">
+      <div class="flex flex-wrap gap-4">
+        <div class="flex items-center gap-1">
+          <p-radiobutton
+            value="10"
+            [(ngModel)]="riskDialogPercent"
+            inputId="ten-percent"
+            size="small"
+            (ngModelChange)="updatePriceFromPercent()"
+          />
+          <label for="ten-percent" class="text-xs cursor-pointer">10%</label>
+        </div>
+        <div class="flex items-center gap-1">
+          <p-radiobutton
+            value="25"
+            [(ngModel)]="riskDialogPercent"
+            inputId="twentyfive-percent"
+            size="small"
+            (ngModelChange)="updatePriceFromPercent()"
+          />
+          <label for="twentyfive-percent" class="text-xs cursor-pointer">25%</label>
+        </div>
+        <div class="flex items-center gap-1">
+          <p-radiobutton
+            value="50"
+            [(ngModel)]="riskDialogPercent"
+            inputId="fifty-percent"
+            size="small"
+            (ngModelChange)="updatePriceFromPercent()"
+          />
+          <label for="fifty-percent" class="text-xs cursor-pointer">50%</label>
+        </div>
+
+        <div class="flex items-center gap-1">
+          <p-radiobutton
+            value="75"
+            [(ngModel)]="riskDialogPercent"
+            inputId="seventyfive-percent"
+            size="small"
+            (ngModelChange)="updatePriceFromPercent()"
+          />
+          <label for="seventyfive-percent" class="text-xs cursor-pointer">75%</label>
+        </div>
+
+        <div class="flex items-center gap-1">
+          <p-radiobutton
+            value="100"
+            [(ngModel)]="riskDialogPercent"
+            inputId="hundred-percent"
+            size="small"
+            (ngModelChange)="updatePriceFromPercent()"
+          />
+          <label for="hundred-percent" class="text-xs cursor-pointer">100%</label>
+        </div>
+        <div class="flex items-center gap-1">
+          <p-radiobutton
+            value="200"
+            [(ngModel)]="riskDialogPercent"
+            inputId="twohundred-percent"
+            size="small"
+            (ngModelChange)="updatePriceFromPercent()"
+          />
+          <label for="twohundred-percent" class="text-xs cursor-pointer">200%</label>
+        </div>
+        <div class="flex items-center gap-1">
+          <p-radiobutton
+            value="500"
+            [(ngModel)]="riskDialogPercent"
+            inputId="fivehundred-percent"
+            size="small"
+            (ngModelChange)="updatePriceFromPercent()"
+          />
+          <label for="fivehundred-percent" class="text-xs cursor-pointer">500%</label>
+        </div>
+      </div>
     </div>
   </div>
 
   <div class="flex items-center gap-3 mb-1">
-    <label for="triggerPrice" class="font-semibold w-24 text-gray-400">Price</label>
+    <label for="triggerPrice" class="font-semibold w-24 text-gray-400"
+      >Price
+
+      <span class="pi pi-arrow-right" style="font-size: 0.75rem"></span>
+    </label>
     <p-inputnumber
       id="triggerPrice"
       [(ngModel)]="riskDialogPrice"
@@ -204,7 +406,6 @@
 
   <div class="flex justify-between items-center px-1 mb-2">
     <div class="w-24"></div>
-    <!-- Spacer for label alignment -->
     <div
       class="text-xs font-semibold"
       [class.text-red-500]="riskDialogEstimatedPnL < 0"

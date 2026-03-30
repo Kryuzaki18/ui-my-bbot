@@ -1,5 +1,5 @@
-import { Component, effect, signal } from '@angular/core';
-import { Subscription } from 'rxjs';
+import { Component, DestroyRef, inject, OnInit, signal } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
 // Services
 import { BinanceService, BinanceWsPrice } from '../../core/services/binance.service';
@@ -7,8 +7,8 @@ import { BinanceService, BinanceWsPrice } from '../../core/services/binance.serv
 // Components
 import { Header } from '../../commons/header/header';
 import { TradesTerminal } from '../../components/trades-terminal/trades-terminal';
-import { MiniInfo } from "../../components/mini-info/mini-info";
-import { OpenOrders } from "../../components/open-orders/open-orders";
+import { MiniInfo } from '../../components/mini-info/mini-info';
+import { OpenOrders } from '../../components/open-orders/open-orders';
 
 @Component({
   selector: 'app-dashboard',
@@ -17,30 +17,26 @@ import { OpenOrders } from "../../components/open-orders/open-orders";
   styleUrl: './dashboard.scss',
   standalone: true,
 })
-export class Dashboard {
+export class Dashboard implements OnInit {
   symbols = ['btcusdt', 'ethusdt'];
   prices = signal<Record<string, BinanceWsPrice[]>>({});
 
-  private subs: Subscription[] = [];
+  private destroyRef = inject(DestroyRef);
 
-  constructor(private BinanceService: BinanceService) { }
+  constructor(private BinanceService: BinanceService) {}
 
   ngOnInit(): void {
     this.prices.set(this.symbols.reduce((acc, symbol) => ({ ...acc, [symbol]: [] }), {}));
 
     this.symbols.forEach((symbol) => {
-      const sub = this.BinanceService.getPriceStream(symbol).subscribe((data) => {
-        this.prices.update((current) => ({
-          ...current,
-          [symbol]: data,
-        }));
-      });
-
-      this.subs.push(sub);
+      this.BinanceService.getPriceStream(symbol)
+        .pipe(takeUntilDestroyed(this.destroyRef))
+        .subscribe((data) => {
+          this.prices.update((current) => ({
+            ...current,
+            [symbol]: data,
+          }));
+        });
     });
-  }
-
-  ngOnDestroy(): void {
-    this.subs.forEach((sub) => sub.unsubscribe());
   }
 }

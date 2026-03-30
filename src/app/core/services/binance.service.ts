@@ -1,11 +1,15 @@
 import { Injectable } from '@angular/core';
-import { Observable, Subject } from 'rxjs';
-
+import { map, Observable, Subject } from 'rxjs';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 
+// Environment
 import { environment } from '../../../environments/environment';
 
-import { TRADE } from '../constants/binance.constant';
+// Constants
+import { STORAGE, TRADE } from '../constants/binance.constant';
+
+// Services
+import { StorageService } from './storage.service';
 
 export interface BinanceWsPrice {
   symbol: string;
@@ -30,19 +34,10 @@ export class BinanceService {
   private userDataPingInterval: any;
   private userDataSubject = new Subject<any>();
 
-  constructor(private http: HttpClient) {}
-
-  public get token(): string | null {
-    return localStorage.getItem('binance_jwt');
-  }
-
-  public set token(val: string | null) {
-    if (val) localStorage.setItem('binance_jwt', val);
-    else localStorage.removeItem('binance_jwt');
-  }
+  constructor(private http: HttpClient, private storageService: StorageService) {}
 
   private get authHeaders() {
-    return new HttpHeaders().set('Authorization', `Bearer ${this.token}`);
+    return new HttpHeaders().set('Authorization', `Bearer ${this.storageService.getLocal(STORAGE.lToken)}`);
   }
 
   // ==== REST API METHODS ====
@@ -52,7 +47,12 @@ export class BinanceService {
       apiKey,
       apiSecret,
       useTestnet
-    });
+    }).pipe(
+      map((res) => {
+        this.storageService.setLocal(STORAGE.lToken, res.token);
+        return res;
+      })
+    );
   }
 
   signOut() {
@@ -242,7 +242,7 @@ export class BinanceService {
   /**
    * Disconnect a symbol
    */
-  disconnect(symbol: string) {
+  disconnect(symbol: string): void {
     const key = symbol.toLowerCase();
     const state = this.states[key];
 
@@ -255,7 +255,7 @@ export class BinanceService {
   /**
    * Disconnect all
    */
-  disconnectAll() {
+  disconnectAll(): void {
     Object.keys(this.states).forEach((symbol) => {
       this.states[symbol].socket.close();
     });

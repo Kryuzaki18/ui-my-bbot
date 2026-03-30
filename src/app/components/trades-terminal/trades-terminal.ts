@@ -8,7 +8,7 @@ import {
   FormArray,
   FormGroup,
 } from '@angular/forms';
-import { Subject, takeUntil } from 'rxjs';
+import { Subject, takeUntil, debounceTime } from 'rxjs';
 
 // Services
 import { BinanceService, BinanceWsPrice } from '../../core/services/binance.service';
@@ -21,6 +21,8 @@ import { InputTextModule } from 'primeng/inputtext';
 import { IftaLabelModule } from 'primeng/iftalabel';
 import { InputNumberModule } from 'primeng/inputnumber';
 import { DialogModule } from 'primeng/dialog';
+import { CheckboxModule } from 'primeng/checkbox';
+import { RadioButtonModule } from 'primeng/radiobutton';
 
 @Component({
   selector: 'app-trades-terminal',
@@ -37,6 +39,8 @@ import { DialogModule } from 'primeng/dialog';
     IftaLabelModule,
     InputNumberModule,
     DialogModule,
+    CheckboxModule,
+    RadioButtonModule
   ],
   templateUrl: './trades-terminal.html',
   styleUrl: './trades-terminal.scss',
@@ -46,6 +50,7 @@ export class TradesTerminal implements OnInit, OnDestroy {
   binanceService = inject(BinanceService);
 
   private destroy$ = new Subject<void>();
+  private refresh$ = new Subject<void>();
 
   isRiskDialogOpen = false;
   riskDialogType: 'STOP_LOSS' | 'TAKE_PROFIT' = 'STOP_LOSS';
@@ -103,6 +108,8 @@ export class TradesTerminal implements OnInit, OnDestroy {
 
   readonly defaultPrice = 5;
   readonly defaultLeverage = 125;
+  readonly defaultStopLoss =null;
+  readonly defaultTakeProfit =null;
   readonly prices = input<Record<string, BinanceWsPrice[]>>({});
 
   constructor() {
@@ -124,6 +131,9 @@ export class TradesTerminal implements OnInit, OnDestroy {
             positionAmt: [0],
             stopLoss: ['-'],
             takeProfit: ['-'],
+            isTPSL: [false],
+            stopLossPrice: [this.defaultStopLoss],
+            takeProfitPrice: [this.defaultTakeProfit],
           });
           this.tradesArray.push(group);
 
@@ -146,6 +156,12 @@ export class TradesTerminal implements OnInit, OnDestroy {
     this.fetchPositions();
     this.fetchOpenOrders();
 
+    this.refresh$
+      .pipe(takeUntil(this.destroy$), debounceTime(1500))
+      .subscribe(() => {
+        this.fetchOpenOrders();
+      });
+
     this.binanceService
       .getUserDataStream()
       .pipe(takeUntil(this.destroy$))
@@ -156,7 +172,7 @@ export class TradesTerminal implements OnInit, OnDestroy {
             this.updatePositionInForm(p.s, p.ep, p.up, p.pa);
           });
         } else if (data && data.e === 'ORDER_TRADE_UPDATE') {
-          this.fetchOpenOrders();
+          this.refresh$.next();
         }
       });
   }
@@ -180,16 +196,31 @@ export class TradesTerminal implements OnInit, OnDestroy {
           });
         }
       },
-      error: (err) => console.error('Failed to load initial positions:', err),
+      error: (err) => console.error(err),
     });
   }
 
-  fetchOpenOrders() {
+  fetchOpenOrders():void {
     this.binanceService.getOpenOrders().subscribe({
       next: (orders) => {
         this.updateOpenOrdersInForm(orders);
       },
-      error: (err) => console.error('Failed to load open orders:', err),
+      error: (err) => console.error(err),
+    });
+  }
+
+  addToCurrentPrice(symbol: string, price: number): void {
+    const symLower = (symbol || '').toLowerCase();
+
+    this.tradesArray.controls.forEach((c) => {
+      if ((c.value.symbol || '').toLowerCase() === symLower) {
+        c.patchValue(
+          {
+            price: price,
+          },
+          { emitEvent: false },
+        );
+      }
     });
   }
 
@@ -313,8 +344,8 @@ export class TradesTerminal implements OnInit, OnDestroy {
         price: price,
       })
       .subscribe({
-        next: (res) => console.log('Buy Success:', res),
-        error: (err) => console.error('Buy Failed:', err),
+        next: (res) => console.log(res),
+        error: (err) => console.error(err),
       });
   }
 
@@ -338,8 +369,8 @@ export class TradesTerminal implements OnInit, OnDestroy {
         price: price,
       })
       .subscribe({
-        next: (res) => console.log('Sell Success:', res),
-        error: (err) => console.error('Sell Failed:', err),
+        next: (res) => console.log(res),
+        error: (err) => console.error(err),
       });
   }
 
@@ -349,6 +380,7 @@ export class TradesTerminal implements OnInit, OnDestroy {
       alert('No active position to protect.');
       return;
     }
+
     this.riskDialogSymbol = tradeGroup.value.symbol;
     this.riskDialogType = type;
     this.riskDialogPrice = null;
@@ -362,10 +394,11 @@ export class TradesTerminal implements OnInit, OnDestroy {
 
     // Set default slider value and instantly compute target price and PnL
     this.riskDialogPercent = 50;
+
     this.updatePriceFromPercent();
   }
 
-  updatePriceFromPercent() {
+  updatePriceFromPercent():void {
     const roePercent =
       this.riskDialogType === 'STOP_LOSS'
         ? -Math.abs(this.riskDialogPercent)
@@ -385,7 +418,7 @@ export class TradesTerminal implements OnInit, OnDestroy {
     this.calculateEstimatedPnL(this.riskDialogPrice);
   }
 
-  updateFromPrice() {
+  updateFromPrice():void {
     if (!this.riskDialogPrice) {
       this.riskDialogEstimatedPnL = 0;
       this.riskDialogEstimatedPnLStr = '$0.00';
@@ -406,7 +439,7 @@ export class TradesTerminal implements OnInit, OnDestroy {
     }
   }
 
-  calculateEstimatedPnL(targetPrice: number) {
+  calculateEstimatedPnL(targetPrice: number): void {
     const ep = this.riskDialogEntryPrice;
     const amt = this.riskDialogPositionAmt;
     this.riskDialogEstimatedPnL = (targetPrice - ep) * amt;
@@ -415,7 +448,7 @@ export class TradesTerminal implements OnInit, OnDestroy {
     this.riskDialogEstimatedPnLStr = formatter.format(Math.abs(this.riskDialogEstimatedPnL));
   }
 
-  submitRiskOrder() {
+  submitRiskOrder():void {
     if (!this.riskDialogPrice) return;
 
     const payload = {
@@ -435,8 +468,12 @@ export class TradesTerminal implements OnInit, OnDestroy {
         this.isRiskDialogOpen = false;
         this.fetchOpenOrders();
       },
-      error: (err) => console.error(`${this.riskDialogType} Failed:`, err),
+      error: (err) => console.error(err),
     });
+  }
+
+  closePosition(tradeGroup: FormGroup): void {
+    console.log(1);
   }
 
   startBot(index: number): void {

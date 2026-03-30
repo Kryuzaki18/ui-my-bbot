@@ -4,7 +4,7 @@
   }
 
   <div class="flex justify-between items-center mt-2">
-    <h1 class="text-md jetbrains-bold text-emerald-400">Open Orders</h1>
+    <h1 class="text-md font-bold text-emerald-400">Open Orders</h1>
     <div class="flex gap-2">
       <p-button
         (click)="fetchOrders()"
@@ -30,7 +30,7 @@
   @if (openOrders.length === 0) {
     <div class="text-center text-gray-700 jetbrains-thin text-sm py-2">No open orders.</div>
   } @else {
-    <p-table [value]="openOrders" styleClass="p-datatable-sm">
+    <p-table [value]="openOrders" class="p-datatable-sm mt-2">
       <ng-template pTemplate="header">
         <tr class="text-left text-sm text-gray-400 font-medium">
           <th>Symbol</th>
@@ -47,8 +47,11 @@
           <td class="jetbrains-bold text-sm py-2">{{ order.symbol }}</td>
           <td class="text-sm py-2">
             <span
-              [class.text-green-500]="order.side === 'BUY'"
-              [class.text-red-500]="order.side === 'SELL'"
+              [ngClass]="{
+                'text-green-500': order.side === 'BUY',
+                'text-red-500': order.side === 'SELL',
+                'jetbrains-bold': true,
+              }"
             >
               {{ order.side }}
             </span>

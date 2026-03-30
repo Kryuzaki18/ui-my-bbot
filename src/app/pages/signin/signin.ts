@@ -1,10 +1,15 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, DestroyRef, inject, OnInit, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
 // Services
 import { BinanceService } from '../../core/services/binance.service';
+import { StorageService } from '../../core/services/storage.service';
+
+// Constants
+import { STORAGE } from '../../core/constants/binance.constant';
 
 // PrimeNG Modules
 import { ButtonModule } from 'primeng/button';
@@ -32,17 +37,20 @@ import { SelectModule } from 'primeng/select';
 })
 export class SigninComponent implements OnInit {
   loginForm!: FormGroup;
-  loading: boolean = false;
-  errorMessage: string | null = null;
+  loading = signal<boolean>(false);
+  errorMessage = signal<string | null>(null);
+  
+  private destroyRef = inject(DestroyRef);
 
   constructor(
     private fb: FormBuilder,
     private binanceService: BinanceService,
+    private storageService: StorageService,
     private router: Router,
   ) {}
 
   ngOnInit(): void {
-    if (this.binanceService.token) {
+    if (this.storageService.getLocal(STORAGE.lToken)) {
       this.router.navigate(['/binance/future/order']);
     }
 
@@ -56,21 +64,24 @@ export class SigninComponent implements OnInit {
   onSubmit(): void {
     if (this.loginForm.invalid) return;
 
-    this.loading = true;
-    this.errorMessage = null;
+    this.loading.set(true);
+    this.errorMessage.set(null);
 
     const { apiKey, apiSecret, useTestnet } = this.loginForm.value;
 
-    this.binanceService.signIn(apiKey, apiSecret, useTestnet).subscribe({
-      next: (res) => {
-        this.binanceService.token = res.token;
-        this.loading = false;
-        this.router.navigate(['/binance/future/order']);
-      },
-      error: (err) => {
-        this.loading = false;
-        this.errorMessage = err.error?.error || 'Could not verify API keys';
-      },
-    });
+    this.binanceService
+      .signIn(apiKey, apiSecret, useTestnet)
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: (res) => {
+          this.storageService.setLocal(STORAGE.lToken, res.token);
+          this.loading.set(false);
+          this.router.navigate(['/binance/future/order']);
+        },
+        error: (err) => {
+          this.loading.set(false);
+          this.errorMessage.set(err.error?.error || 'Could not verify API keys');
+        },
+      });
   }
 }

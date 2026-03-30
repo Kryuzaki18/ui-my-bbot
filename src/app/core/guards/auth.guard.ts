@@ -1,12 +1,17 @@
 import { inject } from '@angular/core';
 import { Router, CanActivateFn } from '@angular/router';
-import { BinanceService } from '../services/binance.service';
+
+// Constants
+import { STORAGE } from '../constants/binance.constant';
+
+// Services
+import { StorageService } from '../services/storage.service';
 
 export const authGuard: CanActivateFn = () => {
-  const binanceService = inject(BinanceService);
   const router = inject(Router);
+  const storageService = inject(StorageService);
 
-  if (binanceService.token) {
+  if (storageService.getLocal(STORAGE.lToken)) {
     return true;
   }
 

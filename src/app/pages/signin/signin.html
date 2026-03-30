@@ -30,18 +30,15 @@
         <label for="testnet" class="ml-2">Use Testnet Environment</label>
       </div>
 
-      <p-message
-        *ngIf="errorMessage"
-        severity="error"
-        [text]="errorMessage"
-        styleClass="w-full mb-4 block"
-      ></p-message>
+      @if (errorMessage()) {
+        <p-message severity="error" styleClass="w-full mb-4 block">{{ errorMessage() }}</p-message>
+      }
 
       <p-button
         type="submit"
         label="Establish Secure Session"
         icon="pi pi-lock"
-        [loading]="loading"
+        [loading]="loading()"
         [disabled]="loginForm.invalid"
         styleClass="w-full"
       >
