@@ -321,7 +321,7 @@ export class TradesTerminal implements OnInit {
       return;
     }
 
-    const sltpPrice = parseFloat(price as string);
+    const sltpPrice = parseFloat(price as string) || parseFloat(pos.entryPrice as string);
     const amt = parseFloat(pos.positionAmt as string);
     const lev = pos.leverage;
 
@@ -335,7 +335,12 @@ export class TradesTerminal implements OnInit {
     this.riskDialogEntryPrice = parseFloat(pos.entryPrice as string);
     this.riskDialogLeverage = pos.leverage;
 
-    this.updateFromPrice();
+    if (!price) {
+      this.riskDialogPercent = 50;
+      this.updatePriceFromPercent();
+    } else {
+      this.updateFromPrice();
+    }
   }
 
   updatePriceFromPercent(): void {
