@@ -55,6 +55,7 @@ export class OpenOrders implements OnInit {
             ].includes(type);
             return !isConditional && o.closePosition !== true;
           });
+
           this.loading = false;
         },
         error: (err) => {

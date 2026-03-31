@@ -1,5 +1,5 @@
-import { Component, computed, inject, input, effect, OnInit, OnDestroy } from '@angular/core';
-import { NgClass, DecimalPipe, NgIf } from '@angular/common';
+import { Component, computed, inject, input, OnInit, signal, DestroyRef } from '@angular/core';
+import { NgClass, DecimalPipe, CurrencyPipe } from '@angular/common';
 import {
   FormBuilder,
   ReactiveFormsModule,
@@ -8,10 +8,13 @@ import {
   FormArray,
   FormGroup,
 } from '@angular/forms';
-import { Subject, takeUntil, debounceTime } from 'rxjs';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
 // Services
 import { BinanceService, BinanceWsPrice } from '../../core/services/binance.service';
+
+// Models
+import { FuturePosition, OpenOrder } from '../../core/models/trades.model';
 
 // PrimeNG Modules
 import { SliderModule } from 'primeng/slider';
@@ -29,7 +32,7 @@ import { RadioButtonModule } from 'primeng/radiobutton';
   imports: [
     NgClass,
     DecimalPipe,
-    NgIf,
+    CurrencyPipe,
     ReactiveFormsModule,
     FormsModule,
     SliderModule,
@@ -40,17 +43,20 @@ import { RadioButtonModule } from 'primeng/radiobutton';
     InputNumberModule,
     DialogModule,
     CheckboxModule,
-    RadioButtonModule
+    RadioButtonModule,
   ],
   templateUrl: './trades-terminal.html',
   styleUrl: './trades-terminal.scss',
 })
-export class TradesTerminal implements OnInit, OnDestroy {
+export class TradesTerminal implements OnInit {
   formBuilder = inject(FormBuilder);
   binanceService = inject(BinanceService);
 
-  private destroy$ = new Subject<void>();
-  private refresh$ = new Subject<void>();
+  readonly defaultAmount = 5;
+  readonly defaultLeverage = 125;
+  readonly defaultStopLoss = null;
+  readonly defaultTakeProfit = null;
+  readonly prices = input<Record<string, BinanceWsPrice[]>>({});
 
   isRiskDialogOpen = false;
   riskDialogType: 'STOP_LOSS' | 'TAKE_PROFIT' = 'STOP_LOSS';
@@ -64,11 +70,15 @@ export class TradesTerminal implements OnInit, OnDestroy {
   riskDialogEstimatedPnL: number = 0;
   riskDialogEstimatedPnLStr: string = '$0.00';
 
+  futureSymbols = input<string[]>([]);
+  futurePos = signal<FuturePosition[]>([]);
+  openOrders = signal<OpenOrder[]>([]);
+
   tradesForm = this.formBuilder.group({
     trades: this.formBuilder.array<FormGroup>([]),
   });
 
-  get tradesArray(): FormArray<FormGroup> {
+  get tradesFormArray(): FormArray<FormGroup> {
     return this.tradesForm.get('trades') as FormArray<FormGroup>;
   }
 
@@ -81,324 +91,252 @@ export class TradesTerminal implements OnInit, OnDestroy {
     };
   });
 
-  currentPnL = computed(() => {
-    return (symbol: string, entryPrice: string | number, positionAmt: string | number, leverage: string | number) => {
+  formatPnl = computed(() => {
+    return (
+      symbol: string,
+      entryPrice: string | number,
+      positionAmt: string | number,
+      leverage: string | number,
+    ) => {
       const currentPrice = this.currentMarketPrice()(symbol);
-      const ep = parseFloat(entryPrice as string) || 0;
-      const amt = parseFloat(positionAmt as string) || 0;
-      const lev = parseFloat(leverage as string) || 125;
+      const ep = parseFloat(entryPrice as string);
+      const amt = parseFloat(positionAmt as string);
+      const lev = parseFloat(leverage as string);
 
-      if (amt === 0 || ep === 0 || currentPrice === 0) {
-        return { pnl: '$0.00', pnlPercent: '0.00%', isLoss: false };
-      }
-
-      // PnL formula handles both directions because amt is negative for shorts
       const pnl = (currentPrice - ep) * amt;
       const notional = Math.abs(amt) * ep;
       const margin = notional / lev;
       const pct = margin > 0 ? (pnl / margin) * 100 : 0;
 
-      const pnlPercentStr = (pct > 0 ? '+' : '') + pct.toFixed(2) + '%';
-      const formatter = new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' });
-      const formattedPnl = (pnl > 0 ? '+' : '') + formatter.format(pnl);
+      const pnlPercentStr = (pct > 0 ? '+' : '') + pct.toFixed(2);
+      const formattedPnl = (pnl > 0 ? '+' : '') + pnl.toFixed(2);
 
-      return { pnl: formattedPnl, pnlPercent: pnlPercentStr, isLoss: pct < 0 };
+      return { pnl: formattedPnl, pnlPercent: pnlPercentStr };
     };
   });
 
-  readonly defaultPrice = 5;
-  readonly defaultLeverage = 125;
-  readonly defaultStopLoss =null;
-  readonly defaultTakeProfit =null;
-  readonly prices = input<Record<string, BinanceWsPrice[]>>({});
+  compFuturePos = computed(() => {
+    const futureSymbols = this.futureSymbols();
+    const positions: { [key: string]: FuturePosition } = {};
 
-  constructor() {
-    effect(() => {
-      const currentSymbols = Object.keys(this.prices());
-      const arrayControls = this.tradesArray.controls as FormGroup[];
+    futureSymbols.forEach((symbol) => {
+      const sym = (symbol || '').toLowerCase();
+      if (sym) {
+        const position = this.futurePos().find((pos: any) => pos.symbol.toLowerCase() === sym);
 
-      currentSymbols.forEach((symbol) => {
-        const exists = arrayControls.some((ctrl) => ctrl.value.symbol === symbol);
-        if (!exists) {
-          const group = this.formBuilder.group({
-            symbol: [symbol],
-            price: [null, Validators.required],
-            amount: [this.defaultPrice, [Validators.required, Validators.min(5)]],
-            leverage: [this.defaultLeverage, [Validators.required, Validators.min(1)]],
-            entryPrice: ['0.00000'],
-            pnl: ['$0.00'],
-            pnlPercent: ['0.00%'],
-            positionAmt: [0],
-            stopLoss: ['-'],
-            takeProfit: ['-'],
-            isTPSL: [false],
-            stopLossPrice: [this.defaultStopLoss],
-            takeProfitPrice: [this.defaultTakeProfit],
-          });
-          this.tradesArray.push(group);
+        if (position) {
+          const pnlData = this.formatPnl()(
+            symbol,
+            position.entryPrice,
+            position.positionAmt,
+            position.leverage,
+          );
+          position.pnl = pnlData.pnl;
+          position.pnlPercent = pnlData.pnlPercent;
 
-          // Whenever a new symbol is added, attempt to refresh positions and orders
-          this.fetchPositions();
-          this.fetchOpenOrders();
-        }
-      });
+          const orders = this.openOrders();
+          const tpOrder = orders?.find(
+            (order) =>
+              order.symbol.toLowerCase() === sym && order?.orderType === 'TAKE_PROFIT_MARKET',
+          );
+          const slOrder = orders?.find(
+            (order) => order.symbol.toLowerCase() === sym && order?.orderType === 'STOP_MARKET',
+          );
 
-      for (let i = this.tradesArray.length - 1; i >= 0; i--) {
-        const symbolAtI = this.tradesArray.at(i).value.symbol;
-        if (!currentSymbols.includes(symbolAtI)) {
-          this.tradesArray.removeAt(i);
+          if (tpOrder) {
+            position.takeProfit = tpOrder.triggerPrice;
+          }
+          if (slOrder) {
+            position.stopLoss = slOrder.triggerPrice;
+          }
+          positions[sym] = { ...position, symbol: sym };
         }
       }
     });
-  }
 
-  ngOnInit() {
+    return positions;
+  });
+
+  private destroyRef = inject(DestroyRef);
+
+  constructor() {}
+
+  ngOnInit(): void {
+    this.createTradeForm();
     this.fetchPositions();
     this.fetchOpenOrders();
+  }
 
-    this.refresh$
-      .pipe(takeUntil(this.destroy$), debounceTime(1500))
-      .subscribe(() => {
-        this.fetchOpenOrders();
+  createTradeForm(): void {
+    const arrayControls = this.tradesFormArray.controls as FormGroup[];
+    const futureSymbols = this.futureSymbols();
+    futureSymbols.forEach((symbol) => {
+      const exists = arrayControls.some((ctrl) => ctrl.value.symbol === symbol);
+      if (!exists) {
+        const group = this.formBuilder.group({
+          symbol: [symbol],
+          leverage: [this.defaultLeverage, [Validators.required]],
+          amount: [this.defaultAmount, [Validators.required, Validators.min(5)]],
+          price: [null, Validators.required],
+          hasTPSL: [false],
+          takeProfit: [null],
+          stopLoss: [null],
+        });
+        this.tradesFormArray.push(group);
+      }
+    });
+  }
+
+  fetchPositions(): void {
+    this.binanceService
+      .getUserInfo()
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: (res) => {
+          if (res && res.positions) {
+            this.futurePos.set(res.positions);
+            this.updateEnabledDisabledForm();
+          }
+        },
+        error: (err) => console.error(err),
       });
+  }
+
+  fetchOpenOrders(): void {
+    this.binanceService
+      .getOpenOrders()
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: (res) => {
+          if (res) {
+            this.openOrders.set(res);
+          }
+        },
+        error: (err) => console.error(err),
+      });
+  }
+
+  updateEnabledDisabledForm(): void {
+    const futureSymbols = this.futureSymbols();
+    futureSymbols.forEach((symbol) => {
+      const ctrl = this.tradesFormArray.controls.find(
+        (c) => c.value.symbol.toLowerCase() === symbol.toLowerCase(),
+      );
+      if (ctrl) {
+        const pos = this.compFuturePos()[symbol];
+        const toggleControls = ['leverage', 'amount', 'price', 'hasTPSL', 'takeProfit', 'stopLoss'];
+        if (pos?.initialMargin?.toString() !== '0') {
+          toggleControls.forEach((name) => ctrl.get(name)?.disable({ emitEvent: false }));
+        } else {
+          toggleControls.forEach((name) => ctrl.get(name)?.enable({ emitEvent: false }));
+        }
+      }
+    });
+  }
+
+  addToFormPrice(symbol: string, price: number): void {
+    const pos = this.compFuturePos()[symbol];
+    if (pos?.initialMargin?.toString() !== '0') {
+      return;
+    }
+
+    this.tradesFormArray.controls.forEach((c) => {
+      if ((c.value.symbol || '').toLowerCase() === symbol.toLowerCase()) {
+        c.patchValue({ price }, { emitEvent: false });
+      }
+    });
+  }
+
+  placeOrder(data: FormGroup, side: 'BUY' | 'SELL'): void {
+    const { symbol, amount, price, leverage } = data.value;
+    const executionPrice = price || this.currentMarketPrice()(symbol);
+
+    if (!executionPrice) {
+      console.error('Price is zero, cannot calculate quantity');
+      return;
+    }
+
+    const quantity = Number(((amount * leverage) / executionPrice).toFixed(5));
 
     this.binanceService
-      .getUserDataStream()
-      .pipe(takeUntil(this.destroy$))
-      .subscribe((data) => {
-        if (data && data.e === 'ACCOUNT_UPDATE' && data.a && data.a.P) {
-          const positions = data.a.P;
-          positions.forEach((p: any) => {
-            this.updatePositionInForm(p.s, p.ep, p.up, p.pa);
-          });
-        } else if (data && data.e === 'ORDER_TRADE_UPDATE') {
-          this.refresh$.next();
-        }
+      .placeOrder({
+        symbol: symbol.toUpperCase(),
+        side: side,
+        type: price ? 'LIMIT' : 'MARKET',
+        quantity: quantity,
+        price: price,
+        // leverage: leverage,
+      })
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: (res) => {
+          this.fetchPositions();
+          this.fetchOpenOrders();
+        },
+        error: (err) => console.error(err),
       });
   }
 
-  ngOnDestroy() {
-    this.destroy$.next();
-    this.destroy$.complete();
-  }
+  closePosition(pos: FuturePosition): void {
+    const amt = parseFloat(pos.positionAmt) || 0;
+    if (amt === 0) {
+      console.error('No active position to close.');
+      return;
+    }
 
-  fetchPositions() {
-    this.binanceService.getUserInfo().subscribe({
-      next: (res) => {
-        if (res && res.positions) {
-          res.positions.forEach((pos: any) => {
-            this.updatePositionInForm(
-              pos.symbol,
-              pos.entryPrice,
-              pos.unrealizedProfit,
-              pos.positionAmt,
-            );
-          });
-        }
-      },
-      error: (err) => console.error(err),
-    });
-  }
+    const side = amt > 0 ? 'SELL' : 'BUY';
+    const quantity = Math.abs(amt);
+    const symbol = pos.symbol;
 
-  fetchOpenOrders():void {
-    this.binanceService.getOpenOrders().subscribe({
-      next: (orders) => {
-        this.updateOpenOrdersInForm(orders);
-      },
-      error: (err) => console.error(err),
-    });
-  }
-
-  addToCurrentPrice(symbol: string, price: number): void {
-    const symLower = (symbol || '').toLowerCase();
-
-    this.tradesArray.controls.forEach((c) => {
-      if ((c.value.symbol || '').toLowerCase() === symLower) {
-        c.patchValue(
-          {
-            price: price,
+    if (
+      confirm(
+        `Are you sure you want to close your ${side === 'SELL' ? 'Long' : 'Short'} position of ${quantity} ${symbol} at MARKET price?`,
+      )
+    ) {
+      this.binanceService
+        .placeOrder({
+          symbol: symbol.toUpperCase(),
+          side: side,
+          type: 'MARKET',
+          quantity: quantity,
+        })
+        .pipe(takeUntilDestroyed(this.destroyRef))
+        .subscribe({
+          next: (res) => {
+            this.fetchPositions();
+            this.fetchOpenOrders();
           },
-          { emitEvent: false },
-        );
-      }
-    });
-  }
-
-  updateOpenOrdersInForm(orders: any[]) {
-    const ordersBySymbol: Record<string, any[]> = {};
-    orders.forEach((o) => {
-      const symLower = o.symbol.toLowerCase();
-      if (!ordersBySymbol[symLower]) ordersBySymbol[symLower] = [];
-      ordersBySymbol[symLower].push(o);
-    });
-
-    this.tradesArray.controls.forEach((ctrl) => {
-      const symbol = (ctrl.value.symbol || '').toLowerCase();
-      const symbolOrders = ordersBySymbol[symbol] || [];
-
-      // Find STOP_MARKET and TAKE_PROFIT_MARKET orders
-      const slOrder = symbolOrders.find((o) => o.orderType === 'STOP_MARKET' || o.orderType === 'STOP');
-      const tpOrder = symbolOrders.find((o) => o.orderType === 'TAKE_PROFIT_MARKET' || o.orderType === 'TAKE_PROFIT');
-
-      let slStr = '-';
-      let tpStr = '-';
-
-      const ep = parseFloat(ctrl.value.entryPrice) || 0;
-      const lev = parseFloat(ctrl.value.leverage) || 125;
-      const amt = parseFloat(ctrl.value.positionAmt) || 0;
-      const sign = amt > 0 ? 1 : amt < 0 ? -1 : 0;
-
-      if (slOrder) {
-        const slPrice = parseFloat(slOrder.triggerPrice);
-        slStr = slPrice.toLocaleString('en-US', { maximumFractionDigits: 7 });
-        if (ep > 0 && sign !== 0) {
-          const roePercent = ((slPrice - ep) / ep) * sign * lev * 100;
-          const formattedPct = parseFloat(roePercent.toFixed(2));
-          slStr += `/${formattedPct > 0 ? '+' : ''}${formattedPct}%`;
-        }
-      }
-
-      if (tpOrder) {
-        const tpPrice = parseFloat(tpOrder.triggerPrice);
-        tpStr = tpPrice.toLocaleString('en-US', { maximumFractionDigits: 7 });
-        if (ep > 0 && sign !== 0) {
-          const roePercent = ((tpPrice - ep) / ep) * sign * lev * 100;
-          const formattedPct = parseFloat(roePercent.toFixed(2));
-          tpStr += `/${formattedPct > 0 ? '+' : ''}${formattedPct}%`;
-        }
-      }
-
-      ctrl.patchValue(
-        {
-          stopLoss: slStr,
-          takeProfit: tpStr,
-        },
-        { emitEvent: false },
-      );
-    });
-  }
-
-  updatePositionInForm(
-    symbol: string,
-    ep: string | number,
-    up: string | number,
-    pa: string | number,
-  ) {
-    const symLower = (symbol || '').toLowerCase();
-    const ctrl = this.tradesArray.controls.find(
-      (c) => (c.value.symbol || '').toLowerCase() === symLower,
-    );
-
-    if (ctrl) {
-      const pnlNum = parseFloat(up as string) || 0;
-      const entryPriceNum = parseFloat(ep as string) || 0;
-      const rawPosAmt = parseFloat(pa as string) || 0;
-      const posAmtNum = Math.abs(rawPosAmt);
-
-      const leverage = ctrl.value.leverage || this.defaultLeverage;
-      let pnlPercentStr = '';
-
-      let formattedPnl = '';
-      if (posAmtNum > 0) {
-        const notional = posAmtNum * entryPriceNum;
-        const margin = notional / leverage;
-        const pct = margin > 0 ? (pnlNum / margin) * 100 : 0;
-        pnlPercentStr = (pct >= 0 ? '+' : '') + pct.toFixed(2) + '%';
-
-        const formatter = new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' });
-        formattedPnl = (pnlNum >= 0 ? '+' : '') + formatter.format(pnlNum);
-      } else {
-        pnlPercentStr = '0.00%';
-        formattedPnl = '$0.00';
-      }
-
-      ctrl.patchValue(
-        {
-          entryPrice: posAmtNum > 0 ? entryPriceNum.toString() : '0.00000',
-          pnl: formattedPnl,
-          pnlPercent: pnlPercentStr,
-          positionAmt: rawPosAmt,
-        },
-        { emitEvent: false },
-      );
+          error: (err) => console.error(err),
+        });
     }
   }
 
-  buy(data: FormGroup): void {
-    const { symbol, amount, price, leverage } = data.value;
-    const executionPrice = price || this.currentMarketPrice()(symbol);
-
-    if (!executionPrice) {
-      console.error('Price is zero, cannot calculate quantity');
-      return;
-    }
-
-    const quantity = Number(((amount * leverage) / executionPrice).toFixed(5));
-
-    this.binanceService
-      .placeOrder({
-        symbol: symbol.toUpperCase(),
-        side: 'BUY',
-        type: price ? 'LIMIT' : 'MARKET',
-        quantity: quantity,
-        price: price,
-      })
-      .subscribe({
-        next: (res) => console.log(res),
-        error: (err) => console.error(err),
-      });
-  }
-
-  sell(data: FormGroup): void {
-    const { symbol, amount, price, leverage } = data.value;
-    const executionPrice = price || this.currentMarketPrice()(symbol);
-
-    if (!executionPrice) {
-      console.error('Price is zero, cannot calculate quantity');
-      return;
-    }
-
-    const quantity = Number(((amount * leverage) / executionPrice).toFixed(5));
-
-    this.binanceService
-      .placeOrder({
-        symbol: symbol.toUpperCase(),
-        side: 'SELL',
-        type: price ? 'LIMIT' : 'MARKET',
-        quantity: quantity,
-        price: price,
-      })
-      .subscribe({
-        next: (res) => console.log(res),
-        error: (err) => console.error(err),
-      });
-  }
-
-  openRiskDialog(tradeGroup: FormGroup, type: 'STOP_LOSS' | 'TAKE_PROFIT') {
-    const amt = tradeGroup.value.positionAmt;
-    if (!amt || amt === 0) {
+  openRiskDialog(symbol: string, type: 'STOP_LOSS' | 'TAKE_PROFIT') {
+    const pos = this.compFuturePos()[symbol];
+    if (pos?.initialMargin?.toString() === '0') {
       alert('No active position to protect.');
       return;
     }
 
-    this.riskDialogSymbol = tradeGroup.value.symbol;
+    const ep = parseFloat(pos.entryPrice as string);
+    const amt = parseFloat(pos.positionAmt as string);
+    const lev = pos.leverage;
+
+    this.riskDialogSymbol = symbol;
     this.riskDialogType = type;
     this.riskDialogPrice = null;
     this.riskDialogSide = amt > 0 ? 'SELL' : 'BUY';
     this.isRiskDialogOpen = true;
 
-    // Retrieve live position stats from the form
     this.riskDialogPositionAmt = amt;
-    this.riskDialogEntryPrice = parseFloat(tradeGroup.value.entryPrice) || 0;
-    this.riskDialogLeverage = tradeGroup.value.leverage || this.defaultLeverage;
-
-    // Set default slider value and instantly compute target price and PnL
+    this.riskDialogEntryPrice = ep;
+    this.riskDialogLeverage = lev;
     this.riskDialogPercent = 50;
 
     this.updatePriceFromPercent();
   }
 
-  updatePriceFromPercent():void {
+  updatePriceFromPercent(): void {
     const roePercent =
       this.riskDialogType === 'STOP_LOSS'
         ? -Math.abs(this.riskDialogPercent)
@@ -418,7 +356,7 @@ export class TradesTerminal implements OnInit, OnDestroy {
     this.calculateEstimatedPnL(this.riskDialogPrice);
   }
 
-  updateFromPrice():void {
+  updateFromPrice(): void {
     if (!this.riskDialogPrice) {
       this.riskDialogEstimatedPnL = 0;
       this.riskDialogEstimatedPnLStr = '$0.00';
@@ -448,7 +386,7 @@ export class TradesTerminal implements OnInit, OnDestroy {
     this.riskDialogEstimatedPnLStr = formatter.format(Math.abs(this.riskDialogEstimatedPnL));
   }
 
-  submitRiskOrder():void {
+  submitRiskOrder(): void {
     if (!this.riskDialogPrice) return;
 
     const payload = {
@@ -458,25 +396,32 @@ export class TradesTerminal implements OnInit, OnDestroy {
       closePosition: true,
     };
 
-    const request$ =
-      this.riskDialogType === 'STOP_LOSS'
-        ? this.binanceService.stopLoss(payload)
-        : this.binanceService.takeProfit(payload);
-
-    request$.subscribe({
-      next: (res) => {
-        this.isRiskDialogOpen = false;
-        this.fetchOpenOrders();
-      },
-      error: (err) => console.error(err),
-    });
-  }
-
-  closePosition(tradeGroup: FormGroup): void {
-    console.log(1);
+    if (this.riskDialogType === 'STOP_LOSS') {
+      this.binanceService
+        .stopLoss(payload)
+        .pipe(takeUntilDestroyed(this.destroyRef))
+        .subscribe({
+          next: (res) => {
+            this.isRiskDialogOpen = false;
+            this.fetchOpenOrders();
+          },
+          error: (err) => console.error(err),
+        });
+    } else {
+      this.binanceService
+        .takeProfit(payload)
+        .pipe(takeUntilDestroyed(this.destroyRef))
+        .subscribe({
+          next: (res) => {
+            this.isRiskDialogOpen = false;
+            this.fetchOpenOrders();
+          },
+          error: (err) => console.error(err),
+        });
+    }
   }
 
   startBot(index: number): void {
-    const tradeData = this.tradesArray.at(index).value;
+    const tradeData = this.tradesFormArray.at(index).value;
   }
 }

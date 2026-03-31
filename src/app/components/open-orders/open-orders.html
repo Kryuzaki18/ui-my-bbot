@@ -33,6 +33,7 @@
     <p-table [value]="openOrders" class="p-datatable-sm mt-2">
       <ng-template pTemplate="header">
         <tr class="text-left text-sm text-gray-400 font-medium">
+          <th>Date</th>
           <th>Symbol</th>
           <th>Side</th>
           <th>Type</th>
@@ -44,6 +45,9 @@
       </ng-template>
       <ng-template pTemplate="body" let-order>
         <tr class="border-b border-gray-800 hover:bg-gray-800 transition-colors">
+          <td class="text-xs py-2 text-gray-400">
+            {{ order.updateTime || order.time | date: 'MMMM d h:mma' }}
+          </td>
           <td class="jetbrains-bold text-sm py-2">{{ order.symbol }}</td>
           <td class="text-sm py-2">
             <span
