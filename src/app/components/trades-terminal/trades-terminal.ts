@@ -141,11 +141,34 @@ export class TradesTerminal implements OnInit {
             (order) => order.symbol.toLowerCase() === sym && order?.orderType === 'STOP_MARKET',
           );
 
+          let formatEntryPrice = parseFloat(position.entryPrice as string);
+          let formatAmount = parseFloat(position.positionAmt as string);
+
           if (tpOrder) {
             position.takeProfit = tpOrder.triggerPrice;
+            const formatTriggerPrice = parseFloat(tpOrder?.triggerPrice as string) || 0;
+            const { pnl, pnlStr, pnlPercent } = this.calculateEstimatedPnL(
+              formatEntryPrice,
+              formatTriggerPrice,
+              formatAmount,
+              position.leverage,
+            );
+
+            position.takeProfitPnl = pnlStr;
+            position.takeProfitPnlPercent = pnlPercent + '%';
           }
           if (slOrder) {
             position.stopLoss = slOrder.triggerPrice;
+            const formatTriggerPrice = parseFloat(slOrder?.triggerPrice as string) || 0;
+            const { pnl, pnlStr, pnlPercent } = this.calculateEstimatedPnL(
+              formatEntryPrice,
+              formatTriggerPrice,
+              formatAmount,
+              position.leverage,
+            );
+
+            position.stopLossPnl = pnlStr;
+            position.stopLossPnlPercent = pnlPercent + '%';
           }
           positions[sym] = { ...position, symbol: sym };
         }
@@ -344,23 +367,32 @@ export class TradesTerminal implements OnInit {
   }
 
   updatePriceFromPercent(): void {
-    const roiPercent =
+    const roePercent =
       this.riskDialogType === 'STOP_MARKET'
         ? -Math.abs(this.riskDialogPercent)
         : Math.abs(this.riskDialogPercent);
-    const roeFraction = roiPercent / 100;
+    const roeFraction = roePercent / 100;
 
-    const ep = this.riskDialogEntryPrice;
-    const lev = this.riskDialogLeverage;
-    const amt = this.riskDialogPositionAmt;
-    const sign = amt > 0 ? 1 : -1;
+    const entryPrice = this.riskDialogEntryPrice;
+    const leverage = this.riskDialogLeverage;
+    const amount = this.riskDialogPositionAmt;
+    const sign = amount > 0 ? 1 : -1;
 
     // Target Price = Entry + ROE * (Entry / Leverage) * sign
-    const targetPrice = ep + roeFraction * (ep / lev) * sign;
+    const targetPrice = entryPrice + roeFraction * (entryPrice / leverage) * sign;
 
     // Safety check for absolute 0
     this.riskDialogPrice = Math.max(Number(targetPrice.toFixed(5)), 0);
-    this.calculateEstimatedPnL(this.riskDialogPrice);
+
+    const { pnl, pnlStr, pnlPercent } = this.calculateEstimatedPnL(
+      entryPrice,
+      this.riskDialogPrice,
+      amount,
+      leverage,
+    );
+    this.riskDialogEstimatedPnL = pnl;
+    this.riskDialogEstimatedPnLStr = pnlStr;
+    this.riskDialogPercent = pnlPercent || 50;
   }
 
   updateFromPrice(): void {
@@ -370,27 +402,42 @@ export class TradesTerminal implements OnInit {
       return;
     }
     const price = this.riskDialogPrice;
-    const ep = this.riskDialogEntryPrice;
-    const lev = this.riskDialogLeverage;
-    const amt = this.riskDialogPositionAmt;
+    const entryPrice = this.riskDialogEntryPrice;
+    const leverage = this.riskDialogLeverage;
+    const amount = this.riskDialogPositionAmt;
 
-    this.calculateEstimatedPnL(price);
-
-    const margin = (Math.abs(amt) * ep) / lev;
-    if (margin > 0) {
-      const roeFraction = this.riskDialogEstimatedPnL / margin;
-      const absPercent = Math.abs(roeFraction * 100);
-      this.riskDialogPercent = Math.max(Math.round(absPercent), 1);
-    }
+    const { pnl, pnlStr, pnlPercent } = this.calculateEstimatedPnL(
+      entryPrice,
+      price,
+      amount,
+      leverage,
+    );
+    this.riskDialogEstimatedPnL = pnl;
+    this.riskDialogEstimatedPnLStr = pnlStr;
+    this.riskDialogPercent = pnlPercent || 50;
   }
 
-  calculateEstimatedPnL(targetPrice: number): void {
-    const ep = this.riskDialogEntryPrice;
-    const amt = this.riskDialogPositionAmt;
-    this.riskDialogEstimatedPnL = (targetPrice - ep) * amt;
+  calculateEstimatedPnL(
+    entryPrice: number,
+    targetPrice: number,
+    amount: number,
+    leverage: number,
+  ): { pnl: number; pnlStr: string; pnlPercent: number } {
+    const pnl = (targetPrice - entryPrice) * amount;
 
     const formatter = new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' });
-    this.riskDialogEstimatedPnLStr = formatter.format(Math.abs(this.riskDialogEstimatedPnL));
+    const pnlStr = formatter.format(Math.abs(pnl));
+
+    const margin = (Math.abs(amount) * entryPrice) / leverage;
+
+    let pnlPercent = 0;
+    if (margin > 0) {
+      const roeFraction = pnl / margin;
+      const absPercent = Math.abs(roeFraction * 100);
+      pnlPercent = Math.max(Math.round(absPercent), 1);
+    }
+
+    return { pnl, pnlStr, pnlPercent };
   }
 
   submitRiskOrder(): void {

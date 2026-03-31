@@ -4,10 +4,14 @@ export interface FuturePosition {
   entryPrice: string;
   initialMargin: string;
   positionAmt: string;
-  pnl: string;
-  pnlPercent: string;
-  stopLoss: string;
-  takeProfit: string;
+  pnl?: string;
+  pnlPercent?: string;
+  stopLoss?: string;
+  stopLossPnl?: string;
+  stopLossPnlPercent?: string;
+  takeProfit?: string;
+  takeProfitPnl?: string;
+  takeProfitPnlPercent?: string;
   updateTime: string;
 }
 
