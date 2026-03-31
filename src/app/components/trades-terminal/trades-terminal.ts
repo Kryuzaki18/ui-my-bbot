@@ -54,12 +54,10 @@ export class TradesTerminal implements OnInit {
 
   readonly defaultAmount = 5;
   readonly defaultLeverage = 125;
-  readonly defaultStopLoss = null;
-  readonly defaultTakeProfit = null;
   readonly prices = input<Record<string, BinanceWsPrice[]>>({});
 
   isRiskDialogOpen = false;
-  riskDialogType: 'STOP_LOSS' | 'TAKE_PROFIT' = 'STOP_LOSS';
+  riskDialogType: 'STOP_MARKET' | 'TAKE_PROFIT_MARKET' = 'STOP_MARKET';
   riskDialogSymbol = '';
   riskDialogPrice: number | null = null;
   riskDialogSide: 'BUY' | 'SELL' = 'BUY';
@@ -108,8 +106,8 @@ export class TradesTerminal implements OnInit {
       const margin = notional / lev;
       const pct = margin > 0 ? (pnl / margin) * 100 : 0;
 
-      const pnlPercentStr = (pct > 0 ? '+' : '') + pct.toFixed(2);
-      const formattedPnl = (pnl > 0 ? '+' : '') + pnl.toFixed(2);
+      const pnlPercentStr = pct.toFixed(2);
+      const formattedPnl = pnl.toFixed(2);
 
       return { pnl: formattedPnl, pnlPercent: pnlPercentStr };
     };
@@ -248,7 +246,7 @@ export class TradesTerminal implements OnInit {
   }
 
   placeOrder(data: FormGroup, side: 'BUY' | 'SELL'): void {
-    const { symbol, amount, price, leverage } = data.value;
+    const { symbol, amount, price, leverage, stopLoss, takeProfit } = data.value;
     const executionPrice = price || this.currentMarketPrice()(symbol);
 
     if (!executionPrice) {
@@ -258,15 +256,17 @@ export class TradesTerminal implements OnInit {
 
     const quantity = Number(((amount * leverage) / executionPrice).toFixed(5));
 
+    const params = {
+      symbol: symbol.toUpperCase(),
+      side,
+      type: price ? 'LIMIT' : 'MARKET',
+      quantity,
+      price,
+      leverage,
+    };
+
     this.binanceService
-      .placeOrder({
-        symbol: symbol.toUpperCase(),
-        side: side,
-        type: price ? 'LIMIT' : 'MARKET',
-        quantity: quantity,
-        price: price,
-        // leverage: leverage,
-      })
+      .placeOrder(params)
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
         next: (res) => {
@@ -311,37 +311,39 @@ export class TradesTerminal implements OnInit {
     }
   }
 
-  openRiskDialog(symbol: string, type: 'STOP_LOSS' | 'TAKE_PROFIT') {
+  openRiskDialog(
+    symbol: string,
+    type: 'STOP_MARKET' | 'TAKE_PROFIT_MARKET',
+    price: string | undefined,
+  ) {
     const pos = this.compFuturePos()[symbol];
     if (pos?.initialMargin?.toString() === '0') {
-      alert('No active position to protect.');
       return;
     }
 
-    const ep = parseFloat(pos.entryPrice as string);
+    const sltpPrice = parseFloat(price as string);
     const amt = parseFloat(pos.positionAmt as string);
     const lev = pos.leverage;
 
     this.riskDialogSymbol = symbol;
     this.riskDialogType = type;
-    this.riskDialogPrice = null;
+    this.riskDialogPrice = sltpPrice;
     this.riskDialogSide = amt > 0 ? 'SELL' : 'BUY';
     this.isRiskDialogOpen = true;
 
     this.riskDialogPositionAmt = amt;
-    this.riskDialogEntryPrice = ep;
-    this.riskDialogLeverage = lev;
-    this.riskDialogPercent = 50;
+    this.riskDialogEntryPrice = parseFloat(pos.entryPrice as string);
+    this.riskDialogLeverage = pos.leverage;
 
-    this.updatePriceFromPercent();
+    this.updateFromPrice();
   }
 
   updatePriceFromPercent(): void {
-    const roePercent =
-      this.riskDialogType === 'STOP_LOSS'
+    const roiPercent =
+      this.riskDialogType === 'STOP_MARKET'
         ? -Math.abs(this.riskDialogPercent)
         : Math.abs(this.riskDialogPercent);
-    const roeFraction = roePercent / 100;
+    const roeFraction = roiPercent / 100;
 
     const ep = this.riskDialogEntryPrice;
     const lev = this.riskDialogLeverage;
@@ -396,7 +398,7 @@ export class TradesTerminal implements OnInit {
       closePosition: true,
     };
 
-    if (this.riskDialogType === 'STOP_LOSS') {
+    if (this.riskDialogType === 'STOP_MARKET') {
       this.binanceService
         .stopLoss(payload)
         .pipe(takeUntilDestroyed(this.destroyRef))

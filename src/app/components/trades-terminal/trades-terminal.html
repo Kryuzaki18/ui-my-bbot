@@ -211,7 +211,7 @@
                 </div>
               </div>
 
-              <div class="flex justify-between items-center">
+              <div class="flex justify-between items-center border-b border-gray-700 border-dashed">
                 <span class="text-xs text-gray-500">Stop Loss:</span>
                 <div class="flex justify-between items-center">
                   <span class="text-xs text-red-300">{{
@@ -223,12 +223,18 @@
                     [text]="true"
                     size="small"
                     severity="danger"
-                    (click)="openRiskDialog(tradeGroup.value.symbol, 'STOP_LOSS')"
+                    (click)="
+                      openRiskDialog(
+                        tradeGroup.value.symbol,
+                        'STOP_MARKET',
+                        futurePosition?.stopLoss
+                      )
+                    "
                   />
                 </div>
               </div>
 
-              <div class="flex justify-between items-center">
+              <div class="flex justify-between items-center border-b border-gray-700 border-dashed">
                 <span class="text-xs text-gray-500">Take Profit:</span>
                 <div class="flex justify-between items-center">
                   <span class="text-xs text-emerald-300">{{
@@ -239,7 +245,13 @@
                     [rounded]="true"
                     [text]="true"
                     size="small"
-                    (click)="openRiskDialog(tradeGroup.value.symbol, 'TAKE_PROFIT')"
+                    (click)="
+                      openRiskDialog(
+                        tradeGroup.value.symbol,
+                        'TAKE_PROFIT_MARKET',
+                        futurePosition?.takeProfit
+                      )
+                    "
                   />
                 </div>
               </div>
@@ -263,7 +275,7 @@
 </form>
 
 <p-dialog
-  [header]="riskDialogType === 'STOP_LOSS' ? 'Set Stop Loss' : 'Set Take Profit'"
+  [header]="riskDialogType === 'STOP_MARKET' ? 'Set Stop Loss' : 'Set Take Profit'"
   [modal]="true"
   [(visible)]="isRiskDialogOpen"
   [style]="{ width: '30rem' }"
