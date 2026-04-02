@@ -78,6 +78,9 @@ export class TradesTerminal implements OnInit {
   futurePos = signal<FuturePosition[]>([]);
   openOrders = signal<OpenOrder[]>([]);
 
+  orderTypeEnum = OrderTypeEnum;
+  orderSideEnum = OrderSideEnum;
+
   tradesForm = this.formBuilder.group({
     trades: this.formBuilder.array<FormGroup>([]),
   });
@@ -286,7 +289,7 @@ export class TradesTerminal implements OnInit {
     const params = {
       symbol: symbol.toUpperCase(),
       side,
-      type: price ? 'LIMIT' : 'MARKET',
+      type: price ? OrderTypeEnum.LIMIT : OrderTypeEnum.MARKET,
       quantity,
       price,
       leverage,

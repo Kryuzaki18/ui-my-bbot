@@ -1,7 +1,7 @@
 export const environment = {
-  binanceFutureRestBaseUrl: 'https://fapi.binance.com',
-  binanceFutureWebSocketBaseUrl: 'wss://fstream.binance.com/ws',
-  binanceSpotRestBaseUrl: 'https://api.binance.com',
-  binanceSpotWebSocketBaseUrl: 'wss://stream.binance.com:9443/ws',
+  binanceFutureRestBaseUrl: 'https://testnet.binancefuture.com',
+  binanceFutureWebSocketBaseUrl: 'https://testnet.binancefuture.com/fapi/v1/order',
+  binanceSpotRestBaseUrl: 'https://testnet.binance.vision',
+  binanceSpotWebSocketBaseUrl: 'wss://testnet.binance.vision/ws',
   apiTradingBotUrl: 'http://127.0.0.1:3000'
 };

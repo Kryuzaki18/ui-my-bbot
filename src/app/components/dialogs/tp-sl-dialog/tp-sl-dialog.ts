@@ -32,21 +32,23 @@ import { DynamicDialogConfig, DynamicDialogRef } from 'primeng/dynamicdialog';
   styleUrl: './tp-sl-dialog.scss',
 })
 export class TpSlDialog implements OnInit {
-  tpslData: FuturePosition | null = null;
+  private tradeService = inject(TradeService);
+  private config = inject(DynamicDialogConfig);
+  private ref = inject(DynamicDialogRef);
 
+  private readonly defaultPntStr = '$0.00';
+  private readonly defaultPntPercent = 50;
+
+  tpslData: FuturePosition | null = null;
   riskDialogSymbol = '';
   riskDialogPrice: number | null = null;
   riskDialogType: OrderTypeEnum = OrderTypeEnum.STOP_MARKET;
   riskDialogSide: OrderSideEnum = OrderSideEnum.BUY;
-  riskDialogPercent: number = 0;
+  riskDialogPercent: number = this.defaultPntPercent;
   riskDialogEntryPrice: number = 0;
   riskDialogPositionAmt: number = 0;
   riskDialogLeverage: number = 1;
-  riskDialogEstimatedPnLStr: string = '$0.00';
-
-  private ref = inject(DynamicDialogRef);
-  private tradeService = inject(TradeService);
-  private config = inject(DynamicDialogConfig);
+  riskDialogEstimatedPnLStr: string = this.defaultPntStr;
 
   ngOnInit(): void {
     this.tpslData = this.config.data;
@@ -63,12 +65,12 @@ export class TpSlDialog implements OnInit {
 
     if (this.isOrderSell()) {
       this.riskDialogPrice = stoploss || null;
-      this.riskDialogPercent = this.tpslData?.stopLossPnlPercent || 50;
-      this.riskDialogEstimatedPnLStr   = this.tpslData?.stopLossPnl || '$0.00';
+      this.riskDialogPercent = this.tpslData?.stopLossPnlPercent || this.defaultPntPercent;
+      this.riskDialogEstimatedPnLStr   = this.tpslData?.stopLossPnl || this.defaultPntStr;
     } else {
       this.riskDialogPrice = takeprofit || null;
-      this.riskDialogPercent = this.tpslData?.takeProfitPnlPercent || 50;
-      this.riskDialogEstimatedPnLStr = this.tpslData?.takeProfitPnl || '$0.00';
+      this.riskDialogPercent = this.tpslData?.takeProfitPnlPercent || this.defaultPntPercent;
+      this.riskDialogEstimatedPnLStr = this.tpslData?.takeProfitPnl || this.defaultPntStr;
     }
 
     if (!this.riskDialogPrice) {
@@ -102,12 +104,12 @@ export class TpSlDialog implements OnInit {
     );
     
     this.riskDialogEstimatedPnLStr = pnlStr;
-    this.riskDialogPercent = pnlPercent || 50;
+    this.riskDialogPercent = pnlPercent || this.defaultPntPercent;
   }
 
   updateFromPrice(): void {
     if (!this.riskDialogPrice) {
-      this.riskDialogEstimatedPnLStr = '$0.00';
+      this.riskDialogEstimatedPnLStr = this.defaultPntStr;
       this.riskDialogPercent = 0;
       return;
     }
@@ -124,7 +126,7 @@ export class TpSlDialog implements OnInit {
       leverage,
     );
     this.riskDialogEstimatedPnLStr = pnlStr;
-    this.riskDialogPercent = pnlPercent || 50;
+    this.riskDialogPercent = pnlPercent || this.defaultPntPercent;
   }
 
   confirmOrder(): void {

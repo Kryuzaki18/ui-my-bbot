@@ -145,7 +145,7 @@
 
           <div class="flex items-center gap-1 w-full">
             <button
-              (click)="placeOrder(tradeGroup, 'BUY')"
+              (click)="placeOrder(tradeGroup, orderSideEnum.BUY)"
               type="button"
               class="w-1/2 bg-green-700 text-white cursor-pointer rounded text-sm py-1"
               [ngClass]="{
@@ -155,7 +155,7 @@
               Buy
             </button>
             <button
-              (click)="placeOrder(tradeGroup, 'SELL')"
+              (click)="placeOrder(tradeGroup, orderSideEnum.SELL)"
               type="button"
               class="w-1/2 bg-red-700 text-white cursor-pointer rounded text-sm py-1"
               [ngClass]="{
@@ -234,7 +234,7 @@
                     [text]="true"
                     size="small"
                     severity="danger"
-                    (click)="openTPSLDialog(tradeGroup.value.symbol, 'STOP_MARKET')"
+                    (click)="openTPSLDialog(tradeGroup.value.symbol, orderTypeEnum.STOP_MARKET)"
                   />
                 </div>
               </div>
@@ -244,7 +244,7 @@
                 <div class="flex justify-between items-center">
                   @if (futurePosition?.takeProfit) {
                     <div class="flex flex-col items-end">
-                      <span class="text-xs text-red-300">{{
+                      <span class="text-xs text-emerald-200">{{
                         futurePosition?.takeProfit | number: '1.0-7'
                       }}</span>
                       <span class="text-[11px] text-emerald-400"
@@ -259,7 +259,9 @@
                     [rounded]="true"
                     [text]="true"
                     size="small"
-                    (click)="openTPSLDialog(tradeGroup.value.symbol, 'TAKE_PROFIT_MARKET')"
+                    (click)="
+                      openTPSLDialog(tradeGroup.value.symbol, orderTypeEnum.TAKE_PROFIT_MARKET)
+                    "
                   />
                 </div>
               </div>
