@@ -4,21 +4,30 @@ export interface FuturePosition {
   entryPrice: string;
   initialMargin: string;
   positionAmt: string;
+  createTime: string;
+  updateTime: string;
   pnl?: string;
   pnlPercent?: string;
   stopLoss?: string;
   stopLossPnl?: string;
-  stopLossPnlPercent?: string;
+  stopLossPnlPercent?: number;
   takeProfit?: string;
   takeProfitPnl?: string;
-  takeProfitPnlPercent?: string;
-  updateTime: string;
+  takeProfitPnlPercent?: number;
 }
 
-export type OrderType = 'STOP_MARKET' | 'TAKE_PROFIT_MARKET';
+export enum OrderSideEnum {
+  BUY = 'BUY',
+  SELL = 'SELL',
+}
+
+export enum OrderTypeEnum {
+  STOP_MARKET = 'STOP_MARKET',
+  TAKE_PROFIT_MARKET = 'TAKE_PROFIT_MARKET',
+}
 
 export interface OpenOrder {
-  orderType: OrderType;
+  orderType: OrderTypeEnum;
   triggerPrice: string;
   side: string;
   symbol: string;

@@ -221,7 +221,7 @@
                         futurePosition?.stopLoss | number: '1.0-7'
                       }}</span>
                       <span class="text-[11px] text-red-400"
-                        >-{{ futurePosition?.stopLossPnlPercent }} / -{{
+                        >-{{ futurePosition?.stopLossPnlPercent }}% / -{{
                           futurePosition?.stopLossPnl
                         }}</span
                       >
@@ -234,13 +234,7 @@
                     [text]="true"
                     size="small"
                     severity="danger"
-                    (click)="
-                      openRiskDialog(
-                        tradeGroup.value.symbol,
-                        'STOP_MARKET',
-                        futurePosition?.stopLoss
-                      )
-                    "
+                    (click)="openTPSLDialog(tradeGroup.value.symbol, 'STOP_MARKET')"
                   />
                 </div>
               </div>
@@ -254,7 +248,7 @@
                         futurePosition?.takeProfit | number: '1.0-7'
                       }}</span>
                       <span class="text-[11px] text-emerald-400"
-                        >+{{ futurePosition?.takeProfitPnlPercent }} / +
+                        >+{{ futurePosition?.takeProfitPnlPercent }}% / +
                         {{ futurePosition?.takeProfitPnl }}</span
                       >
                     </div>
@@ -265,13 +259,7 @@
                     [rounded]="true"
                     [text]="true"
                     size="small"
-                    (click)="
-                      openRiskDialog(
-                        tradeGroup.value.symbol,
-                        'TAKE_PROFIT_MARKET',
-                        futurePosition?.takeProfit
-                      )
-                    "
+                    (click)="openTPSLDialog(tradeGroup.value.symbol, 'TAKE_PROFIT_MARKET')"
                   />
                 </div>
               </div>
@@ -293,168 +281,3 @@
     }
   </ng-container>
 </form>
-
-<p-dialog
-  [header]="riskDialogType === 'STOP_MARKET' ? 'Set Stop Loss' : 'Set Take Profit'"
-  [modal]="true"
-  [(visible)]="isRiskDialogOpen"
-  [style]="{ width: '30rem' }"
->
-  <span class="p-text-secondary block mb-5 text-gray-400">
-    Enter the trigger price to exactly close out your {{ riskDialogSymbol }}
-    {{ riskDialogSide === 'SELL' ? 'Long' : 'Short' }} position.
-  </span>
-
-  <div class="flex flex-col gap-3 bg-gray-900/90 p-2 mb-2 rounded">
-    <label class="font-semibold text-gray-400 text-center">Target</label>
-
-    <div class="flex items-center gap-3">
-      <div class="flex-auto flex items-center gap-4">
-        <p-slider
-          class="w-full flex-auto"
-          [(ngModel)]="riskDialogPercent"
-          (ngModelChange)="updatePriceFromPercent()"
-          [min]="1"
-          [max]="500"
-        ></p-slider>
-
-        <p-floatlabel variant="on" styleClass="w-20">
-          <p-inputnumber
-            [(ngModel)]="riskDialogPercent"
-            (ngModelChange)="updatePriceFromPercent()"
-            inputId="target-percent"
-            [min]="1"
-            [max]="500"
-            [minlength]="1"
-            [maxlength]="3"
-            [inputSize]="8"
-            [showClear]="true"
-            suffix="%"
-            size="small"
-          />
-          <label for="target-percent">Input %</label>
-        </p-floatlabel>
-      </div>
-    </div>
-
-    <div class="flex flex-col">
-      <div class="flex flex-wrap gap-4">
-        <div class="flex items-center gap-1">
-          <p-radiobutton
-            value="10"
-            [(ngModel)]="riskDialogPercent"
-            inputId="ten-percent"
-            size="small"
-            (ngModelChange)="updatePriceFromPercent()"
-          />
-          <label for="ten-percent" class="text-xs cursor-pointer">10%</label>
-        </div>
-        <div class="flex items-center gap-1">
-          <p-radiobutton
-            value="25"
-            [(ngModel)]="riskDialogPercent"
-            inputId="twentyfive-percent"
-            size="small"
-            (ngModelChange)="updatePriceFromPercent()"
-          />
-          <label for="twentyfive-percent" class="text-xs cursor-pointer">25%</label>
-        </div>
-        <div class="flex items-center gap-1">
-          <p-radiobutton
-            value="50"
-            [(ngModel)]="riskDialogPercent"
-            inputId="fifty-percent"
-            size="small"
-            (ngModelChange)="updatePriceFromPercent()"
-          />
-          <label for="fifty-percent" class="text-xs cursor-pointer">50%</label>
-        </div>
-
-        <div class="flex items-center gap-1">
-          <p-radiobutton
-            value="75"
-            [(ngModel)]="riskDialogPercent"
-            inputId="seventyfive-percent"
-            size="small"
-            (ngModelChange)="updatePriceFromPercent()"
-          />
-          <label for="seventyfive-percent" class="text-xs cursor-pointer">75%</label>
-        </div>
-
-        <div class="flex items-center gap-1">
-          <p-radiobutton
-            value="100"
-            [(ngModel)]="riskDialogPercent"
-            inputId="hundred-percent"
-            size="small"
-            (ngModelChange)="updatePriceFromPercent()"
-          />
-          <label for="hundred-percent" class="text-xs cursor-pointer">100%</label>
-        </div>
-        <div class="flex items-center gap-1">
-          <p-radiobutton
-            value="200"
-            [(ngModel)]="riskDialogPercent"
-            inputId="twohundred-percent"
-            size="small"
-            (ngModelChange)="updatePriceFromPercent()"
-          />
-          <label for="twohundred-percent" class="text-xs cursor-pointer">200%</label>
-        </div>
-        <div class="flex items-center gap-1">
-          <p-radiobutton
-            value="500"
-            [(ngModel)]="riskDialogPercent"
-            inputId="fivehundred-percent"
-            size="small"
-            (ngModelChange)="updatePriceFromPercent()"
-          />
-          <label for="fivehundred-percent" class="text-xs cursor-pointer">500%</label>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <div class="flex items-center gap-3 mb-1">
-    <label for="triggerPrice" class="font-semibold w-24 text-gray-400"
-      >Price
-
-      <span class="pi pi-arrow-right" style="font-size: 0.75rem"></span>
-    </label>
-    <p-inputnumber
-      id="triggerPrice"
-      [(ngModel)]="riskDialogPrice"
-      (ngModelChange)="updateFromPrice()"
-      [ngModelOptions]="{ standalone: true }"
-      mode="decimal"
-      [minFractionDigits]="0"
-      [maxFractionDigits]="7"
-      class="flex-auto w-full"
-      autocomplete="off"
-    />
-  </div>
-
-  <div class="flex justify-between items-center px-1 mb-2">
-    <div class="w-24"></div>
-    <div
-      class="text-xs font-semibold"
-      [class.text-red-500]="riskDialogEstimatedPnL < 0"
-      [class.text-green-500]="riskDialogEstimatedPnL > 0"
-    >
-      Estimated {{ riskDialogEstimatedPnL < 0 ? 'Loss' : 'Profit' }}:
-      {{ riskDialogEstimatedPnL < 0 ? '-' : riskDialogEstimatedPnL > 0 ? '+' : ''
-      }}{{ riskDialogEstimatedPnLStr }}
-    </div>
-  </div>
-
-  <div class="flex justify-end gap-2 mt-5 border-t border-gray-700 pt-4 border-dashed">
-    <p-button label="Cancel" severity="secondary" size="small" (click)="isRiskDialogOpen = false" />
-    <p-button
-      label="Confirm Order"
-      severity="success"
-      size="small"
-      (click)="submitRiskOrder()"
-      [disabled]="!riskDialogPrice || riskDialogPrice <= 0"
-    />
-  </div>
-</p-dialog>

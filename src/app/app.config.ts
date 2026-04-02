@@ -7,7 +7,7 @@ import { routes } from './app.routes';
 import Aura from '@primeuix/themes/aura';
 import { providePrimeNG } from 'primeng/config';
 import { DialogService } from 'primeng/dynamicdialog';
-import { MessageService } from 'primeng/api';
+import { ConfirmationService, MessageService } from 'primeng/api';
 
 export const appConfig: ApplicationConfig = {
   providers: [
@@ -21,5 +21,6 @@ export const appConfig: ApplicationConfig = {
     }),
     DialogService,
     MessageService,
+    ConfirmationService,
   ]
 };

@@ -12,9 +12,18 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
 // Services
 import { BinanceService, BinanceWsPrice } from '../../core/services/binance.service';
+import { TradeService } from '../../core/services/trade-service';
 
 // Models
-import { FuturePosition, OpenOrder } from '../../core/models/trades.model';
+import {
+  FuturePosition,
+  OpenOrder,
+  OrderSideEnum,
+  OrderTypeEnum,
+} from '../../core/models/trades.model';
+
+// Components
+import { TpSlDialog } from '../dialogs/tp-sl-dialog/tp-sl-dialog';
 
 // PrimeNG Modules
 import { SliderModule } from 'primeng/slider';
@@ -26,6 +35,8 @@ import { InputNumberModule } from 'primeng/inputnumber';
 import { DialogModule } from 'primeng/dialog';
 import { CheckboxModule } from 'primeng/checkbox';
 import { RadioButtonModule } from 'primeng/radiobutton';
+import { DialogService, DynamicDialogModule, DynamicDialogRef } from 'primeng/dynamicdialog';
+import { ConfirmationService } from 'primeng/api';
 
 @Component({
   selector: 'app-trades-terminal',
@@ -44,6 +55,7 @@ import { RadioButtonModule } from 'primeng/radiobutton';
     DialogModule,
     CheckboxModule,
     RadioButtonModule,
+    DynamicDialogModule,
   ],
   templateUrl: './trades-terminal.html',
   styleUrl: './trades-terminal.scss',
@@ -51,22 +63,16 @@ import { RadioButtonModule } from 'primeng/radiobutton';
 export class TradesTerminal implements OnInit {
   formBuilder = inject(FormBuilder);
   binanceService = inject(BinanceService);
+  confirmationService = inject(ConfirmationService);
+  tradeService = inject(TradeService);
+
+  private dialogService = inject(DialogService);
+  private destroyRef = inject(DestroyRef);
+  private dialogRef: DynamicDialogRef | null = null;
 
   readonly defaultAmount = 5;
   readonly defaultLeverage = 125;
   readonly prices = input<Record<string, BinanceWsPrice[]>>({});
-
-  isRiskDialogOpen = false;
-  riskDialogType: 'STOP_MARKET' | 'TAKE_PROFIT_MARKET' = 'STOP_MARKET';
-  riskDialogSymbol = '';
-  riskDialogPrice: number | null = null;
-  riskDialogSide: 'BUY' | 'SELL' = 'BUY';
-  riskDialogPercent: number = 50;
-  riskDialogEntryPrice: number = 0;
-  riskDialogPositionAmt: number = 0;
-  riskDialogLeverage: number = 1;
-  riskDialogEstimatedPnL: number = 0;
-  riskDialogEstimatedPnLStr: string = '$0.00';
 
   futureSymbols = input<string[]>([]);
   futurePos = signal<FuturePosition[]>([]);
@@ -135,10 +141,12 @@ export class TradesTerminal implements OnInit {
           const orders = this.openOrders();
           const tpOrder = orders?.find(
             (order) =>
-              order.symbol.toLowerCase() === sym && order?.orderType === 'TAKE_PROFIT_MARKET',
+              order.symbol.toLowerCase() === sym &&
+              order?.orderType === OrderTypeEnum.TAKE_PROFIT_MARKET,
           );
           const slOrder = orders?.find(
-            (order) => order.symbol.toLowerCase() === sym && order?.orderType === 'STOP_MARKET',
+            (order) =>
+              order.symbol.toLowerCase() === sym && order?.orderType === OrderTypeEnum.STOP_MARKET,
           );
 
           let formatEntryPrice = parseFloat(position.entryPrice as string);
@@ -147,7 +155,7 @@ export class TradesTerminal implements OnInit {
           if (tpOrder) {
             position.takeProfit = tpOrder.triggerPrice;
             const formatTriggerPrice = parseFloat(tpOrder?.triggerPrice as string) || 0;
-            const { pnl, pnlStr, pnlPercent } = this.calculateEstimatedPnL(
+            const { pnlStr, pnlPercent } = this.tradeService.calculateEstimatedPnL(
               formatEntryPrice,
               formatTriggerPrice,
               formatAmount,
@@ -155,12 +163,12 @@ export class TradesTerminal implements OnInit {
             );
 
             position.takeProfitPnl = pnlStr;
-            position.takeProfitPnlPercent = pnlPercent + '%';
+            position.takeProfitPnlPercent = pnlPercent;
           }
           if (slOrder) {
             position.stopLoss = slOrder.triggerPrice;
             const formatTriggerPrice = parseFloat(slOrder?.triggerPrice as string) || 0;
-            const { pnl, pnlStr, pnlPercent } = this.calculateEstimatedPnL(
+            const { pnlStr, pnlPercent } = this.tradeService.calculateEstimatedPnL(
               formatEntryPrice,
               formatTriggerPrice,
               formatAmount,
@@ -168,7 +176,7 @@ export class TradesTerminal implements OnInit {
             );
 
             position.stopLossPnl = pnlStr;
-            position.stopLossPnlPercent = pnlPercent + '%';
+            position.stopLossPnlPercent = pnlPercent;
           }
           positions[sym] = { ...position, symbol: sym };
         }
@@ -177,10 +185,6 @@ export class TradesTerminal implements OnInit {
 
     return positions;
   });
-
-  private destroyRef = inject(DestroyRef);
-
-  constructor() {}
 
   ngOnInit(): void {
     this.createTradeForm();
@@ -268,7 +272,7 @@ export class TradesTerminal implements OnInit {
     });
   }
 
-  placeOrder(data: FormGroup, side: 'BUY' | 'SELL'): void {
+  placeOrder(data: FormGroup, side: OrderSideEnum): void {
     const { symbol, amount, price, leverage, stopLoss, takeProfit } = data.value;
     const executionPrice = price || this.currentMarketPrice()(symbol);
 
@@ -307,172 +311,86 @@ export class TradesTerminal implements OnInit {
       return;
     }
 
-    const side = amt > 0 ? 'SELL' : 'BUY';
+    const side = amt > 0 ? OrderSideEnum.SELL : OrderSideEnum.BUY;
     const quantity = Math.abs(amt);
     const symbol = pos.symbol;
 
-    if (
-      confirm(
-        `Are you sure you want to close your ${side === 'SELL' ? 'Long' : 'Short'} position of ${quantity} ${symbol} at MARKET price?`,
-      )
-    ) {
-      this.binanceService
-        .placeOrder({
-          symbol: symbol.toUpperCase(),
-          side: side,
-          type: 'MARKET',
-          quantity: quantity,
-        })
-        .pipe(takeUntilDestroyed(this.destroyRef))
-        .subscribe({
-          next: (res) => {
-            this.fetchPositions();
-            this.fetchOpenOrders();
-          },
-          error: (err) => console.error(err),
-        });
-    }
+    this.confirmationService.confirm({
+      message: `Are you sure you want to close your ${side === OrderSideEnum.SELL ? 'Long' : 'Short'} position of ${symbol}?`,
+      header: 'Close Position?',
+      icon: 'pi pi-info-circle',
+      rejectLabel: 'Cancel',
+      rejectButtonProps: {
+        label: 'Cancel',
+        severity: 'secondary',
+        outlined: true,
+      },
+      acceptButtonProps: {
+        label: 'Confirm',
+        severity: side === OrderSideEnum.SELL ? 'success' : 'danger',
+        outlined: true,
+      },
+
+      accept: () => {
+        this.binanceService
+          .placeOrder({
+            symbol: symbol.toUpperCase(),
+            side: side,
+            type: 'MARKET',
+            quantity: quantity,
+          })
+          .pipe(takeUntilDestroyed(this.destroyRef))
+          .subscribe({
+            next: (res) => {
+              this.fetchPositions();
+              this.fetchOpenOrders();
+            },
+            error: (err) => console.error(err),
+          });
+      },
+      reject: () => {},
+    });
   }
 
-  openRiskDialog(
-    symbol: string,
-    type: 'STOP_MARKET' | 'TAKE_PROFIT_MARKET',
-    price: string | undefined,
-  ) {
+  openTPSLDialog(symbol: string, type: OrderTypeEnum) {
     const pos = this.compFuturePos()[symbol];
     if (pos?.initialMargin?.toString() === '0') {
       return;
     }
 
-    const sltpPrice = parseFloat(price as string) || parseFloat(pos.entryPrice as string);
-    const amt = parseFloat(pos.positionAmt as string);
-    const lev = pos.leverage;
+    this.dialogRef = this.dialogService.open(TpSlDialog, {
+      header: type === OrderTypeEnum.STOP_MARKET ? 'Set Stop Loss' : 'Set Take Profit',
+      data: { ...pos, type },
+      width: '500px',
+      modal: true,
+      breakpoints: {
+        '425px': '90%',
+      },
+    });
 
-    this.riskDialogSymbol = symbol;
-    this.riskDialogType = type;
-    this.riskDialogPrice = sltpPrice;
-    this.riskDialogSide = amt > 0 ? 'SELL' : 'BUY';
-    this.isRiskDialogOpen = true;
-
-    this.riskDialogPositionAmt = amt;
-    this.riskDialogEntryPrice = parseFloat(pos.entryPrice as string);
-    this.riskDialogLeverage = pos.leverage;
-
-    if (!price) {
-      this.riskDialogPercent = 50;
-      this.updatePriceFromPercent();
-    } else {
-      this.updateFromPrice();
-    }
-  }
-
-  updatePriceFromPercent(): void {
-    const roePercent =
-      this.riskDialogType === 'STOP_MARKET'
-        ? -Math.abs(this.riskDialogPercent)
-        : Math.abs(this.riskDialogPercent);
-    const roeFraction = roePercent / 100;
-
-    const entryPrice = this.riskDialogEntryPrice;
-    const leverage = this.riskDialogLeverage;
-    const amount = this.riskDialogPositionAmt;
-    const sign = amount > 0 ? 1 : -1;
-
-    // Target Price = Entry + ROE * (Entry / Leverage) * sign
-    const targetPrice = entryPrice + roeFraction * (entryPrice / leverage) * sign;
-
-    // Safety check for absolute 0
-    this.riskDialogPrice = Math.max(Number(targetPrice.toFixed(5)), 0);
-
-    const { pnl, pnlStr, pnlPercent } = this.calculateEstimatedPnL(
-      entryPrice,
-      this.riskDialogPrice,
-      amount,
-      leverage,
-    );
-    this.riskDialogEstimatedPnL = pnl;
-    this.riskDialogEstimatedPnLStr = pnlStr;
-    this.riskDialogPercent = pnlPercent || 50;
-  }
-
-  updateFromPrice(): void {
-    if (!this.riskDialogPrice) {
-      this.riskDialogEstimatedPnL = 0;
-      this.riskDialogEstimatedPnLStr = '$0.00';
-      return;
-    }
-    const price = this.riskDialogPrice;
-    const entryPrice = this.riskDialogEntryPrice;
-    const leverage = this.riskDialogLeverage;
-    const amount = this.riskDialogPositionAmt;
-
-    const { pnl, pnlStr, pnlPercent } = this.calculateEstimatedPnL(
-      entryPrice,
-      price,
-      amount,
-      leverage,
-    );
-    this.riskDialogEstimatedPnL = pnl;
-    this.riskDialogEstimatedPnLStr = pnlStr;
-    this.riskDialogPercent = pnlPercent || 50;
-  }
-
-  calculateEstimatedPnL(
-    entryPrice: number,
-    targetPrice: number,
-    amount: number,
-    leverage: number,
-  ): { pnl: number; pnlStr: string; pnlPercent: number } {
-    const pnl = (targetPrice - entryPrice) * amount;
-
-    const formatter = new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' });
-    const pnlStr = formatter.format(Math.abs(pnl));
-
-    const margin = (Math.abs(amount) * entryPrice) / leverage;
-
-    let pnlPercent = 0;
-    if (margin > 0) {
-      const roeFraction = pnl / margin;
-      const absPercent = Math.abs(roeFraction * 100);
-      pnlPercent = Math.max(Math.round(absPercent), 1);
-    }
-
-    return { pnl, pnlStr, pnlPercent };
-  }
-
-  submitRiskOrder(): void {
-    if (!this.riskDialogPrice) return;
-
-    const payload = {
-      symbol: this.riskDialogSymbol.toUpperCase(),
-      side: this.riskDialogSide,
-      stopPrice: this.riskDialogPrice,
-      closePosition: true,
-    };
-
-    if (this.riskDialogType === 'STOP_MARKET') {
-      this.binanceService
-        .stopLoss(payload)
-        .pipe(takeUntilDestroyed(this.destroyRef))
-        .subscribe({
-          next: (res) => {
-            this.isRiskDialogOpen = false;
-            this.fetchOpenOrders();
-          },
-          error: (err) => console.error(err),
-        });
-    } else {
-      this.binanceService
-        .takeProfit(payload)
-        .pipe(takeUntilDestroyed(this.destroyRef))
-        .subscribe({
-          next: (res) => {
-            this.isRiskDialogOpen = false;
-            this.fetchOpenOrders();
-          },
-          error: (err) => console.error(err),
-        });
-    }
+    this.dialogRef?.onClose.subscribe((payload) => {
+      if (payload?.side === OrderSideEnum.SELL) {
+        this.binanceService
+          .stopLoss(payload)
+          .pipe(takeUntilDestroyed(this.destroyRef))
+          .subscribe({
+            next: (res) => {
+              this.fetchOpenOrders();
+            },
+            error: (err) => console.error(err),
+          });
+      } else if (payload?.side === OrderSideEnum.BUY) {
+        this.binanceService
+          .takeProfit(payload)
+          .pipe(takeUntilDestroyed(this.destroyRef))
+          .subscribe({
+            next: (res) => {
+              this.fetchOpenOrders();
+            },
+            error: (err) => console.error(err),
+          });
+      }
+    });
   }
 
   startBot(index: number): void {
