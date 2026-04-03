@@ -19,11 +19,9 @@ export class MiniInfo implements OnInit, OnDestroy {
   private destroyRef = inject(DestroyRef);
   private userService = inject(UserService);
 
-
   ngOnInit(): void {
     this.getUserInfo();
 
-    // Start WebSocket Stream
     this.userService.startUserDataStream();
 
     this.userService
@@ -50,8 +48,6 @@ export class MiniInfo implements OnInit, OnDestroy {
 
             // Update Unrealized PNL from stream
             if (positions && positions.length > 0) {
-              // Recalculate or simply use the streaming up for the specific position
-              // But if P provides multiple positions, we sum them
               let sumPnL = 0;
               positions.forEach((p: any) => {
                 sumPnL += parseFloat(p.up);

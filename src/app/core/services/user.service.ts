@@ -39,10 +39,10 @@ export class UserService {
           this.userDataListenKey = res.listenKey;
           this.connectUserDataWebSocket();
 
-          // Ping every 30 mins (1800000 ms)
+          // keepalive — Binance requires a PUT every 30–60 minutes
           this.userDataPingInterval = setInterval(() => {
             this.keepAliveUserDataStream();
-          }, 1800000);
+          }, 30 * 60 * 1000);
         },
         error: (err) => console.error('Failed to start user data stream', err),
       });
