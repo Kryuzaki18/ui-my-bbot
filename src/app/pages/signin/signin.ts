@@ -36,10 +36,11 @@ import { SelectModule } from 'primeng/select';
   styleUrls: ['./signin.scss'],
 })
 export class SigninComponent implements OnInit {
-  loginForm!: FormGroup;
   loading = signal<boolean>(false);
   errorMessage = signal<string | null>(null);
   
+  signinForm!: FormGroup;
+
   private destroyRef = inject(DestroyRef);
 
   constructor(
@@ -54,7 +55,7 @@ export class SigninComponent implements OnInit {
       this.router.navigate(['/future']);
     }
 
-    this.loginForm = this.fb.group({
+    this.signinForm = this.fb.group({
       apiKey: ['', [Validators.required, Validators.minLength(10)]],
       apiSecret: ['', [Validators.required, Validators.minLength(10)]],
       useTestnet: [true],
@@ -62,12 +63,12 @@ export class SigninComponent implements OnInit {
   }
 
   onSubmit(): void {
-    if (this.loginForm.invalid) return;
+    if (this.signinForm.invalid) return;
 
     this.loading.set(true);
     this.errorMessage.set(null);
 
-    const { apiKey, apiSecret, useTestnet } = this.loginForm.value;
+    const { apiKey, apiSecret, useTestnet } = this.signinForm.value;
 
     this.authService
       .signIn(apiKey, apiSecret, useTestnet)
@@ -76,7 +77,7 @@ export class SigninComponent implements OnInit {
         next: (res) => {
           this.storageService.setLocal(STORAGE.lToken, res.token);
           this.loading.set(false);
-          this.router.navigate(['/binance/future/order']);
+          this.router.navigate(['/future']);
         },
         error: (err) => {
           this.loading.set(false);

@@ -1,6 +1,6 @@
 <div class="flex justify-center items-center h-screen">
   <p-card header="Binance Trading Bot" subheader="Connect securely to proxy" class="w-[400px]">
-    <form [formGroup]="loginForm" (ngSubmit)="onSubmit()" class="p-fluid">
+    <form [formGroup]="signinForm" (ngSubmit)="onSubmit()" class="p-fluid">
       <div class="flex items-center field mb-4 gap-2">
         <label class="w-20 flex-none" for="apiKey">API Key</label>
         <input
@@ -39,7 +39,7 @@
         label="Establish Secure Session"
         icon="pi pi-lock"
         [loading]="loading()"
-        [disabled]="loginForm.invalid"
+        [disabled]="signinForm.invalid"
         styleClass="w-full"
       >
       </p-button>
