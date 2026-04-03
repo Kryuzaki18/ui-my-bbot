@@ -1,15 +1,16 @@
 import { Component, inject, OnInit, DestroyRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { Subject, debounceTime } from 'rxjs';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
 // Services
-import { BinanceService } from '../../core/services/binance.service';
+import { UserService } from '../../core/services/user.service';
+import { FutureTradeService } from '../../core/services/future-trade.service';
 
 // PrimeNG Modules
 import { TableModule } from 'primeng/table';
 import { ButtonModule } from 'primeng/button';
 import { ProgressBarModule } from 'primeng/progressbar';
+import { OrderTypeEnum } from '../../core/models/trades.model';
 
 @Component({
   selector: 'app-open-orders',
@@ -19,15 +20,17 @@ import { ProgressBarModule } from 'primeng/progressbar';
   styleUrl: './open-orders.scss',
 })
 export class OpenOrders implements OnInit {
-  binanceService = inject(BinanceService);
+  private destroyRef = inject(DestroyRef);
+  private userService = inject(UserService);
+  private futureTradeService = inject(FutureTradeService);
+
   openOrders: any[] = [];
   loading = false;
-  private destroyRef = inject(DestroyRef);
 
   ngOnInit(): void {
     this.fetchOrders();
 
-    this.binanceService
+    this.userService
       .getUserDataStream()
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe((data) => {
@@ -40,7 +43,7 @@ export class OpenOrders implements OnInit {
   fetchOrders(): void {
     this.loading = true;
 
-    this.binanceService
+    this.futureTradeService
       .getOpenOrders()
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
@@ -48,10 +51,8 @@ export class OpenOrders implements OnInit {
           this.openOrders = orders.filter((o: any) => {
             const type = o.type || o.orderType || '';
             const isConditional = [
-              'STOP_MARKET',
-              'TAKE_PROFIT_MARKET',
-              'STOP',
-              'TAKE_PROFIT',
+              OrderTypeEnum.STOP_MARKET,
+              OrderTypeEnum.TAKE_PROFIT_MARKET,
             ].includes(type);
             return !isConditional && o.closePosition !== true;
           });
@@ -68,7 +69,7 @@ export class OpenOrders implements OnInit {
   cancelOrder(order: any): void {
     this.loading = true;
 
-    this.binanceService
+    this.futureTradeService
       .cancelOrder(order.symbol, order.orderId)
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({

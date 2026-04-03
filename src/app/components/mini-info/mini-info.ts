@@ -3,7 +3,7 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { CurrencyPipe } from '@angular/common';
 
 // Services
-import { BinanceService } from '../../core/services/binance.service';
+import { UserService } from '../../core/services/user.service';
 
 // Models
 import { UserInfo } from '../../core/models/user-info.model';
@@ -17,16 +17,16 @@ import { UserInfo } from '../../core/models/user-info.model';
 export class MiniInfo implements OnInit, OnDestroy {
   userInfo: UserInfo | null = null;
   private destroyRef = inject(DestroyRef);
+  private userService = inject(UserService);
 
-  constructor(private binanceService: BinanceService) {}
 
   ngOnInit(): void {
     this.getUserInfo();
 
     // Start WebSocket Stream
-    this.binanceService.startUserDataStream();
+    this.userService.startUserDataStream();
 
-    this.binanceService
+    this.userService
       .getUserDataStream()
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
@@ -71,11 +71,11 @@ export class MiniInfo implements OnInit, OnDestroy {
   }
 
   ngOnDestroy(): void {
-    this.binanceService.stopUserDataStream();
+    this.userService.stopUserDataStream();
   }
 
   getUserInfo(): void {
-    this.binanceService
+    this.userService
       .getUserInfo()
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({

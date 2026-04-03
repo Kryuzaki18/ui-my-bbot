@@ -1,3 +1,22 @@
+import { Subject } from "rxjs";
+
+export enum OrderSideEnum {
+  BUY = 'BUY',
+  SELL = 'SELL',
+}
+
+export enum OrderTypeEnum {
+  MARKET = 'MARKET',
+  LIMIT = 'LIMIT',
+  STOP_MARKET = 'STOP_MARKET',
+  TAKE_PROFIT_MARKET = 'TAKE_PROFIT_MARKET',
+}
+
+export enum BinanceWsEventTypeEnum {
+  ACCOUNT_UPDATE = 'ACCOUNT_UPDATE',
+  ORDER_TRADE_UPDATE = 'ORDER_TRADE_UPDATE',
+}
+
 export interface FuturePosition {
   symbol: string;
   leverage: number;
@@ -16,18 +35,6 @@ export interface FuturePosition {
   takeProfitPnlPercent?: number;
 }
 
-export enum OrderSideEnum {
-  BUY = 'BUY',
-  SELL = 'SELL',
-}
-
-export enum OrderTypeEnum {
-  MARKET = 'MARKET',
-  LIMIT = 'LIMIT',
-  STOP_MARKET = 'STOP_MARKET',
-  TAKE_PROFIT_MARKET = 'TAKE_PROFIT_MARKET',
-}
-
 export interface OpenOrder {
   orderType: OrderTypeEnum;
   triggerPrice: string;
@@ -35,3 +42,17 @@ export interface OpenOrder {
   symbol: string;
   updateTime: string;
 }
+
+export interface BinanceWsPrice {
+  symbol: string;
+  time: number;
+  price: number;
+}
+
+export interface SymbolState {
+  socket: WebSocket;
+  subject: Subject<BinanceWsPrice[]>;
+  history: BinanceWsPrice[];
+  lastPrice: number | null;
+}
+

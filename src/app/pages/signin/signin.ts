@@ -5,8 +5,8 @@ import { Router } from '@angular/router';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
 // Services
-import { BinanceService } from '../../core/services/binance.service';
 import { StorageService } from '../../core/services/storage.service';
+import { AuthService } from '../../core/services/auth.service';
 
 // Constants
 import { STORAGE } from '../../core/constants/binance.constant';
@@ -44,14 +44,14 @@ export class SigninComponent implements OnInit {
 
   constructor(
     private fb: FormBuilder,
-    private binanceService: BinanceService,
+    private authService: AuthService,
     private storageService: StorageService,
     private router: Router,
   ) {}
 
   ngOnInit(): void {
     if (this.storageService.getLocal(STORAGE.lToken)) {
-      this.router.navigate(['/binance/future/order']);
+      this.router.navigate(['/future']);
     }
 
     this.loginForm = this.fb.group({
@@ -69,7 +69,7 @@ export class SigninComponent implements OnInit {
 
     const { apiKey, apiSecret, useTestnet } = this.loginForm.value;
 
-    this.binanceService
+    this.authService
       .signIn(apiKey, apiSecret, useTestnet)
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({

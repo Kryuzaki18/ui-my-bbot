@@ -11,11 +11,14 @@ import {
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
 // Services
-import { BinanceService, BinanceWsPrice } from '../../core/services/binance.service';
-import { TradeService } from '../../core/services/trade-service';
+import { UtilsService } from '../../core/services/utils.service';
+import { BinanceService } from '../../core/services/binance.service';
+import { FutureTradeService } from '../../core/services/future-trade.service';
+import { UserService } from '../../core/services/user.service';
 
 // Models
 import {
+  BinanceWsPrice,
   FuturePosition,
   OpenOrder,
   OrderSideEnum,
@@ -35,8 +38,8 @@ import { InputNumberModule } from 'primeng/inputnumber';
 import { DialogModule } from 'primeng/dialog';
 import { CheckboxModule } from 'primeng/checkbox';
 import { RadioButtonModule } from 'primeng/radiobutton';
-import { DialogService, DynamicDialogModule, DynamicDialogRef } from 'primeng/dynamicdialog';
 import { ConfirmationService } from 'primeng/api';
+import { DialogService, DynamicDialogModule, DynamicDialogRef } from 'primeng/dynamicdialog';
 
 @Component({
   selector: 'app-trades-terminal',
@@ -62,9 +65,11 @@ import { ConfirmationService } from 'primeng/api';
 })
 export class TradesTerminal implements OnInit {
   formBuilder = inject(FormBuilder);
-  binanceService = inject(BinanceService);
   confirmationService = inject(ConfirmationService);
-  tradeService = inject(TradeService);
+  utilsService = inject(UtilsService);
+  binanceService = inject(BinanceService);
+  futureTradeService = inject(FutureTradeService);
+  userService = inject(UserService);
 
   private dialogService = inject(DialogService);
   private destroyRef = inject(DestroyRef);
@@ -158,7 +163,7 @@ export class TradesTerminal implements OnInit {
           if (tpOrder) {
             position.takeProfit = tpOrder.triggerPrice;
             const formatTriggerPrice = parseFloat(tpOrder?.triggerPrice as string) || 0;
-            const { pnlStr, pnlPercent } = this.tradeService.calculateEstimatedPnL(
+            const { pnlStr, pnlPercent } = this.utilsService.calculateEstimatedPnL(
               formatEntryPrice,
               formatTriggerPrice,
               formatAmount,
@@ -171,7 +176,7 @@ export class TradesTerminal implements OnInit {
           if (slOrder) {
             position.stopLoss = slOrder.triggerPrice;
             const formatTriggerPrice = parseFloat(slOrder?.triggerPrice as string) || 0;
-            const { pnlStr, pnlPercent } = this.tradeService.calculateEstimatedPnL(
+            const { pnlStr, pnlPercent } = this.utilsService.calculateEstimatedPnL(
               formatEntryPrice,
               formatTriggerPrice,
               formatAmount,
@@ -216,7 +221,7 @@ export class TradesTerminal implements OnInit {
   }
 
   fetchPositions(): void {
-    this.binanceService
+    this.userService
       .getUserInfo()
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
@@ -231,7 +236,7 @@ export class TradesTerminal implements OnInit {
   }
 
   fetchOpenOrders(): void {
-    this.binanceService
+    this.futureTradeService
       .getOpenOrders()
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
@@ -295,7 +300,7 @@ export class TradesTerminal implements OnInit {
       leverage,
     };
 
-    this.binanceService
+    this.futureTradeService
       .placeOrder(params)
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
@@ -335,7 +340,7 @@ export class TradesTerminal implements OnInit {
       },
 
       accept: () => {
-        this.binanceService
+        this.futureTradeService
           .placeOrder({
             symbol: symbol.toUpperCase(),
             side: side,
@@ -355,7 +360,7 @@ export class TradesTerminal implements OnInit {
     });
   }
 
-  openTPSLDialog(symbol: string, type: OrderTypeEnum) {
+  openTPSLDialog(symbol: string, type: OrderTypeEnum): void {
     const pos = this.compFuturePos()[symbol];
     if (pos?.initialMargin?.toString() === '0') {
       return;
@@ -373,7 +378,7 @@ export class TradesTerminal implements OnInit {
 
     this.dialogRef?.onClose.subscribe((payload) => {
       if (payload?.side === OrderSideEnum.SELL) {
-        this.binanceService
+        this.futureTradeService
           .stopLoss(payload)
           .pipe(takeUntilDestroyed(this.destroyRef))
           .subscribe({
@@ -383,7 +388,7 @@ export class TradesTerminal implements OnInit {
             error: (err) => console.error(err),
           });
       } else if (payload?.side === OrderSideEnum.BUY) {
-        this.binanceService
+        this.futureTradeService
           .takeProfit(payload)
           .pipe(takeUntilDestroyed(this.destroyRef))
           .subscribe({

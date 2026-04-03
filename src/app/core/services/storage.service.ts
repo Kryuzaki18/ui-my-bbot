@@ -16,6 +16,10 @@ export class StorageService {
     localStorage.removeItem(key);
   }
 
+  public clearLocal(): void {
+    localStorage.clear();
+  }
+
   public getSession(key: string): string | null {
     return sessionStorage.getItem(key);
   }
@@ -26,5 +30,9 @@ export class StorageService {
 
   public removeSession(key: string): void {
     sessionStorage.removeItem(key);
+  }
+  
+  public clearSession(): void {
+    sessionStorage.clear();
   }
 }

@@ -6,7 +6,8 @@ import { NgClass } from '@angular/common';
 import { FuturePosition, OrderSideEnum, OrderTypeEnum } from '../../../core/models/trades.model';
 
 // Services
-import { TradeService } from '../../../core/services/trade-service';
+import { FutureTradeService } from '../../../core/services/future-trade.service';
+import { UtilsService } from '../../../core/services/utils.service';
 
 // PrimeNG Modules
 import { SliderModule } from 'primeng/slider';
@@ -32,7 +33,8 @@ import { DynamicDialogConfig, DynamicDialogRef } from 'primeng/dynamicdialog';
   styleUrl: './tp-sl-dialog.scss',
 })
 export class TpSlDialog implements OnInit {
-  private tradeService = inject(TradeService);
+  private utilsService = inject(UtilsService);
+  private futureTradeService = inject(FutureTradeService);
   private config = inject(DynamicDialogConfig);
   private ref = inject(DynamicDialogRef);
 
@@ -96,7 +98,7 @@ export class TpSlDialog implements OnInit {
     // Safety check for absolute 0
     this.riskDialogPrice = Math.max(Number(targetPrice.toFixed(5)), 0);
 
-    const { pnlStr, pnlPercent } = this.tradeService.calculateEstimatedPnL(
+    const { pnlStr, pnlPercent } = this.utilsService.calculateEstimatedPnL(
       entryPrice,
       this.riskDialogPrice,
       amount,
@@ -119,7 +121,7 @@ export class TpSlDialog implements OnInit {
     const leverage = this.riskDialogLeverage;
     const amount = this.riskDialogPositionAmt;
 
-    const { pnlStr, pnlPercent } = this.tradeService.calculateEstimatedPnL(
+    const { pnlStr, pnlPercent } = this.utilsService.calculateEstimatedPnL(
       entryPrice,
       price,
       amount,

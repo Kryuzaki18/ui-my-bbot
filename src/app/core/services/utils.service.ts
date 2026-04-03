@@ -3,7 +3,7 @@ import { Injectable } from '@angular/core';
 @Injectable({
   providedIn: 'root',
 })
-export class TradeService {
+export class UtilsService {
   calculateEstimatedPnL(
     entryPrice: number,
     targetPrice: number,
@@ -24,6 +24,6 @@ export class TradeService {
       pnlPercent = Math.max(Math.round(absPercent), 1);
     }
 
-    return { pnl, pnlStr, pnlPercent };
+    return { pnl, pnlStr, pnlPercent }; 
   }
 }

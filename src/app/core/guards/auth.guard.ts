@@ -15,5 +15,5 @@ export const authGuard: CanActivateFn = () => {
     return true;
   }
 
-  return router.createUrlTree(['/binance/signin']);
+  return router.createUrlTree(['/signin']);
 };

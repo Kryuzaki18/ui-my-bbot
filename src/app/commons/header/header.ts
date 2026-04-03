@@ -6,11 +6,11 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { STORAGE } from '../../core/constants/binance.constant';
 
 // Services
-import { BinanceService } from '../../core/services/binance.service';
 import { StorageService } from '../../core/services/storage.service';
 
 //PrimeNG Modules
 import { ButtonModule } from 'primeng/button';
+import { AuthService } from '../../core/services/auth.service';
 
 @Component({
   selector: 'app-header',
@@ -20,19 +20,19 @@ import { ButtonModule } from 'primeng/button';
 })
 export class Header {
   private router = inject(Router);
-  private binanceService = inject(BinanceService);
+  private authService = inject(AuthService);
   private storageService = inject(StorageService);
   private destroyRef = inject(DestroyRef);
 
   signout(): void {
     if (this.storageService.getLocal(STORAGE.lToken)) {
-      this.binanceService
+      this.authService
       .signOut()
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
         next: () => {
           this.storageService.removeLocal(STORAGE.lToken);
-          this.router.navigate(['/binance/signin']);
+          this.router.navigate(['/signin']);
         },
         error: (err) => {
           console.error(err);
