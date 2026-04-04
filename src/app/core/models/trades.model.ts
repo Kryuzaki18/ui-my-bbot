@@ -5,6 +5,10 @@ export enum OrderSideEnum {
   SELL = 'SELL',
 }
 
+export enum PositionSideEnum {
+  LONG = 'LONG',
+  SHORT = 'SHORT',
+}
 export enum OrderTypeEnum {
   MARKET = 'MARKET',
   LIMIT = 'LIMIT',
@@ -21,12 +25,13 @@ export interface FuturePosition {
   symbol: string;
   leverage: number;
   entryPrice: string;
-  initialMargin: string;
+  margin: number;
   positionAmt: string;
   createTime: string;
   updateTime: string;
-  pnl?: string;
-  pnlPercent?: string;
+  position?: PositionSideEnum;
+  pnl?: number;
+  pnlPercent?: number;
   stopLoss?: string;
   stopLossPnl?: string;
   stopLossPnlPercent?: number;
@@ -36,6 +41,14 @@ export interface FuturePosition {
 }
 
 export interface OpenOrder {
+  orderType: OrderTypeEnum;
+  triggerPrice: string;
+  side: string;
+  symbol: string;
+  updateTime: string;
+}
+
+export interface TPSLOrder {
   orderType: OrderTypeEnum;
   triggerPrice: string;
   side: string;
@@ -56,3 +69,16 @@ export interface SymbolState {
   lastPrice: number | null;
 }
 
+export interface LeverageBracket {
+  symbol: string;
+  brackets: Bracket[];
+}
+
+export interface Bracket {
+  bracket: number;
+  cum: number;
+  initialLeverage: number;
+  maintMarginRatio: number;
+  notionalCap: number;
+  notionalFloor: number;
+}

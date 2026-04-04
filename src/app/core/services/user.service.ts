@@ -40,9 +40,12 @@ export class UserService {
           this.connectUserDataWebSocket();
 
           // keepalive — Binance requires a PUT every 30–60 minutes
-          this.userDataPingInterval = setInterval(() => {
-            this.keepAliveUserDataStream();
-          }, 30 * 60 * 1000);
+          this.userDataPingInterval = setInterval(
+            () => {
+              this.keepAliveUserDataStream();
+            },
+            30 * 60 * 1000,
+          );
         },
         error: (err) => console.error('Failed to start user data stream', err),
       });

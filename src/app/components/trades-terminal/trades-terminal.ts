@@ -7,6 +7,7 @@ import {
   Validators,
   FormArray,
   FormGroup,
+  AbstractControl,
 } from '@angular/forms';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
@@ -19,10 +20,13 @@ import { UserService } from '../../core/services/user.service';
 // Models
 import {
   BinanceWsPrice,
+  Bracket,
   FuturePosition,
-  OpenOrder,
+  LeverageBracket,
   OrderSideEnum,
   OrderTypeEnum,
+  PositionSideEnum,
+  TPSLOrder,
 } from '../../core/models/trades.model';
 
 // Components
@@ -76,13 +80,16 @@ export class TradesTerminal implements OnInit {
   private dialogRef: DynamicDialogRef | null = null;
 
   readonly defaultAmount = 5;
-  readonly defaultLeverage = 125;
+  readonly defaultLeverage = 20;
   readonly prices = input<Record<string, BinanceWsPrice[]>>({});
 
   futureSymbols = input<string[]>([]);
   futurePos = signal<FuturePosition[]>([]);
-  openOrders = signal<OpenOrder[]>([]);
+  // openOrders = signal<OpenOrder[]>([]);
+  tpslOrders = signal<TPSLOrder[]>([]);
+  leverageBracket = signal<LeverageBracket[]>([]);
 
+  PositionSideEnum = PositionSideEnum;
   orderTypeEnum = OrderTypeEnum;
   orderSideEnum = OrderSideEnum;
 
@@ -103,30 +110,6 @@ export class TradesTerminal implements OnInit {
     };
   });
 
-  formatPnl = computed(() => {
-    return (
-      symbol: string,
-      entryPrice: string | number,
-      positionAmt: string | number,
-      leverage: string | number,
-    ) => {
-      const currentPrice = this.currentMarketPrice()(symbol);
-      const ep = parseFloat(entryPrice as string);
-      const amt = parseFloat(positionAmt as string);
-      const lev = parseFloat(leverage as string);
-
-      const pnl = (currentPrice - ep) * amt;
-      const notional = Math.abs(amt) * ep;
-      const margin = notional / lev;
-      const pct = margin > 0 ? (pnl / margin) * 100 : 0;
-
-      const pnlPercentStr = pct.toFixed(2);
-      const formattedPnl = pnl.toFixed(2);
-
-      return { pnl: formattedPnl, pnlPercent: pnlPercentStr };
-    };
-  });
-
   compFuturePos = computed(() => {
     const futureSymbols = this.futureSymbols();
     const positions: { [key: string]: FuturePosition } = {};
@@ -137,16 +120,26 @@ export class TradesTerminal implements OnInit {
         const position = this.futurePos().find((pos: any) => pos.symbol.toLowerCase() === sym);
 
         if (position) {
-          const pnlData = this.formatPnl()(
-            symbol,
-            position.entryPrice,
-            position.positionAmt,
-            position.leverage,
+          const margin = this.utilsService.calculateMargin(
+            Number(position.positionAmt),
+            Number(position.entryPrice),
+            Number(position.leverage),
           );
-          position.pnl = pnlData.pnl;
-          position.pnlPercent = pnlData.pnlPercent;
+          position.margin = Math.abs(margin);
 
-          const orders = this.openOrders();
+          const data = this.utilsService.calculatePnl(
+            Number(position.entryPrice),
+            this.currentMarketPrice()(symbol),
+            Number(position.positionAmt),
+            Number(position.leverage),
+          );
+
+          position.position =
+            Number(position.positionAmt) > 0 ? PositionSideEnum.LONG : PositionSideEnum.SHORT;
+          position.pnl = data.pnl;
+          position.pnlPercent = data.pnlPercent;
+
+          const orders = this.tpslOrders();
           const tpOrder = orders?.find(
             (order) =>
               order.symbol.toLowerCase() === sym &&
@@ -158,7 +151,7 @@ export class TradesTerminal implements OnInit {
           );
 
           let formatEntryPrice = parseFloat(position.entryPrice as string);
-          let formatAmount = parseFloat(position.positionAmt as string);
+          let positionAmt = parseFloat(position.positionAmt as string);
 
           if (tpOrder) {
             position.takeProfit = tpOrder.triggerPrice;
@@ -166,7 +159,7 @@ export class TradesTerminal implements OnInit {
             const { pnlStr, pnlPercent } = this.utilsService.calculateEstimatedPnL(
               formatEntryPrice,
               formatTriggerPrice,
-              formatAmount,
+              positionAmt,
               position.leverage,
             );
 
@@ -179,7 +172,7 @@ export class TradesTerminal implements OnInit {
             const { pnlStr, pnlPercent } = this.utilsService.calculateEstimatedPnL(
               formatEntryPrice,
               formatTriggerPrice,
-              formatAmount,
+              positionAmt,
               position.leverage,
             );
 
@@ -194,21 +187,54 @@ export class TradesTerminal implements OnInit {
     return positions;
   });
 
+  compFutureLeverageBracket = computed(() => {
+    const futureSymbols = this.futureSymbols();
+    const leverageBracket: { [key: string]: Bracket } = {};
+
+    futureSymbols.forEach((symbol) => {
+      const ctrl = this.tradesFormArray.controls.find(
+        (c) => c.value.symbol.toLowerCase() === symbol.toLowerCase(),
+      );
+
+      if (ctrl) {
+        const bracket = this.leverageBracket().find(
+          (bracket: any) => bracket.symbol.toLowerCase() === symbol.toLowerCase(),
+        );
+        if (bracket) {
+          const brackets = bracket.brackets[0];
+          leverageBracket[symbol] = brackets;
+        }
+      }
+    });
+
+    return leverageBracket;
+  });
+
   ngOnInit(): void {
-    this.createTradeForm();
-    this.fetchPositions();
-    this.fetchOpenOrders();
+    this.fetchLeverageBracket();
+    this.getFuturesPositions();
+    this.fetchPendingTpSl();
+
+    // this.fetchOpenOrders();
   }
 
-  createTradeForm(): void {
+  createTradeForm(leverageBracket: LeverageBracket[]): void {
     const arrayControls = this.tradesFormArray.controls as FormGroup[];
     const futureSymbols = this.futureSymbols();
     futureSymbols.forEach((symbol) => {
       const exists = arrayControls.some((ctrl) => ctrl.value.symbol === symbol);
       if (!exists) {
+        const bracket = leverageBracket.find(
+          (bracket: any) => bracket.symbol.toLowerCase() === symbol.toLowerCase(),
+        );
+        const maxLeverage = bracket?.brackets[0].initialLeverage || 125;
+
         const group = this.formBuilder.group({
-          symbol: [symbol],
-          leverage: [this.defaultLeverage, [Validators.required]],
+          symbol: [symbol, [Validators.required]],
+          leverage: [
+            maxLeverage,
+            [Validators.required, Validators.min(1), Validators.max(maxLeverage)],
+          ],
           amount: [this.defaultAmount, [Validators.required, Validators.min(5)]],
           price: [null, Validators.required],
           hasTPSL: [false],
@@ -220,36 +246,65 @@ export class TradesTerminal implements OnInit {
     });
   }
 
-  fetchPositions(): void {
-    this.userService
-      .getUserInfo()
+  fetchLeverageBracket(): void {
+    this.binanceService
+      .getLeverageBracket()
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
         next: (res) => {
-          if (res && res.positions) {
-            this.futurePos.set(res.positions);
-            this.updateEnabledDisabledForm();
+          const futureSymbols = this.futureSymbols().map((symbol) => symbol.toUpperCase());
+          const leverageBracket = res.filter((bracket: any) =>
+            futureSymbols.includes(bracket.symbol),
+          );
+          if (leverageBracket.length > 0) {
+            this.leverageBracket.set(leverageBracket);
           }
+          this.createTradeForm(leverageBracket);
         },
         error: (err) => console.error(err),
       });
   }
 
-  fetchOpenOrders(): void {
+  // fetchOpenOrders(): void {
+  //   this.futureTradeService
+  //     .getOpenOrders()
+  //     .pipe(takeUntilDestroyed(this.destroyRef))
+  //     .subscribe({
+  //       next: (res) => {
+  //         if (res) {
+  //           this.openOrders.set(res);
+  //         }
+  //       },
+  //       error: (err) => console.error(err),
+  //     });
+  // }
+
+  private getFuturesPositions(): void {
     this.futureTradeService
-      .getOpenOrders()
+      .getFuturesPositions()
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe((res) => {
+        const newPositions = res.filter((pos) => Number(pos.positionAmt) !== 0);
+        if (newPositions.length > 0) {
+          this.futurePos.set(newPositions);
+          this.updateForm();
+        }
+      });
+  }
+
+  private fetchPendingTpSl(): void {
+    this.futureTradeService
+      .getPendingTpSl()
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
         next: (res) => {
-          if (res) {
-            this.openOrders.set(res);
-          }
+          this.tpslOrders.set(res || []);
         },
         error: (err) => console.error(err),
       });
   }
 
-  updateEnabledDisabledForm(): void {
+  private updateForm(): void {
     const futureSymbols = this.futureSymbols();
     futureSymbols.forEach((symbol) => {
       const ctrl = this.tradesFormArray.controls.find(
@@ -258,7 +313,7 @@ export class TradesTerminal implements OnInit {
       if (ctrl) {
         const pos = this.compFuturePos()[symbol];
         const toggleControls = ['leverage', 'amount', 'price', 'hasTPSL', 'takeProfit', 'stopLoss'];
-        if (pos?.initialMargin?.toString() !== '0') {
+        if (pos?.margin) {
           toggleControls.forEach((name) => ctrl.get(name)?.disable({ emitEvent: false }));
         } else {
           toggleControls.forEach((name) => ctrl.get(name)?.enable({ emitEvent: false }));
@@ -269,7 +324,7 @@ export class TradesTerminal implements OnInit {
 
   addToFormPrice(symbol: string, price: number): void {
     const pos = this.compFuturePos()[symbol];
-    if (pos?.initialMargin?.toString() !== '0') {
+    if (pos?.margin) {
       return;
     }
 
@@ -281,6 +336,10 @@ export class TradesTerminal implements OnInit {
   }
 
   placeOrder(data: FormGroup, side: OrderSideEnum): void {
+    if (data.invalid) {
+      return;
+    }
+
     const { symbol, amount, price, leverage, stopLoss, takeProfit } = data.value;
     const executionPrice = price || this.currentMarketPrice()(symbol);
 
@@ -305,8 +364,9 @@ export class TradesTerminal implements OnInit {
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
         next: (res) => {
-          this.fetchPositions();
-          this.fetchOpenOrders();
+          this.getFuturesPositions();
+          this.fetchPendingTpSl();
+          // this.fetchOpenOrders();
         },
         error: (err) => console.error(err),
       });
@@ -320,11 +380,10 @@ export class TradesTerminal implements OnInit {
     }
 
     const side = amt > 0 ? OrderSideEnum.SELL : OrderSideEnum.BUY;
-    const quantity = Math.abs(amt);
     const symbol = pos.symbol;
 
     this.confirmationService.confirm({
-      message: `Are you sure you want to close your ${side === OrderSideEnum.SELL ? 'Long' : 'Short'} position of ${symbol}?`,
+      message: `Are you sure you want to close your ${side === OrderSideEnum.SELL ? PositionSideEnum.LONG : PositionSideEnum.SHORT} position of ${symbol}?`,
       header: 'Close Position?',
       icon: 'pi pi-info-circle',
       rejectLabel: 'Cancel',
@@ -335,23 +394,21 @@ export class TradesTerminal implements OnInit {
       },
       acceptButtonProps: {
         label: 'Confirm',
-        severity: side === OrderSideEnum.SELL ? 'success' : 'danger',
+        severity: 'success',
         outlined: true,
       },
 
       accept: () => {
         this.futureTradeService
-          .placeOrder({
+          .closePosition({
             symbol: symbol.toUpperCase(),
-            side: side,
-            type: 'MARKET',
-            quantity: quantity,
+            side,
           })
           .pipe(takeUntilDestroyed(this.destroyRef))
           .subscribe({
             next: (res) => {
-              this.fetchPositions();
-              this.fetchOpenOrders();
+              this.getFuturesPositions();
+              this.fetchPendingTpSl();
             },
             error: (err) => console.error(err),
           });
@@ -362,7 +419,7 @@ export class TradesTerminal implements OnInit {
 
   openTPSLDialog(symbol: string, type: OrderTypeEnum): void {
     const pos = this.compFuturePos()[symbol];
-    if (pos?.initialMargin?.toString() === '0') {
+    if (pos?.margin?.toString() === '0') {
       return;
     }
 
@@ -377,23 +434,41 @@ export class TradesTerminal implements OnInit {
     });
 
     this.dialogRef?.onClose.subscribe((payload) => {
-      if (payload?.side === OrderSideEnum.SELL) {
+      if (!payload) {
+        return;
+      }
+
+      const newPayload: any = {
+        symbol,
+        triggerPrice: payload.triggerPrice,
+        closePosition: true,
+      };
+
+      if (payload?.type === OrderTypeEnum.STOP_MARKET) {
+        const side = Number(pos.positionAmt) > 0 ? OrderSideEnum.SELL : OrderSideEnum.BUY;
+        newPayload.side = side;
+
         this.futureTradeService
-          .stopLoss(payload)
+          .stopLoss(newPayload)
           .pipe(takeUntilDestroyed(this.destroyRef))
           .subscribe({
             next: (res) => {
-              this.fetchOpenOrders();
+              this.getFuturesPositions();
+              this.fetchPendingTpSl();
             },
             error: (err) => console.error(err),
           });
-      } else if (payload?.side === OrderSideEnum.BUY) {
+      } else if (payload?.type === OrderTypeEnum.TAKE_PROFIT_MARKET) {
+        const side = Number(pos.positionAmt) > 0 ? OrderSideEnum.BUY : OrderSideEnum.SELL;
+        newPayload.side = side;
+
         this.futureTradeService
-          .takeProfit(payload)
+          .takeProfit(newPayload)
           .pipe(takeUntilDestroyed(this.destroyRef))
           .subscribe({
             next: (res) => {
-              this.fetchOpenOrders();
+              this.getFuturesPositions();
+              this.fetchPendingTpSl();
             },
             error: (err) => console.error(err),
           });
@@ -403,5 +478,11 @@ export class TradesTerminal implements OnInit {
 
   startBot(index: number): void {
     const tradeData = this.tradesFormArray.at(index).value;
+  }
+
+  getFormControl(symbol: string, name: string) {
+    return this.tradesFormArray.controls
+      .find((c) => c.value.symbol.toLowerCase() === symbol.toLowerCase())
+      ?.get(name);
   }
 }

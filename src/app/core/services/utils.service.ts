@@ -24,6 +24,48 @@ export class UtilsService {
       pnlPercent = Math.max(Math.round(absPercent), 1);
     }
 
-    return { pnl, pnlStr, pnlPercent }; 
+    return { pnl, pnlStr, pnlPercent };
+  }
+
+  calculatePnl(
+    entryPrice: number,
+    targetPrice: number,
+    positionAmt: number,
+    leverage: number,
+  ) {
+    const ep = entryPrice;
+    const amt = positionAmt;
+    const lev = leverage;
+
+    const pnl = (targetPrice - ep) * amt;
+    const notional = Math.abs(amt * ep);
+    const margin = notional / lev;
+    const pnlPercent = margin > 0 ? (pnl / margin) * 100 : 0;
+    return {
+      pnl,
+      pnlPercent,
+    };
+  }
+
+  calculateTargetPrice(
+    entryPrice: number,
+    leverage: number,
+    roePercentage: number,
+    isLong: boolean,
+  ): number {
+    const roeFraction = roePercentage / 100;
+    const sideSign = isLong ? 1 : -1;
+    const targetPrice = entryPrice + roeFraction * (entryPrice / leverage) * sideSign;
+    return targetPrice;
+  }
+
+  calculateMargin(amt: number, price: number, lev: number): number {
+    const quantity = Math.abs(amt);
+    const entry = price;
+    const leverage = lev;
+
+    if (!leverage || leverage === 0) return 0;
+    
+    return (quantity * entry) / leverage;
   }
 }

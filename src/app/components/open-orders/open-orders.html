@@ -1,5 +1,5 @@
 <div class="card border-y border-gray-700 text-white">
-  @if (loading && openOrders.length === 0) {
+  @if (loading && openOrders().length === 0) {
     <p-progressbar mode="indeterminate" [style]="{ height: '6px' }" color="bg-gray-600" />
   }
 
@@ -11,7 +11,7 @@
         variant="outlined"
         severity="success"
         size="small"
-        [disabled]="loading || openOrders.length === 0"
+        [disabled]="loading || openOrders().length === 0"
       >
         Refresh
       </p-button>
@@ -20,17 +20,17 @@
         variant="outlined"
         severity="danger"
         size="small"
-        [disabled]="loading || openOrders.length === 0"
+        [disabled]="loading || openOrders().length === 0"
       >
         Cancel All
       </p-button>
     </div>
   </div>
 
-  @if (openOrders.length === 0) {
+  @if (openOrders().length === 0) {
     <div class="text-center text-gray-700 jetbrains-thin text-sm py-2">No open orders.</div>
   } @else {
-    <p-table [value]="openOrders" class="p-datatable-sm mt-2">
+    <p-table [value]="openOrders()" class="p-datatable-sm mt-2">
       <ng-template pTemplate="header">
         <tr class="text-left text-sm text-gray-400 font-medium">
           <th>Date</th>

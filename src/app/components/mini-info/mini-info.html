@@ -3,19 +3,19 @@
   <div class="flex flex-col">
     <div class="text-sm">Balance:</div>
     <div class="text-sm text-emerald-400">
-      {{ userInfo?.availableBalance | currency: 'USD' : 'symbol' : '1.1-10' }}
+      {{ userInfo()?.availableBalance | currency: 'USD' : 'symbol' : '1.1-10' }}
     </div>
   </div>
   <div class="flex flex-col">
     <div class="text-sm text-gray-500">Unrealized PnL:</div>
     <div class="text-sm">
-      {{ userInfo?.totalUnrealizedProfit | currency: 'USD' : 'symbol' : '1.1-10' }}
+      {{ userInfo()?.totalUnrealizedProfit | currency: 'USD' : 'symbol' : '1.1-10' }}
     </div>
   </div>
   <div class="flex flex-col">
     <div class="text-sm text-gray-500">Total Balance:</div>
     <div class="text-sm text-emerald-400">
-      {{ userInfo?.totalWalletBalance | currency: 'USD' : 'symbol' : '1.1-10' }}
+      {{ userInfo()?.totalWalletBalance | currency: 'USD' : 'symbol' : '1.1-10' }}
     </div>
   </div>
 </div>

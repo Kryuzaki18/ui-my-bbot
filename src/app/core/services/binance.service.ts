@@ -1,8 +1,9 @@
-import { Injectable } from '@angular/core';
+import { inject, Injectable } from '@angular/core';
+import { HttpClient } from '@angular/common/http';
 import { Observable, Subject } from 'rxjs';
 
 // Environment
-import { environment } from '../../../environments/environment';
+import { API_ROUTES, environment } from '../../../environments/environment';
 
 // Constants
 import { TRADE } from '../constants/binance.constant';
@@ -14,11 +15,13 @@ import { BinanceWsPrice, SymbolState } from '../models/trades.model';
   providedIn: 'root',
 })
 export class BinanceService {
+  private http = inject(HttpClient);
   private states: Record<string, SymbolState> = {};
 
-  /**
-   * Factory method: returns shared observable per symbol
-   */
+  getLeverageBracket(body: any = {}): Observable<any> {
+    return this.http.post(`${environment.apiTradingBotUrl}${API_ROUTES.futures.leverageBracket}`, body);
+  }
+
   getPriceStream(symbol: string): Observable<BinanceWsPrice[]> {
     const key = symbol.toLowerCase();
 
@@ -29,9 +32,23 @@ export class BinanceService {
     return this.states[key].subject.asObservable();
   }
 
-  /**
-   * Create WebSocket + state per symbol
-   */
+  disconnect(symbol: string): void {
+    const key = symbol.toLowerCase();
+    const state = this.states[key];
+
+    if (state) {
+      state.socket.close();
+      delete this.states[key];
+    }
+  }
+
+  disconnectAll(): void {
+    Object.keys(this.states).forEach((symbol) => {
+      this.states[symbol].socket.close();
+    });
+    this.states = {};
+  }
+
   private createState(symbol: string): SymbolState {
     const WS_URL = `${environment.binanceFutureWebSocketBaseUrl}/${symbol}@trade`;
 
@@ -88,28 +105,5 @@ export class BinanceService {
       history,
       lastPrice,
     };
-  }
-
-  /**
-   * Disconnect a symbol
-   */
-  disconnect(symbol: string): void {
-    const key = symbol.toLowerCase();
-    const state = this.states[key];
-
-    if (state) {
-      state.socket.close();
-      delete this.states[key];
-    }
-  }
-
-  /**
-   * Disconnect all
-   */
-  disconnectAll(): void {
-    Object.keys(this.states).forEach((symbol) => {
-      this.states[symbol].socket.close();
-    });
-    this.states = {};
   }
 }

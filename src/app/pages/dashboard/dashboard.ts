@@ -25,7 +25,7 @@ export class Dashboard implements OnInit {
   prices = signal<Record<string, BinanceWsPrice[]>>({});
 
   private destroyRef = inject(DestroyRef);
-  private BinanceService = inject(BinanceService);
+  private binanceService = inject(BinanceService);
 
   ngOnInit(): void {
     this.getPriceStream();
@@ -35,7 +35,8 @@ export class Dashboard implements OnInit {
     this.prices.set(this.defaultSymbols.reduce((acc, symbol) => ({ ...acc, [symbol]: [] }), {}));
 
     this.defaultSymbols.forEach((symbol) => {
-      this.BinanceService.getPriceStream(symbol)
+      this.binanceService
+        .getPriceStream(symbol)
         .pipe(takeUntilDestroyed(this.destroyRef))
         .subscribe((data) => {
           this.prices.update((current) => ({

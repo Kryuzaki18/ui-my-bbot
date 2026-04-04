@@ -14,10 +14,15 @@ export const API_ROUTES = {
     userDataStream: '/api/user-stream',
   },
   futures: {
+    positions: '/api/futures/positions',
     order: '/api/futures/order',
     takeProfit: '/api/futures/take-profit',
     stopLoss: '/api/futures/stop-loss',
     cancel: '/api/futures/cancel',
     openOrders: '/api/futures/open-orders',
+    pendingTpSl: '/api/futures/pending-tpsl',
+    closePosition: '/api/futures/close-position',
+    cancelTpSl: '/api/futures/cancel-tpsl',
+    leverageBracket: '/api/futures/leverage-bracket',
   },
 }

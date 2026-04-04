@@ -1,4 +1,4 @@
-import { Component, OnInit, OnDestroy, inject, DestroyRef } from '@angular/core';
+import { Component, OnInit, OnDestroy, inject, DestroyRef, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { CurrencyPipe } from '@angular/common';
 
@@ -15,9 +15,10 @@ import { UserInfo } from '../../core/models/user-info.model';
   styleUrl: './mini-info.scss',
 })
 export class MiniInfo implements OnInit, OnDestroy {
-  userInfo: UserInfo | null = null;
   private destroyRef = inject(DestroyRef);
   private userService = inject(UserService);
+
+  userInfo = signal<UserInfo | null>(null);
 
   ngOnInit(): void {
     this.getUserInfo();
@@ -28,14 +29,14 @@ export class MiniInfo implements OnInit, OnDestroy {
       .getUserDataStream()
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
-        next: (update) => {
+        next: (update) => { 
           const balances = update.a?.B;
           const positions = update.a?.P;
 
-          if (this.userInfo) {
-            let newWalletBalance = this.userInfo.totalWalletBalance;
-            let newAvailableBalance = this.userInfo.availableBalance;
-            let newUnrealizedProfit = this.userInfo.totalUnrealizedProfit;
+          if (this.userInfo()) {
+            let newWalletBalance = this.userInfo()!.totalWalletBalance;
+            let newAvailableBalance = this.userInfo()!.availableBalance;
+            let newUnrealizedProfit = this.userInfo()!.totalUnrealizedProfit;
 
             // Update Balances from stream
             if (balances) {
@@ -55,12 +56,12 @@ export class MiniInfo implements OnInit, OnDestroy {
               newUnrealizedProfit = sumPnL;
             }
 
-            this.userInfo = {
-              ...this.userInfo,
+            this.userInfo.set({
+              ...this.userInfo(),
               totalWalletBalance: newWalletBalance,
               availableBalance: newAvailableBalance,
               totalUnrealizedProfit: newUnrealizedProfit,
-            };
+            });
           }
         },
       });
@@ -76,7 +77,7 @@ export class MiniInfo implements OnInit, OnDestroy {
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
         next: (res) => {
-          this.userInfo = res;
+          this.userInfo.set(res);
         },
         error: (err) => {
           console.error(err);

@@ -1,10 +1,11 @@
-import { Component, inject, OnInit, DestroyRef } from '@angular/core';
+import { Component, inject, OnInit, DestroyRef, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
 // Services
 import { UserService } from '../../core/services/user.service';
 import { FutureTradeService } from '../../core/services/future-trade.service';
+import { UtilsService } from '../../core/services/utils.service';
 
 // PrimeNG Modules
 import { TableModule } from 'primeng/table';
@@ -24,7 +25,7 @@ export class OpenOrders implements OnInit {
   private userService = inject(UserService);
   private futureTradeService = inject(FutureTradeService);
 
-  openOrders: any[] = [];
+  openOrders  = signal<any[]>([]);
   loading = false;
 
   ngOnInit(): void {
@@ -48,7 +49,7 @@ export class OpenOrders implements OnInit {
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
         next: (orders) => {
-          this.openOrders = orders.filter((o: any) => {
+          const filteredOrders = orders.filter((o: any) => {
             const type = o.type || o.orderType || '';
             const isConditional = [
               OrderTypeEnum.STOP_MARKET,
@@ -57,6 +58,7 @@ export class OpenOrders implements OnInit {
             return !isConditional && o.closePosition !== true;
           });
 
+          this.openOrders.set(filteredOrders);
           this.loading = false;
         },
         error: (err) => {
