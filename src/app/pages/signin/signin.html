@@ -1,48 +1,162 @@
-<div class="flex justify-center items-center h-screen">
-  <p-card header="Binance Trading Bot" subheader="Connect securely to proxy" class="w-[400px]">
-    <form [formGroup]="signinForm" (ngSubmit)="onSubmit()" class="p-fluid">
-      <div class="flex items-center field mb-4 gap-2">
-        <label class="w-20 flex-none" for="apiKey">API Key</label>
-        <input
-          id="apiKey"
-          type="text"
-          pInputText
-          formControlName="apiKey"
-          placeholder="Enter Binance API Key"
-          class="flex-auto"
-        />
-      </div>
-
-      <div class="flex items-center field mb-4 gap-2">
-        <label class="w-20 flex-none" for="apiSecret">API Secret</label>
-        <input
-          id="apiSecret"
-          type="password"
-          pInputText
-          formControlName="apiSecret"
-          placeholder="Enter Binance Secret Key"
-          class="flex-auto"
-        />
-      </div>
-
-      <div class="field-checkbox mb-4">
-        <p-checkbox formControlName="useTestnet" [binary]="true" inputId="testnet"></p-checkbox>
-        <label for="testnet" class="ml-2">Use Testnet Environment</label>
-      </div>
-
-      @if (errorMessage()) {
-        <p-message severity="error" styleClass="w-full mb-4 block">{{ errorMessage() }}</p-message>
-      }
-
+<div class="flex justify-center items-center">
+  <div class="card w-[350px]">
+    <div class="absolute top-0 right-0 z-10 -mt-3 -mr-3">
       <p-button
-        type="submit"
-        label="Establish Secure Session"
-        icon="pi pi-lock"
-        [loading]="loading()"
-        [disabled]="signinForm.invalid"
-        styleClass="w-full"
-      >
-      </p-button>
-    </form>
-  </p-card>
+        icon="pi pi-times"
+        severity="danger"
+        size="small"
+        rounded
+        (click)="closeDialog()"
+      ></p-button>
+    </div>
+    <p-tabs value="0">
+      <p-tablist>
+        <p-tab value="0">Email</p-tab>
+        <p-tab value="1">Binance API</p-tab>
+      </p-tablist>
+      <p-tabpanels>
+        <p-tabpanel value="0">
+          <form [formGroup]="emailForm" (ngSubmit)="onSubmit()" class="flex flex-col gap-4">
+            <p-floatlabel variant="on">
+              <input
+                pInputText
+                id="email"
+                formControlName="email"
+                autocomplete="off"
+                class="w-full"
+              />
+              <label for="email">Email</label>
+            </p-floatlabel>
+
+            <p-floatlabel variant="on">
+              <input
+                pInputText
+                id="password"
+                formControlName="password"
+                autocomplete="off"
+                class="w-full"
+              />
+              <label for="password">Password</label>
+            </p-floatlabel>
+
+            <div class="flex flex-col gap-2">
+              <div class="flex items-center gap-2">
+                <p-checkbox
+                  formControlName="useTestnet"
+                  [binary]="true"
+                  inputId="email-testnet"
+                ></p-checkbox>
+                <label for="email-testnet" class="text-sm">Use Testnet Environment</label>
+              </div>
+
+              <div class="flex items-center gap-2">
+                <p-checkbox
+                  formControlName="rememberMe"
+                  [binary]="true"
+                  inputId="rememberMe"
+                ></p-checkbox>
+                <label for="rememberMe" class="text-sm">Remember Me</label>
+              </div>
+            </div>
+
+            @if (errorMessage()) {
+              <p-message severity="error" styleClass="w-full mb-4 block">{{
+                errorMessage()
+              }}</p-message>
+            }
+
+            <p-button
+              styleClass="w-full"
+              type="submit"
+              label="Sign In"
+              iconPos="right"
+              icon="pi pi-sign-in"
+              severity="contrast"
+              [loading]="loading()"
+              [disabled]="emailForm.invalid"
+            >
+            </p-button>
+          </form>
+
+          <p-divider type="dotted">
+            <b>OR</b>
+          </p-divider>
+
+          <p-button
+            styleClass="w-full mb-10"
+            type="button"
+            label="Sign In with Google"
+            icon="pi pi-google"
+            severity="secondary"
+          >
+          </p-button>
+
+          <div class="flex items-center justify-between">
+            <span class="text-sm">Don't have an account?</span>
+            <p-button
+              type="button"
+              label="Sign up now!"
+              variant="text"
+              severity="info"
+              size="small"
+            >
+            </p-button>
+          </div>
+        </p-tabpanel>
+
+        <p-tabpanel value="1">
+          <form [formGroup]="binanceForm" (ngSubmit)="onSubmit()" class="flex flex-col gap-4">
+            <p-floatlabel variant="on">
+              <input
+                pInputText
+                id="apiKey"
+                formControlName="apiKey"
+                autocomplete="off"
+                class="w-full"
+              />
+              <label for="apiKey">API Key</label>
+            </p-floatlabel>
+
+            <p-floatlabel variant="on">
+              <input
+                pInputText
+                id="apiSecret"
+                formControlName="apiSecret"
+                autocomplete="off"
+                class="w-full"
+              />
+              <label for="apiSecret">API Secret</label>
+            </p-floatlabel>
+
+            <div class="flex items-center gap-2">
+              <p-checkbox
+                formControlName="useTestnet"
+                [binary]="true"
+                inputId="email-testnet"
+              ></p-checkbox>
+              <label for="email-testnet" class="text-sm">Use Testnet Environment</label>
+            </div>
+
+            @if (errorMessage()) {
+              <p-message severity="error" styleClass="w-full mb-4 block">{{
+                errorMessage()
+              }}</p-message>
+            }
+
+            <p-button
+              styleClass="w-full"
+              type="submit"
+              label="Establish Secure Session"
+              iconPos="right"
+              icon="pi pi-sign-in"
+              severity="contrast"
+              [loading]="loading()"
+              [disabled]="binanceForm.invalid"
+            >
+            </p-button>
+          </form>
+        </p-tabpanel>
+      </p-tabpanels>
+    </p-tabs>
+  </div>
 </div>

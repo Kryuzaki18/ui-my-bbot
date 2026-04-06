@@ -2,48 +2,57 @@ import { Component, DestroyRef, inject } from '@angular/core';
 import { Router } from '@angular/router';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
-// Constants
-import { STORAGE } from '../../core/constants/binance.constant';
-
-// Services
-import { StorageService } from '../../core/services/storage.service';
-import { BinanceService } from '../../core/services/binance.service';
+// Components
+import { SigninComponent } from '../../pages/signin/signin';
 
 //PrimeNG Modules
 import { ButtonModule } from 'primeng/button';
 import { AuthService } from '../../core/services/auth.service';
 import { UserService } from '../../core/services/user.service';
+import { DialogService, DynamicDialogModule, DynamicDialogRef } from 'primeng/dynamicdialog';
 
 @Component({
   selector: 'app-header',
-  imports: [ButtonModule],
+  imports: [ButtonModule, DynamicDialogModule],
   templateUrl: './header.html',
   styleUrl: './header.scss',
+  standalone: true,
 })
 export class Header {
+  readonly authService = inject(AuthService);
+
   private router = inject(Router);
-  private authService = inject(AuthService);
-  private storageService = inject(StorageService);
-  private binanceService = inject(BinanceService);
   private userService = inject(UserService);
+  private dialogService = inject(DialogService);
   private destroyRef = inject(DestroyRef);
+  private dialogRef: DynamicDialogRef | null = null;
 
   signout(): void {
-    if (this.storageService.getLocal(STORAGE.lToken)) {
+    if (this.authService.isLoggedIn()) {
       this.authService
-      .signOut()
-      .pipe(takeUntilDestroyed(this.destroyRef))
-      .subscribe({
-        next: () => {
-          this.userService.stopUserDataStream()
-          this.binanceService.disconnectAll();
-          this.storageService.removeLocal(STORAGE.lToken);
-          this.router.navigate(['/signin']);
-        },
-        error: (err) => {
-          console.error(err);
-        },
-      });
+        .signOut()
+        .pipe(takeUntilDestroyed(this.destroyRef))
+        .subscribe({
+          next: () => {
+            this.userService.stopUserDataStream();
+            this.router.navigate(['/home']);
+          },
+          error: (err) => {
+            console.error(err);
+          },
+        });
     }
+  }
+
+  signin(): void {
+    this.dialogRef = this.dialogService.open(SigninComponent, {
+      showHeader: false,
+      closable: true,
+      modal: true,
+      contentStyle: { 'padding-bottom': '0' }
+    });
+
+    this.dialogRef?.onClose.subscribe((payload) => {
+    });
   }
 }

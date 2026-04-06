@@ -14,18 +14,14 @@ import { Router } from '@angular/router';
 import { API_ROUTES, environment } from '../../../environments/environment';
 
 // Services
-import { StorageService } from '../services/storage.service';
-
-// Constants
-import { STORAGE } from '../constants/binance.constant';
+import { AuthService } from '../services/auth.service';
 
 const PUBLIC_URL_PATTERNS: (string | RegExp)[] = [
   `${environment.apiTradingBotUrl}${API_ROUTES.auth.signIn}`,
   `${environment.apiTradingBotUrl}${API_ROUTES.auth.signOut}`,
-  `${environment.binanceFutureWebSocketBaseUrl}`,
-  // /^https:\/\/fapi\.binance\.com/,
-  // /^https:\/\/testnet\.binancefuture\.com/,
-  /^wss?:\/\//,
+  `${environment.binancePublicWSBaseUrl}`,
+  `${environment.binanceMarketWSBaseUrl}`,
+  `${environment.binancePrivateWSBaseUrl}`
 ];
 
 const isPublicUrl = (url: string): boolean => {
@@ -38,19 +34,17 @@ export const AuthInterceptor: HttpInterceptorFn = (
   request: HttpRequest<unknown>,
   next: HttpHandlerFn,
 ): Observable<HttpEvent<unknown>> => {
-  const storageService = inject(StorageService);
+  const authService = inject(AuthService);
   const router = inject(Router);
 
   if (isPublicUrl(request.url)) {
     return next(request);
   }
 
-  const token = storageService.getLocal(STORAGE.lToken);
-
-  if (token) {
+  if (authService.isLoggedIn()) {
     request = request.clone({
       setHeaders: {
-        Authorization: `Bearer ${token}`,
+        Authorization: `Bearer ${authService.user()?.token}`,
         // withCredentials: request.url.startsWith(environment.apiTradingBotUrl),
       },
     });
@@ -59,8 +53,7 @@ export const AuthInterceptor: HttpInterceptorFn = (
   return next(request).pipe(
     catchError((error: HttpErrorResponse) => {
       if (error.status === 401) {
-        storageService.clearLocal();
-        router.navigate(['/signin']);
+        router.navigate(['/home']);
       }
       return throwError(() => error);
     }),

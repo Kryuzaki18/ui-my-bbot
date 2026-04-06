@@ -1,19 +1,16 @@
 import { inject } from '@angular/core';
 import { Router, CanActivateFn } from '@angular/router';
 
-// Constants
-import { STORAGE } from '../constants/binance.constant';
-
 // Services
-import { StorageService } from '../services/storage.service';
+import { AuthService } from '../services/auth.service';
 
 export const authGuard: CanActivateFn = () => {
   const router = inject(Router);
-  const storageService = inject(StorageService);
+  const authService = inject(AuthService);
 
-  if (storageService.getLocal(STORAGE.lToken)) {
+  if (authService.isLoggedIn()) {
     return true;
   }
 
-  return router.createUrlTree(['/signin']);
+  return router.createUrlTree(['/home']);
 };

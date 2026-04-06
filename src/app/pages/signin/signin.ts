@@ -1,15 +1,12 @@
 import { Component, DestroyRef, inject, OnInit, signal } from '@angular/core';
-import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
-import { Router } from '@angular/router';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { CommonModule } from '@angular/common';
+import { Router } from '@angular/router';
+
 
 // Services
-import { StorageService } from '../../core/services/storage.service';
 import { AuthService } from '../../core/services/auth.service';
-
-// Constants
-import { STORAGE } from '../../core/constants/binance.constant';
 
 // PrimeNG Modules
 import { ButtonModule } from 'primeng/button';
@@ -18,6 +15,10 @@ import { MessageModule } from 'primeng/message';
 import { CardModule } from 'primeng/card';
 import { CheckboxModule } from 'primeng/checkbox';
 import { SelectModule } from 'primeng/select';
+import { TabsModule } from 'primeng/tabs';
+import { FloatLabelModule } from 'primeng/floatlabel';
+import { DividerModule } from 'primeng/divider';
+import { DynamicDialogRef } from 'primeng/dynamicdialog';
 
 @Component({
   selector: 'app-signin',
@@ -31,6 +32,9 @@ import { SelectModule } from 'primeng/select';
     CardModule,
     CheckboxModule,
     SelectModule,
+    TabsModule,
+    FloatLabelModule,
+    DividerModule
   ],
   templateUrl: './signin.html',
   styleUrls: ['./signin.scss'],
@@ -39,23 +43,31 @@ export class SigninComponent implements OnInit {
   loading = signal<boolean>(false);
   errorMessage = signal<string | null>(null);
   
-  signinForm!: FormGroup;
+  binanceForm!: FormGroup;
+  emailForm!: FormGroup;
 
+  private dialogRef = inject(DynamicDialogRef);
   private destroyRef = inject(DestroyRef);
 
   constructor(
     private fb: FormBuilder,
     private authService: AuthService,
-    private storageService: StorageService,
     private router: Router,
   ) {}
 
   ngOnInit(): void {
-    if (this.storageService.getLocal(STORAGE.lToken)) {
+    if (this.authService.isLoggedIn()) {
       this.router.navigate(['/future']);
     }
 
-    this.signinForm = this.fb.group({
+     this.emailForm = this.fb.group({
+      email: ['', [Validators.required, Validators.minLength(10)]],
+      password: ['', [Validators.required, Validators.minLength(7)]],
+      rememberMe: [false],
+      useTestnet: [true],
+    });
+
+    this.binanceForm = this.fb.group({
       apiKey: ['', [Validators.required, Validators.minLength(10)]],
       apiSecret: ['', [Validators.required, Validators.minLength(10)]],
       useTestnet: [true],
@@ -63,19 +75,19 @@ export class SigninComponent implements OnInit {
   }
 
   onSubmit(): void {
-    if (this.signinForm.invalid) return;
+    if (this.binanceForm.invalid) return;
 
     this.loading.set(true);
     this.errorMessage.set(null);
 
-    const { apiKey, apiSecret, useTestnet } = this.signinForm.value;
+    const { apiKey, apiSecret, useTestnet } = this.binanceForm.value;
 
     this.authService
       .signIn(apiKey, apiSecret, useTestnet)
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
         next: (res) => {
-          this.storageService.setLocal(STORAGE.lToken, res.token);
+          this.dialogRef.close();
           this.loading.set(false);
           this.router.navigate(['/future']);
         },
@@ -84,5 +96,9 @@ export class SigninComponent implements OnInit {
           this.errorMessage.set(err.error?.error || 'Could not verify API keys');
         },
       });
+  }
+
+   closeDialog(): void {
+    this.dialogRef.close();
   }
 }

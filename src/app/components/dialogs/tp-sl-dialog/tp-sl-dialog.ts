@@ -34,7 +34,7 @@ import { DynamicDialogConfig, DynamicDialogRef } from 'primeng/dynamicdialog';
 export class TpSlDialog implements OnInit {
   private utilsService = inject(UtilsService);
   private config = inject(DynamicDialogConfig);
-  private ref = inject(DynamicDialogRef);
+  private dialogRef = inject(DynamicDialogRef);
 
   private readonly defaultPntStr = '$0.00';
   private readonly defaultPntPercent = 50;
@@ -142,11 +142,11 @@ export class TpSlDialog implements OnInit {
       isRemove: false,
     };
 
-    this.ref.close(payload);
+    this.dialogRef.close(payload);
   }
 
   removeOrder(): void {
-    this.ref.close({
+    this.dialogRef.close({
       isRemove: true,
     });
   }
@@ -168,6 +168,6 @@ export class TpSlDialog implements OnInit {
   }
 
   closeDialog(): void {
-    this.ref.close();
+    this.dialogRef.close();
   }
 }

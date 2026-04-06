@@ -1,11 +1,14 @@
 import { Component, DestroyRef, inject, OnInit, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
+// Constant
+import { MAX_TRADE_HISTORY } from '../../core/constants/binance.constant';
+
 // Models
-import { BinanceWsPrice } from '../../core/models/trades.model';
+import { AggTradeWsMessage } from '../../core/models/chart.model';
 
 // Services
-import { BinanceService } from '../../core/services/binance.service';
+import { BinanceWsService } from '../../core/services/binance-ws.service';
 
 // Components
 import { Header } from '../../commons/header/header';
@@ -21,29 +24,31 @@ import { OpenOrders } from '../../components/open-orders/open-orders';
   standalone: true,
 })
 export class Dashboard implements OnInit {
+  readonly aggTrades = signal<Record<string, AggTradeWsMessage[]>>({});
+
   defaultSymbols = ['btcusdt', 'ethusdt'];
-  prices = signal<Record<string, BinanceWsPrice[]>>({});
 
   private destroyRef = inject(DestroyRef);
-  private binanceService = inject(BinanceService);
+  private binanceWsService = inject(BinanceWsService);
 
   ngOnInit(): void {
-    this.getPriceStream();
+    this.watchAggTrades();
   }
 
-  private getPriceStream(): void {
-    this.prices.set(this.defaultSymbols.reduce((acc, symbol) => ({ ...acc, [symbol]: [] }), {}));
+  private watchAggTrades(): void {
+    this.aggTrades.set(this.defaultSymbols.reduce((acc, symbol) => ({ ...acc, [symbol]: [] }), {}));
 
     this.defaultSymbols.forEach((symbol) => {
-      this.binanceService
-        .getPriceStream(symbol)
+      this.binanceWsService
+        .getAggTradeStream(symbol)
         .pipe(takeUntilDestroyed(this.destroyRef))
         .subscribe((data) => {
-          this.prices.update((current) => ({
+          this.aggTrades.update((current) => ({
             ...current,
             [symbol]: data,
           }));
         });
     });
   }
+
 }

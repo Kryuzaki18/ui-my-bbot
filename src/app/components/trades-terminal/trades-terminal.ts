@@ -1,5 +1,5 @@
 import { Component, computed, inject, input, OnInit, signal, DestroyRef } from '@angular/core';
-import { NgClass, DecimalPipe, CurrencyPipe } from '@angular/common';
+import { NgClass, DecimalPipe, CurrencyPipe, DatePipe } from '@angular/common';
 import {
   FormBuilder,
   ReactiveFormsModule,
@@ -7,19 +7,21 @@ import {
   Validators,
   FormArray,
   FormGroup,
-  AbstractControl,
 } from '@angular/forms';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
+// Pipes
+import { AbbreviatePipe } from '../../core/pipes/abbreviate.pipe';
+
 // Services
 import { UtilsService } from '../../core/services/utils.service';
-import { BinanceService } from '../../core/services/binance.service';
 import { FutureTradeService } from '../../core/services/future-trade.service';
 import { UserService } from '../../core/services/user.service';
+import { BinanceRestService } from '../../core/services/binance-rest.service';
+import { AuthService } from '../../core/services/auth.service';
 
 // Models
 import {
-  BinanceWsPrice,
   Bracket,
   FuturePosition,
   LeverageBracket,
@@ -28,6 +30,7 @@ import {
   PositionSideEnum,
   TPSLOrder,
 } from '../../core/models/trades.model';
+import { AggTradeWsMessage } from '../../core/models/chart.model';
 
 // Components
 import { TpSlDialog } from '../dialogs/tp-sl-dialog/tp-sl-dialog';
@@ -49,8 +52,10 @@ import { DialogService, DynamicDialogModule, DynamicDialogRef } from 'primeng/dy
   selector: 'app-trades-terminal',
   imports: [
     NgClass,
+    AbbreviatePipe,
     DecimalPipe,
     CurrencyPipe,
+    DatePipe,
     ReactiveFormsModule,
     FormsModule,
     SliderModule,
@@ -71,9 +76,10 @@ export class TradesTerminal implements OnInit {
   formBuilder = inject(FormBuilder);
   confirmationService = inject(ConfirmationService);
   utilsService = inject(UtilsService);
-  binanceService = inject(BinanceService);
-  futureTradeService = inject(FutureTradeService);
+  authService = inject(AuthService);
   userService = inject(UserService);
+  binanceRestService = inject(BinanceRestService);
+  futureTradeService = inject(FutureTradeService);
 
   private dialogService = inject(DialogService);
   private destroyRef = inject(DestroyRef);
@@ -81,7 +87,7 @@ export class TradesTerminal implements OnInit {
 
   readonly defaultAmount = 5;
   readonly defaultLeverage = 20;
-  readonly prices = input<Record<string, BinanceWsPrice[]>>({});
+  readonly aggTrades = input<Record<string, AggTradeWsMessage[]>>({});
 
   futureSymbols = input<string[]>([]);
   futurePos = signal<FuturePosition[]>([]);
@@ -103,10 +109,8 @@ export class TradesTerminal implements OnInit {
 
   currentMarketPrice = computed(() => {
     return (symbol: string) => {
-      const prices = this.prices();
-      const symbolPrices = prices[symbol.toLowerCase()];
-
-      return symbolPrices?.at(-1)?.price ?? 0;
+      const aggTrades = this.aggTrades()[symbol];
+      return aggTrades[aggTrades.length - 1];
     };
   });
 
@@ -129,7 +133,7 @@ export class TradesTerminal implements OnInit {
 
           const data = this.utilsService.calculatePnl(
             Number(position.entryPrice),
-            this.currentMarketPrice()(symbol),
+            parseFloat(this.currentMarketPrice()(symbol).p),
             Number(position.positionAmt),
             Number(position.leverage),
           );
@@ -211,18 +215,23 @@ export class TradesTerminal implements OnInit {
   });
 
   ngOnInit(): void {
-    this.fetchLeverageBracket();
-    this.fetchPendingTpSl();
-    this.getFuturesPositions();
-
-    // this.fetchOpenOrders();
+    if (this.authService.isLoggedIn()) {
+      this.fetchLeverageBracket();
+      this.fetchPendingTpSl();
+      this.getFuturesPositions();
+    } else {
+      this.createTradeForm([]);
+    }
   }
 
   createTradeForm(leverageBracket: LeverageBracket[]): void {
     const arrayControls = this.tradesFormArray.controls as FormGroup[];
     const futureSymbols = this.futureSymbols();
+
     futureSymbols.forEach((symbol) => {
-      const exists = arrayControls.some((ctrl) => ctrl.value.symbol === symbol);
+      const exists = arrayControls.some(
+        (ctrl) => ctrl.value.symbol.toLowerCase() === symbol.toLowerCase(),
+      );
       if (!exists) {
         const bracket = leverageBracket.find(
           (bracket: any) => bracket.symbol.toLowerCase() === symbol.toLowerCase(),
@@ -247,7 +256,7 @@ export class TradesTerminal implements OnInit {
   }
 
   fetchLeverageBracket(): void {
-    this.binanceService
+    this.binanceRestService
       .getLeverageBracket()
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
@@ -264,20 +273,6 @@ export class TradesTerminal implements OnInit {
         error: (err) => console.error(err),
       });
   }
-
-  // fetchOpenOrders(): void {
-  //   this.futureTradeService
-  //     .getOpenOrders()
-  //     .pipe(takeUntilDestroyed(this.destroyRef))
-  //     .subscribe({
-  //       next: (res) => {
-  //         if (res) {
-  //           this.openOrders.set(res);
-  //         }
-  //       },
-  //       error: (err) => console.error(err),
-  //     });
-  // }
 
   private getFuturesPositions(): void {
     this.futureTradeService
@@ -306,23 +301,22 @@ export class TradesTerminal implements OnInit {
 
   private updateForm(): void {
     const futureSymbols = this.futureSymbols();
-    futureSymbols.forEach((symbol) => {
+    futureSymbols.forEach((symbol, index) => {
       const ctrl = this.tradesFormArray.controls.find(
         (c) => c.value.symbol.toLowerCase() === symbol.toLowerCase(),
       );
       if (ctrl) {
         const pos = this.compFuturePos()[symbol];
-        const toggleControls = ['leverage', 'amount', 'price', 'hasTPSL', 'takeProfit', 'stopLoss'];
-        if (pos?.margin) {
-          toggleControls.forEach((name) => ctrl.get(name)?.disable({ emitEvent: false }));
+        if (pos.margin) {
+          this.tradesFormArray.controls[index].disable();
         } else {
-          toggleControls.forEach((name) => ctrl.get(name)?.enable({ emitEvent: false }));
+          this.tradesFormArray.controls[index].enable();
         }
       }
     });
   }
 
-  addToFormPrice(symbol: string, price: number): void {
+  addToFormPrice(symbol: string, price: string): void {
     const pos = this.compFuturePos()[symbol];
     if (pos?.margin) {
       return;
@@ -330,13 +324,13 @@ export class TradesTerminal implements OnInit {
 
     this.tradesFormArray.controls.forEach((c) => {
       if ((c.value.symbol || '').toLowerCase() === symbol.toLowerCase()) {
-        c.patchValue({ price }, { emitEvent: false });
+        c.patchValue({ price: parseFloat(price) }, { emitEvent: false });
       }
     });
   }
 
   placeOrder(data: FormGroup, side: OrderSideEnum): void {
-    if (data.invalid) {
+    if (data.invalid && !this.authService.isLoggedIn()) {
       return;
     }
 
@@ -456,7 +450,9 @@ export class TradesTerminal implements OnInit {
           .pipe(takeUntilDestroyed(this.destroyRef))
           .subscribe({
             next: (res) => {
-              const updateTpSlOrders = this.tpslOrders().filter((order) => order.algoId !== tpslOrder?.algoId);
+              const updateTpSlOrders = this.tpslOrders().filter(
+                (order) => order.algoId !== tpslOrder?.algoId,
+              );
               this.tpslOrders.set(updateTpSlOrders);
               this.getFuturesPositions();
             },
@@ -507,9 +503,11 @@ export class TradesTerminal implements OnInit {
     const tradeData = this.tradesFormArray.at(index).value;
   }
 
-  getFormControl(symbol: string, name: string) {
-    return this.tradesFormArray.controls
+  getFormControl(symbol: string, name?: string) {
+    const ctrl = this.tradesFormArray.controls
       .find((c) => c.value.symbol.toLowerCase() === symbol.toLowerCase())
-      ?.get(name);
+      ?.get(name || '');
+
+    return name ? ctrl?.get(name) : ctrl;
   }
 }

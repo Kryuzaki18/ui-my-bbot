@@ -1,5 +1,3 @@
-import { Subject } from "rxjs";
-
 export enum OrderSideEnum {
   BUY = 'BUY',
   SELL = 'SELL',
@@ -58,19 +56,6 @@ export interface TPSLOrder {
   updateTime: string;
 }
 
-export interface BinanceWsPrice {
-  symbol: string;
-  time: number;
-  price: number;
-}
-
-export interface SymbolState {
-  socket: WebSocket;
-  subject: Subject<BinanceWsPrice[]>;
-  history: BinanceWsPrice[];
-  lastPrice: number | null;
-}
-
 export interface LeverageBracket {
   symbol: string;
   brackets: Bracket[];
@@ -83,4 +68,14 @@ export interface Bracket {
   maintMarginRatio: number;
   notionalCap: number;
   notionalFloor: number;
+}
+
+export interface PublicLeverageBracket {
+  symbol: string;
+  brackets: Array<{
+    bracket: number;
+    initialLeverage: number;
+    notionalCap: string;
+    maintMarginRate: number;
+  }>;
 }

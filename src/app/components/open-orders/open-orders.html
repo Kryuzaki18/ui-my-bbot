@@ -4,8 +4,8 @@
   }
 
   <div class="flex justify-between items-center mt-2">
-    <h1 class="text-md font-bold text-emerald-400">Open Orders</h1>
-    <div class="flex gap-2">
+    <h1 class="text-md font-bold">Open Orders</h1>
+    <!-- <div class="flex gap-2">
       <p-button
         (click)="fetchOrders()"
         variant="outlined"
@@ -24,7 +24,7 @@
       >
         Cancel All
       </p-button>
-    </div>
+    </div> -->
   </div>
 
   @if (openOrders().length === 0) {

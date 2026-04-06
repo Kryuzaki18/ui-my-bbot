@@ -3,9 +3,7 @@ export const SYMBOLS = {
   ETHUSDT: 'ETHUSDT',
 };
 
-export const TRADE = {
-  maxHistory: 20
-}
+export const MAX_TRADE_HISTORY = 20;
 
 export const STORAGE = {
   lToken: 'lToken',

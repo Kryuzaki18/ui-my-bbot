@@ -1,0 +1,42 @@
+import { Injectable } from '@angular/core';
+import { BehaviorSubject } from 'rxjs';
+import { ChartTheme } from '../models/chart.model';
+
+@Injectable({ providedIn: 'root' })
+export class ChartThemeService {
+  private themeSubject = new BehaviorSubject<ChartTheme>(this.buildTheme());
+  readonly theme$ = this.themeSubject.asObservable();
+
+  get current(): ChartTheme {
+    return this.themeSubject.value;
+  }
+
+  private buildTheme(): ChartTheme {
+    // return this.isDark
+    // ?
+    return {
+      background: '#0d1117',
+      surface: '#161b22',
+      border: '#21262d',
+      text: '#c9d1d9',
+      textMuted: '#8b949e',
+      grid: '#161b22',
+      up: '#3fb950',
+      dn: '#f85149',
+      crosshair: '#58a6ff',
+    };
+    // :
+
+    // {
+    //     background: '#ffffff',
+    //     surface: '#f6f8fa',
+    //     border: '#d0d7de',
+    //     text: '#1f2328',
+    //     textMuted: '#656d76',
+    //     grid: '#f6f8fa',
+    //     up: '#1a7f37',
+    //     dn: '#cf222e',
+    //     crosshair: '#0969da',
+    //   };
+  }
+}

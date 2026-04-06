@@ -8,6 +8,10 @@ import { API_ROUTES, environment } from '../../../environments/environment';
 // Models
 import { BinanceWsEventTypeEnum } from '../models/trades.model';
 
+interface UserStream {
+  listenKey: string;
+}
+
 @Injectable({
   providedIn: 'root',
 })
@@ -31,9 +35,7 @@ export class UserService {
     if (this.userDataSocket) return;
 
     this.http
-      .post<{
-        listenKey: string;
-      }>(`${environment.apiTradingBotUrl}${API_ROUTES.user.userDataStream}`, {})
+      .post<UserStream>(`${environment.apiTradingBotUrl}${API_ROUTES.user.userDataStream}`, {})
       .subscribe({
         next: (res) => {
           this.userDataListenKey = res.listenKey;
@@ -71,7 +73,7 @@ export class UserService {
   private connectUserDataWebSocket(): void {
     if (!this.userDataListenKey) return;
 
-    const WS_URL = `${environment.binanceFutureWebSocketBaseUrl}/${this.userDataListenKey}`;
+    const WS_URL = `${environment.binanceWSBaseUrl}/${this.userDataListenKey}`;
     const socket = new WebSocket(WS_URL);
 
     socket.onopen = () => {
@@ -106,7 +108,7 @@ export class UserService {
 
   private keepAliveUserDataStream(): void {
     this.http
-      .put(`${environment.apiTradingBotUrl}${API_ROUTES.user.userDataStream}`, {})
+      .put<UserStream>(`${environment.apiTradingBotUrl}${API_ROUTES.user.userDataStream}`, {})
       .subscribe({
         error: (err) => console.error('Failed to keep-alive listenKey', err),
       });
