@@ -49,6 +49,8 @@ export interface OpenOrder {
 }
 
 export interface TPSLOrder {
+  algoId?: string;
+  clientAlgoId?: string;
   orderType: OrderTypeEnum;
   triggerPrice: string;
   side: string;

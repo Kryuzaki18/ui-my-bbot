@@ -212,8 +212,8 @@ export class TradesTerminal implements OnInit {
 
   ngOnInit(): void {
     this.fetchLeverageBracket();
-    this.getFuturesPositions();
     this.fetchPendingTpSl();
+    this.getFuturesPositions();
 
     // this.fetchOpenOrders();
   }
@@ -364,8 +364,8 @@ export class TradesTerminal implements OnInit {
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
         next: (res) => {
-          this.getFuturesPositions();
           this.fetchPendingTpSl();
+          this.getFuturesPositions();
           // this.fetchOpenOrders();
         },
         error: (err) => console.error(err),
@@ -407,8 +407,8 @@ export class TradesTerminal implements OnInit {
           .pipe(takeUntilDestroyed(this.destroyRef))
           .subscribe({
             next: (res) => {
-              this.getFuturesPositions();
               this.fetchPendingTpSl();
+              this.getFuturesPositions();
             },
             error: (err) => console.error(err),
           });
@@ -438,6 +438,33 @@ export class TradesTerminal implements OnInit {
         return;
       }
 
+      if (payload.isRemove) {
+        const tpslOrder = this.tpslOrders().find(
+          (order) =>
+            order.symbol.toLowerCase() === symbol.toLowerCase() && order.orderType === type,
+        );
+
+        if (!tpslOrder) {
+          return;
+        }
+
+        this.futureTradeService
+          .cancelTpSl({
+            algoId: tpslOrder?.algoId,
+            clientAlgoId: tpslOrder?.clientAlgoId,
+          })
+          .pipe(takeUntilDestroyed(this.destroyRef))
+          .subscribe({
+            next: (res) => {
+              const updateTpSlOrders = this.tpslOrders().filter((order) => order.algoId !== tpslOrder?.algoId);
+              this.tpslOrders.set(updateTpSlOrders);
+              this.getFuturesPositions();
+            },
+            error: (err) => console.error(err),
+          });
+        return;
+      }
+
       const newPayload: any = {
         symbol,
         triggerPrice: payload.triggerPrice,
@@ -453,8 +480,8 @@ export class TradesTerminal implements OnInit {
           .pipe(takeUntilDestroyed(this.destroyRef))
           .subscribe({
             next: (res) => {
-              this.getFuturesPositions();
               this.fetchPendingTpSl();
+              this.getFuturesPositions();
             },
             error: (err) => console.error(err),
           });
@@ -467,8 +494,8 @@ export class TradesTerminal implements OnInit {
           .pipe(takeUntilDestroyed(this.destroyRef))
           .subscribe({
             next: (res) => {
-              this.getFuturesPositions();
               this.fetchPendingTpSl();
+              this.getFuturesPositions();
             },
             error: (err) => console.error(err),
           });

@@ -7,10 +7,12 @@ import { STORAGE } from '../../core/constants/binance.constant';
 
 // Services
 import { StorageService } from '../../core/services/storage.service';
+import { BinanceService } from '../../core/services/binance.service';
 
 //PrimeNG Modules
 import { ButtonModule } from 'primeng/button';
 import { AuthService } from '../../core/services/auth.service';
+import { UserService } from '../../core/services/user.service';
 
 @Component({
   selector: 'app-header',
@@ -22,6 +24,8 @@ export class Header {
   private router = inject(Router);
   private authService = inject(AuthService);
   private storageService = inject(StorageService);
+  private binanceService = inject(BinanceService);
+  private userService = inject(UserService);
   private destroyRef = inject(DestroyRef);
 
   signout(): void {
@@ -31,6 +35,8 @@ export class Header {
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
         next: () => {
+          this.userService.stopUserDataStream()
+          this.binanceService.disconnectAll();
           this.storageService.removeLocal(STORAGE.lToken);
           this.router.navigate(['/signin']);
         },

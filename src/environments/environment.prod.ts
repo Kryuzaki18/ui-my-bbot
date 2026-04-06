@@ -18,11 +18,11 @@ export const API_ROUTES = {
     order: '/api/futures/order',
     takeProfit: '/api/futures/take-profit',
     stopLoss: '/api/futures/stop-loss',
+    cancelTpSl: '/api/futures/cancel-tpsl',
     cancel: '/api/futures/cancel',
     openOrders: '/api/futures/open-orders',
     pendingTpSl: '/api/futures/pending-tpsl',
     closePosition: '/api/futures/close-position',
-    cancelTpSl: '/api/futures/cancel-tpsl',
     leverageBracket: '/api/futures/leverage-bracket',
   },
 };

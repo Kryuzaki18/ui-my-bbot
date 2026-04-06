@@ -213,12 +213,18 @@
                   <div
                     class="flex flex-col items-end text-xs"
                     [ngClass]="{
-                      'text-green-500': !isNegativePnl,
-                      'text-red-500': isNegativePnl,
+                      'text-red-500': futurePosition?.position === PositionSideEnum.SHORT,
+                      'text-green-500': futurePosition?.position === PositionSideEnum.LONG,
                     }"
                   >
-                    <span>{{ futurePosition?.pnl | currency: 'USD' : 'symbol' : '1.0-2' }} </span>
-                    <span>{{ futurePosition?.pnlPercent | number: '1.0-2' }}% </span>
+                    <span
+                      >{{ isNegativePnl ? '' : '+'
+                      }}{{ futurePosition?.pnl | currency: 'USD' : 'symbol' : '1.0-2' }}</span
+                    >
+                    <span
+                      >{{ isNegativePnl ? '' : '+'
+                      }}{{ futurePosition?.pnlPercent | number: '1.0-2' }}%
+                    </span>
                   </div>
                 </div>
               </div>

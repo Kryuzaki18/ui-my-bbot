@@ -135,18 +135,21 @@ export class TpSlDialog implements OnInit {
   confirmOrder(): void {
     if (!this.riskDialogPrice) return;
 
-    let payload = Object.assign({});
-
-    payload = {
+    const payload = {
       side: this.riskDialogSide,
       triggerPrice: this.riskDialogPrice,
       type: this.riskDialogType,
+      isRemove: false,
     };
 
     this.ref.close(payload);
   }
 
-  removeOrder(): void {}
+  removeOrder(): void {
+    this.ref.close({
+      isRemove: true,
+    });
+  }
 
   isOrderSell(): boolean {
     return this.riskDialogSide === OrderSideEnum.SELL;
