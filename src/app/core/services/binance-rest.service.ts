@@ -30,7 +30,7 @@ export class BinanceRestService {
     );
   }
 
-  getKlines(symbol: string, interval: Timeframe, limit = 500): Observable<CandleData[]> {
+  getKlines(symbol: string, interval: Timeframe, limit: number = 500): Observable<CandleData[]> {
     const params = new HttpParams()
       .set('symbol', symbol.toUpperCase())
       .set('interval', interval)

@@ -1,1 +1,170 @@
-<p>trading-chart works!</p>
+<div class="border-x border-gray-900">
+  <div class="symbol-info-container flex items-center gap-5 px-2">
+    <div class="flex flex-col">
+      <div class="text-lg font-bold">
+        {{ SYMBOLS.BTCUSDT.toUpperCase() }}
+        <span class="text-xs bg-yellow-800 text-yellow-300 px-1 rounded">PERP</span>
+      </div>
+      <div class="jetbrains-bold" [class]="priceClass()">
+        {{ price() ? '$' + utilsService.fmtPrice(price()) : '—' }}
+      </div>
+      @if (ticker(); as t) {
+        <div class="text-[10px] jetbrains-medium" [class]="changeClass()">
+          {{ utilsService.fmtPercent(t.priceChangePercent) }} (24h)
+        </div>
+      }
+    </div>
+
+    <div class="flex items-center gap-1 divide-x-1 divide-gray-600 divide-dashed">
+      @if (markPriceData(); as m) {
+        <div class="flex flex-col px-1">
+          <span class="text-[10px] text-gray-500">Mark Price</span>
+          <span class="text-xs jetbrains-medium">${{ utilsService.fmtPrice(m.markPrice) }}</span>
+        </div>
+
+        <div class="flex flex-col px-1">
+          <span class="text-[10px] text-gray-500">Index Price</span>
+          <span class="text-xs jetbrains-medium">${{ utilsService.fmtPrice(m.indexPrice) }}</span>
+        </div>
+
+        <div class="flex flex-col px-1">
+          <span class="text-[10px] text-gray-500">Funding</span>
+          <span class="text-xs jetbrains-medium" [class]="fundingClass()">
+            <span class="text-orange-400">{{ utilsService.fmtFunding(m.lastFundingRate) }}</span> /
+            {{ m.nextFundingTime | date: 'h:mma' | lowercase }}
+          </span>
+        </div>
+      }
+
+      @if (ticker(); as t) {
+        <div class="flex flex-col px-1">
+          <span class="text-[10px] text-gray-500">24h High</span>
+          <span class="text-xs text-green-600 jetbrains-medium"
+            >${{ utilsService.fmtPrice(t.highPrice) }}</span
+          >
+        </div>
+        <div class="flex flex-col px-1">
+          <span class="text-[10px] text-gray-500">24h Low</span>
+          <span class="text-xs text-red-600 jetbrains-medium"
+            >${{ utilsService.fmtPrice(t.lowPrice) }}</span
+          >
+        </div>
+        <div class="flex flex-col px-1">
+          <span class="text-[10px] text-gray-500">24h Vol</span>
+          <span class="text-xs jetbrains-medium text-gray-400"
+            >${{ utilsService.fmtVol(t.quoteVolume) }}</span
+          >
+        </div>
+      }
+
+      @if (openInterest()) {
+        <div class="flex flex-col px-1">
+          <span class="text-[10px] text-gray-500">Open Interest</span>
+          <span class="text-xs jetbrains-medium text-gray-400">{{
+            utilsService.fmtVol(openInterest())
+          }}</span>
+        </div>
+      }
+    </div>
+  </div>
+
+  <div class="timeframe-container flex items-center gap-5 border-y border-gray-800">
+    <div class="tf-group">
+      @for (tf of timeframes; track tf) {
+        <p-button
+          size="small"
+          variant="text"
+          [severity]="currentTf() === tf ? 'primary' : 'secondary'"
+          (click)="setTimeframe(tf)"
+        >
+          <span class="text-xs">{{ tf }}</span>
+        </p-button>
+      }
+    </div>
+  </div>
+
+  <div class="flex flex-col relative">
+    <div
+      class="flex items-center gap-2 absolute left-0 top-0 ml-2 mt-2 z-10 border-1 border-gray-700 rounded"
+    >
+      <div class="flex items-center px-2">
+        <span class="ws-dot" [class.ws-dot--live]="wsStatus() === 'live'"></span>
+        <span class="text-sm text-blue-400">{{ wsStatusLabel() }}</span>
+      </div>
+      @if (ohlc(); as o) {
+        <div class="flex gap-2 text-xs px-2 jetbrains-light">
+          <div class="flex items-center gap-1">
+            <span class="text-gray-400">O</span><span>{{ o.o }}</span>
+          </div>
+          <div class="flex items-center gap-1">
+            <span class="text-gray-400">H</span><span class="text-green-400">{{ o.h }}</span>
+          </div>
+          <div class="flex items-center gap-1">
+            <span class="text-gray-400">L</span><span class="text-red-400">{{ o.l }}</span>
+          </div>
+          <div class="flex items-center gap-1">
+            <span class="text-gray-400">C</span>
+            <span [class.text-green-400]="o.isUp" [class.text-red-400]="!o.isUp">{{ o.c }}</span>
+          </div>
+          <div class="flex items-center gap-1">
+            <span class="text-gray-400">V</span><span>{{ o.v }}</span>
+          </div>
+        </div>
+      }
+    </div>
+
+    <div class="flex">
+      <div class="flex flex-col flex-auto">
+        <div #chartContainer class="chart-container"></div>
+
+        <div class="relative volume-container">
+          <div
+            class="card flex justify-center absolute left-0 top-0 ml-2 z-10 rounded border-1 border-gray-800"
+          >
+            <p-button (click)="toggleVolume()" variant="text" size="small">
+              <span
+                class="pi"
+                [ngClass]="{
+                  'pi-eye-slash': !showVolume(),
+                  'pi-eye': showVolume(),
+                }"
+              ></span>
+            </p-button>
+          </div>
+
+          <div #volumeContainer class="volume-container"></div>
+        </div>
+      </div>
+
+      <div class="trades-container">
+        <div class="text-center bg-gray-900 mb-1">
+          <span class="text-xs jetbrains-bold text-gray-300">Recent Trades</span>
+        </div>
+
+        <div class="flex text-[10px] jetbrains-medium justify-between text-gray-500 px-1">
+          <span class="w-auto">Price</span>
+          <span class="w-2/5 text-right">Amount</span>
+          <span class="w-1/3 text-right">Time</span>
+        </div>
+
+        @for (aggTrade of aggTrades()[SYMBOLS.BTCUSDT]; track $index) {
+          <div
+            class="flex jetbrains-medium justify-between py-1 border-t border-gray-900 px-1"
+            [ngClass]="{
+              'text-green-400': aggTrade.m,
+              'text-red-400': !aggTrade.m,
+            }"
+          >
+            <span class="w-auto text-[10px]">${{ utilsService.fmtPrice(+aggTrade.p) }}</span>
+            <span class="w-1/4 text-[10px] text-right">{{
+              utilsService.fmtVol(+aggTrade.q * +aggTrade.p)
+            }}</span>
+            <span class="w-1/3 text-[9px] text-gray-600 text-right">{{
+              aggTrade.T | date: 'h:mm:ss a' | lowercase
+            }}</span>
+          </div>
+        }
+      </div>
+    </div>
+  </div>
+</div>

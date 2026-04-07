@@ -98,3 +98,12 @@ export interface ChartTheme {
   dn: string;
   crosshair: string;
 }
+
+export interface OhlcDisplay {
+  o: string;
+  h: string;
+  l: string;
+  c: string;
+  v: string;
+  isUp: boolean;
+}

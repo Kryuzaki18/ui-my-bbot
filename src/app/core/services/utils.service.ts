@@ -4,6 +4,29 @@ import { Injectable } from '@angular/core';
   providedIn: 'root',
 })
 export class UtilsService {
+  fmtPrice(n: number): string {
+    return n.toLocaleString('en-US', { minimumFractionDigits: 1, maximumFractionDigits: 1 });
+  }
+
+  fmtVol(n: number): string {
+    if (n >= 1e9) return (n / 1e9).toFixed(2) + 'B';
+    if (n >= 1e6) return (n / 1e6).toFixed(2) + 'M';
+    if (n >= 1e3) return (n / 1e3).toFixed(1) + 'K';
+    return n.toFixed(2);
+  }
+
+  fmtPercent(n: number): string {
+    return (n >= 0 ? '+' : '') + n.toFixed(2) + '%';
+  }
+
+  fmtFunding(rate: number): string {
+    return (rate * 100).toFixed(4) + '%';
+  }
+
+  fmtTime(date: Date): string {
+    return date.toTimeString().slice(0, 8);
+  }
+
   calculateEstimatedPnL(
     entryPrice: number,
     targetPrice: number,
@@ -27,12 +50,7 @@ export class UtilsService {
     return { pnl, pnlStr, pnlPercent };
   }
 
-  calculatePnl(
-    entryPrice: number,
-    targetPrice: number,
-    positionAmt: number,
-    leverage: number,
-  ) {
+  calculatePnl(entryPrice: number, targetPrice: number, positionAmt: number, leverage: number) {
     const ep = entryPrice;
     const amt = positionAmt;
     const lev = leverage;
@@ -65,7 +83,7 @@ export class UtilsService {
     const leverage = lev;
 
     if (!leverage || leverage === 0) return 0;
-    
+
     return (quantity * entry) / leverage;
   }
 }
