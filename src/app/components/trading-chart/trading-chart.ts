@@ -125,7 +125,6 @@ export class TradingChartComponent implements OnInit, AfterViewInit, OnDestroy {
       });
 
     this.binanceWsService.markPrice$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((d) => {
-      console.log(d);
       this.markPriceData.set({
         markPrice: parseFloat(d.p),
         indexPrice: parseFloat(d.i),
