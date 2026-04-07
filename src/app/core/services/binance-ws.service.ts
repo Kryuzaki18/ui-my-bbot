@@ -19,13 +19,10 @@ export interface AggTradeWs {
   providedIn: 'root',
 })
 export class BinanceWsService {
-  private readonly publicWsBase = environment.binancePublicWSBaseUrl;
   private readonly marketWsBase = environment.binanceMarketWSBaseUrl;
-  private readonly privateWsBase = environment.binancePrivateWSBaseUrl;
 
   private aggTradeConnections: Record<string, AggTradeWs> = {};
   private connections = new Map<string, WebSocket>();
-  private destroy$ = new Subject<void>();
 
   /** Reconnect delay: 1s, 2s, 4s, 8s … capped at 30s */
   private retryDelays = [1000, 2000, 4000, 8000, 16000, 30000];
@@ -38,7 +35,6 @@ export class BinanceWsService {
   // ── Kline stream ────────────────────────────────────────────────────────
   private klineSubject = new Subject<KlineWsMessage>();
   readonly kline$ = this.klineSubject.asObservable();
-
 
   // ── Mark price stream ───────────────────────────────────────────────────
   private markPriceSubject = new Subject<any>();

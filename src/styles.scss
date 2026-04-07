@@ -1,9 +1,10 @@
 /* You can add global styles to this file, and also import other style files */
-@use "tailwindcss";
-@import "primeicons/primeicons.css";
-@import "./app/styles/index.scss";
+@use 'tailwindcss';
+@import 'primeicons/primeicons.css';
+@import './app/styles/index.scss';
 
-html, body {
+html,
+body {
   margin: 0;
   padding: 0;
 }
