@@ -107,3 +107,31 @@ export interface OhlcDisplay {
   v: string;
   isUp: boolean;
 }
+
+export type IndicatorType = 'MA' | 'EMA' | 'MACD' | 'BB';
+
+export interface MaPoint {
+  time: number;
+  value: number;
+}
+
+export interface MacdPoint {
+  time: number;
+  macd: number;
+  signal: number;
+  histogram: number;
+}
+
+export interface BollingerPoint {
+  time: number;
+  upper: number;
+  middle: number;
+  lower: number;
+}
+
+export interface IndicatorConfig {
+  type: IndicatorType;
+  label: string;
+  color: string;
+  enabled: boolean;
+}

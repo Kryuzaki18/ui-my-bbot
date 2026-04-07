@@ -10,7 +10,7 @@
       </div>
       @if (ticker(); as t) {
         <div class="text-[10px] jetbrains-medium" [class]="changeClass()">
-          {{ utilsService.fmtPercent(t.priceChangePercent) }} (24h)
+          {{ t.priceChangePercent >= 0 ? '+' : '' }}{{ t.priceChangePercent.toFixed(2) }}% (24h)
         </div>
       }
     </div>
@@ -30,7 +30,7 @@
         <div class="flex flex-col px-1">
           <span class="text-[10px] text-gray-500">Funding</span>
           <span class="text-xs jetbrains-medium" [class]="fundingClass()">
-            <span class="text-orange-400">{{ utilsService.fmtFunding(m.lastFundingRate) }}</span> /
+            <span class="text-orange-400">{{ m.lastFundingRate * 100 | number: '1.2-4' }}</span> /
             {{ m.nextFundingTime | date: 'h:mma' | lowercase }}
           </span>
         </div>
@@ -68,7 +68,7 @@
     </div>
   </div>
 
-  <div class="timeframe-container flex items-center gap-5 border-y border-gray-800">
+  <div class="timeframe-container flex items-center justify-between border-y border-gray-800">
     <div class="tf-group">
       @for (tf of timeframes; track tf) {
         <p-button
@@ -79,6 +79,81 @@
         >
           <span class="text-xs">{{ tf }}</span>
         </p-button>
+      }
+    </div>
+
+    <!-- Indicators dropdown -->
+    <div class="indicator-menu-wrapper" #indicatorMenuRef>
+      <button
+        id="indicator-toggle-btn"
+        class="indicator-btn"
+        [class.indicator-btn--active]="showIndicatorMenu()"
+        (click)="toggleIndicatorMenu($event)"
+      >
+        <svg
+          class="indicator-icon"
+          viewBox="0 0 20 20"
+          fill="none"
+          xmlns="http://www.w3.org/2000/svg"
+        >
+          <path
+            d="M3 14l4-5 3 3 4-6 3 4"
+            stroke="currentColor"
+            stroke-width="1.5"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          />
+        </svg>
+        <span>Indicators</span>
+        @if (activeIndicatorCount() > 0) {
+          <span class="indicator-badge">{{ activeIndicatorCount() }}</span>
+        }
+        <svg
+          class="chevron"
+          [class.chevron--open]="showIndicatorMenu()"
+          viewBox="0 0 10 6"
+          fill="none"
+          xmlns="http://www.w3.org/2000/svg"
+        >
+          <path
+            d="M1 1l4 4 4-4"
+            stroke="currentColor"
+            stroke-width="1.5"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          />
+        </svg>
+      </button>
+
+      @if (showIndicatorMenu()) {
+        <div class="indicator-dropdown" (click)="$event.stopPropagation()">
+          <div class="indicator-dropdown__header">
+            <span>Technical Indicators</span>
+          </div>
+          @for (ind of indicators(); track ind.type) {
+            <div
+              class="indicator-item"
+              [class.indicator-item--active]="ind.enabled"
+              (click)="toggleIndicator(ind.type, $event)"
+            >
+              <div class="indicator-item__check">
+                @if (ind.enabled) {
+                  <svg viewBox="0 0 12 12" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path
+                      d="M2 6l3 3 5-5"
+                      stroke="currentColor"
+                      stroke-width="1.5"
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                    />
+                  </svg>
+                }
+              </div>
+              <span class="indicator-item__dot" [style.background]="ind.color"></span>
+              <span class="indicator-item__label">{{ ind.label }}</span>
+            </div>
+          }
+        </div>
       }
     </div>
   </div>
@@ -104,7 +179,14 @@
           </div>
           <div class="flex items-center gap-1">
             <span class="text-gray-400">C</span>
-            <span [class.text-green-400]="o.isUp" [class.text-red-400]="!o.isUp">{{ o.c }}</span>
+            <span
+              [ngClass]="{
+                'text-green-400': o.isUp,
+                'text-red-400': !o.isUp,
+              }"
+            >
+              {{ o.c }}
+            </span>
           </div>
           <div class="flex items-center gap-1">
             <span class="text-gray-400">V</span><span>{{ o.v }}</span>

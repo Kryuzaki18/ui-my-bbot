@@ -23,6 +23,6 @@ export class App {
 
   ngOnInit(): void {
     this.binanceWsService.createAggTradeStream(SYMBOLS.BTCUSDT);
-    // this.binanceWsService.createAggTradeStream(SYMBOLS.ETHUSDT);
+    this.binanceWsService.createAggTradeStream(SYMBOLS.ETHUSDT);
   }
 }

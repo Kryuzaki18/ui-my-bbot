@@ -15,18 +15,6 @@ export class UtilsService {
     return n.toFixed(2);
   }
 
-  fmtPercent(n: number): string {
-    return (n >= 0 ? '+' : '') + n.toFixed(2) + '%';
-  }
-
-  fmtFunding(rate: number): string {
-    return (rate * 100).toFixed(4) + '%';
-  }
-
-  fmtTime(date: Date): string {
-    return date.toTimeString().slice(0, 8);
-  }
-
   calculateEstimatedPnL(
     entryPrice: number,
     targetPrice: number,

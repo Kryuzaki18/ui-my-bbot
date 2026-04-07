@@ -26,7 +26,7 @@ import { OpenOrders } from '../../components/open-orders/open-orders';
 export class Dashboard implements OnInit {
   readonly aggTrades = signal<Record<string, AggTradeWsMessage[]>>({});
 
-  defaultSymbols = ['btcusdt', 'ethusdt'];
+  defaultSymbols = ['btcusdt'];
 
   private destroyRef = inject(DestroyRef);
   private binanceWsService = inject(BinanceWsService);

@@ -21,7 +21,8 @@ const PUBLIC_URL_PATTERNS: (string | RegExp)[] = [
   `${environment.apiTradingBotUrl}${API_ROUTES.auth.signOut}`,
   `${environment.binancePublicWSBaseUrl}`,
   `${environment.binanceMarketWSBaseUrl}`,
-  `${environment.binancePrivateWSBaseUrl}`
+  `${environment.binancePrivateWSBaseUrl}`,
+  `${environment.binanceWSBaseUrl}`,
 ];
 
 const isPublicUrl = (url: string): boolean => {

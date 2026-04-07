@@ -1,5 +1,5 @@
 //https://developers.binance.com/docs/derivatives/usds-margined-futures/websocket-market-streams/Important-WebSocket-Change-Notice
-const binanceWSBaseUrl = 'wss://fstream.binance.com';
+const binanceWSBaseUrl = 'wss://fstream.binance.com/ws';
 
 export const environment = {
   binanceFutureRestBaseUrl: 'https://testnet.binancefuture.com',
