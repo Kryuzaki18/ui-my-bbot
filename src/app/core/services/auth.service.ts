@@ -5,12 +5,16 @@ import { catchError, Observable, of, tap } from 'rxjs';
 // Environment
 import { API_ROUTES, environment } from '../../../environments/environment';
 
+export interface AuthUser {
+  username: string;
+}
+
 @Injectable({
   providedIn: 'root',
 })
 export class AuthService {
   private http = inject(HttpClient);
-  private _user = signal<any>(null);
+  private _user = signal<AuthUser | null>(null);
 
   isLoggedIn = computed(() => !!this._user());
 
@@ -18,8 +22,12 @@ export class AuthService {
     return this._user.asReadonly();
   }
 
-  checkAuth(): Observable<any> {
-    return this.http.get<any>('/api/auth/me', { withCredentials: true }).pipe(
+  clearUser(): void {
+    this._user.set(null);
+  }
+
+  checkAuth(): Observable<AuthUser | null> {
+    return this.http.get<AuthUser>(`${environment.apiTradingBotUrl}${API_ROUTES.auth.me}`).pipe(
       tap((user) => this._user.set(user)),
       catchError(() => {
         this._user.set(null);
@@ -28,29 +36,41 @@ export class AuthService {
     );
   }
 
-  signInWithEmail(email: string, password: string, useTestnet: boolean) {
+  signIn(
+    apiKey: string,
+    apiSecret: string,
+    useTestnet: boolean,
+  ): Observable<{ message: string; username: string }> {
     return this.http
-      .post<{ token: string }>(`${environment.apiTradingBotUrl}${API_ROUTES.auth.signIn}`, {
-        email,
-        password,
-        useTestnet,
-      })
-      .pipe(tap((user) => this._user.set(user)));
+      .post<{ message: string; username: string }>(
+        `${environment.apiTradingBotUrl}${API_ROUTES.auth.signIn}`,
+        { apiKey, apiSecret, useTestnet },
+        { withCredentials: true }, // Cookie is set by the server in response
+      )
+      .pipe(tap((res) => this._user.set({ username: res.username })));
   }
 
-  signIn(apiKey: string, apiSecret: string, useTestnet: boolean): Observable<{ token: string }> {
+  signInWithEmail(
+    email: string,
+    password: string,
+    useTestnet: boolean,
+  ): Observable<{ message: string; username: string }> {
     return this.http
-      .post<{ token: string }>(`${environment.apiTradingBotUrl}${API_ROUTES.auth.signIn}`, {
-        apiKey,
-        apiSecret,
-        useTestnet,
-      })
-      .pipe(tap((user) => this._user.set(user)));
+      .post<{ message: string; username: string }>(
+        `${environment.apiTradingBotUrl}${API_ROUTES.auth.signInWithEmail}`,
+        { email, password, useTestnet },
+        { withCredentials: true }, // Cookie is set by the server in response
+      )
+      .pipe(tap((res) => this._user.set({ username: res.username })));
   }
 
-  signOut(): Observable<void> {
+  signOut(): Observable<{ message: string }> {
     return this.http
-      .post<void>(`${environment.apiTradingBotUrl}${API_ROUTES.auth.signOut}`, {})
+      .post<{ message: string }>(
+        `${environment.apiTradingBotUrl}${API_ROUTES.auth.signOut}`,
+        {},
+        { withCredentials: true }, // Server clears the cookie
+      )
       .pipe(tap(() => this._user.set(null)));
   }
 }

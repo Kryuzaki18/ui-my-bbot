@@ -4,7 +4,6 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
 
-
 // Services
 import { AuthService } from '../../core/services/auth.service';
 
@@ -34,7 +33,7 @@ import { DynamicDialogRef } from 'primeng/dynamicdialog';
     SelectModule,
     TabsModule,
     FloatLabelModule,
-    DividerModule
+    DividerModule,
   ],
   templateUrl: './signin.html',
   styleUrls: ['./signin.scss'],
@@ -42,7 +41,7 @@ import { DynamicDialogRef } from 'primeng/dynamicdialog';
 export class SigninComponent implements OnInit {
   loading = signal<boolean>(false);
   errorMessage = signal<string | null>(null);
-  
+
   binanceForm!: FormGroup;
   emailForm!: FormGroup;
 
@@ -60,7 +59,7 @@ export class SigninComponent implements OnInit {
       this.router.navigate(['/future']);
     }
 
-     this.emailForm = this.fb.group({
+    this.emailForm = this.fb.group({
       email: ['', [Validators.required, Validators.minLength(10)]],
       password: ['', [Validators.required, Validators.minLength(7)]],
       rememberMe: [false],
@@ -98,7 +97,31 @@ export class SigninComponent implements OnInit {
       });
   }
 
-   closeDialog(): void {
+  signInWithEmail(): void {
+    if (this.emailForm.invalid) return;
+
+    this.loading.set(true);
+    this.errorMessage.set(null);
+
+    const { email, password, useTestnet } = this.emailForm.value;
+
+    this.authService
+      .signInWithEmail(email, password, useTestnet)
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: (res) => {
+          this.loading.set(false);
+          this.dialogRef.close();
+          this.router.navigate(['/future']);
+        },
+        error: (err) => {
+          this.loading.set(false);
+          this.errorMessage.set(err.error?.error || 'Could not verify API keys');
+        },
+      });
+  }
+
+  closeDialog(): void {
     this.dialogRef.close();
   }
 }

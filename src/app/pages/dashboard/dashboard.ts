@@ -1,9 +1,6 @@
 import { Component, DestroyRef, inject, OnInit, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
-// Constant
-import { MAX_TRADE_HISTORY } from '../../core/constants/binance.constant';
-
 // Models
 import { AggTradeWsMessage } from '../../core/models/chart.model';
 
@@ -15,10 +12,11 @@ import { Header } from '../../commons/header/header';
 import { TradesTerminal } from '../../components/trades-terminal/trades-terminal';
 import { MiniInfo } from '../../components/mini-info/mini-info';
 import { OpenOrders } from '../../components/open-orders/open-orders';
+import { TradingChartComponent } from '../../components/trading-chart/trading-chart';
 
 @Component({
   selector: 'app-dashboard',
-  imports: [Header, TradesTerminal, MiniInfo, OpenOrders],
+  imports: [Header, TradesTerminal, MiniInfo, OpenOrders, TradingChartComponent],
   templateUrl: './dashboard.html',
   styleUrl: './dashboard.scss',
   standalone: true,

@@ -1,21 +1,23 @@
-<div class="flex flex-col gap-4 p-3">
-  <div class="text-center">Account</div>
-  <div class="flex flex-col">
-    <div class="text-sm">Balance:</div>
-    <div class="text-sm text-emerald-400">
-      {{ userInfo()?.availableBalance | currency: 'USD' : 'symbol' : '1.1-10' }}
+<div class="flex flex-col py-1 pb-3 px-3 border-b border-gray-700 border-dashed">
+  <div class="text-center text-xs jetbrains-medium">Account</div>
+  <div class="flex flex-col gap-2">
+    <div class="flex flex-col jetbrains-thin">
+      <div class="text-xs text-gray-500">Margin Balance:</div>
+      <div class="text-xs text-emerald-400">
+        {{ userInfo()?.availableBalance | currency: 'USD' : 'symbol' : '1.1-10' }}
+      </div>
     </div>
-  </div>
-  <div class="flex flex-col">
-    <div class="text-sm text-gray-500">Unrealized PnL:</div>
-    <div class="text-sm">
-      {{ userInfo()?.totalUnrealizedProfit | currency: 'USD' : 'symbol' : '1.1-10' }}
+    <div class="flex flex-col jetbrains-thin">
+      <div class="text-xs text-gray-500">Unrealized PnL:</div>
+      <div class="text-xs text-emerald-400">
+        {{ userInfo()?.totalUnrealizedProfit | currency: 'USD' : 'symbol' : '1.1-10' }}
+      </div>
     </div>
-  </div>
-  <div class="flex flex-col">
-    <div class="text-sm text-gray-500">Total Balance:</div>
-    <div class="text-sm text-emerald-400">
-      {{ userInfo()?.totalWalletBalance | currency: 'USD' : 'symbol' : '1.1-10' }}
+    <div class="flex flex-col jetbrains-thin">
+      <div class="text-xs text-gray-500">Balance:</div>
+      <div class="text-xs text-emerald-400">
+        {{ userInfo()?.totalWalletBalance | currency: 'USD' : 'symbol' : '1.1-10' }}
+      </div>
     </div>
   </div>
 </div>

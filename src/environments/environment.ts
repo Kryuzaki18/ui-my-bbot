@@ -7,7 +7,7 @@ export const environment = {
   binancePublicWSBaseUrl: `${binanceWSBaseUrl}/public`, // Public (high-frequency public market data)
   binanceMarketWSBaseUrl: `${binanceWSBaseUrl}/market`, // Market (regular market data)
   binancePrivateWSBaseUrl: `${binanceWSBaseUrl}/private`, // Private (user data)
-  apiTradingBotUrl: 'http://127.0.0.1:3000',
+  apiTradingBotUrl: 'http://localhost:3000',
 };
 
 export const BINANCE_PUBLIC_API_ROUTES = {
@@ -25,6 +25,7 @@ export const API_ROUTES = {
   auth: {
     me: '/api/auth/me',
     signIn: '/api/auth/signin',
+    signInWithEmail: '/api/auth/signin-email',
     signOut: '/api/auth/signout',
   },
   user: {

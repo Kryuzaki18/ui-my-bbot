@@ -17,8 +17,6 @@ import { API_ROUTES, environment } from '../../../environments/environment';
 import { AuthService } from '../services/auth.service';
 
 const PUBLIC_URL_PATTERNS: (string | RegExp)[] = [
-  `${environment.apiTradingBotUrl}${API_ROUTES.auth.signIn}`,
-  `${environment.apiTradingBotUrl}${API_ROUTES.auth.signOut}`,
   `${environment.binancePublicWSBaseUrl}`,
   `${environment.binanceMarketWSBaseUrl}`,
   `${environment.binancePrivateWSBaseUrl}`,
@@ -42,18 +40,16 @@ export const AuthInterceptor: HttpInterceptorFn = (
     return next(request);
   }
 
-  if (authService.isLoggedIn()) {
-    request = request.clone({
-      setHeaders: {
-        Authorization: `Bearer ${authService.user()?.token}`,
-        // withCredentials: request.url.startsWith(environment.apiTradingBotUrl),
-      },
-    });
+  const isApiRequest = request.url.startsWith(environment.apiTradingBotUrl);
+
+  if (isApiRequest) {
+    request = request.clone({ withCredentials: true });
   }
 
   return next(request).pipe(
     catchError((error: HttpErrorResponse) => {
-      if (error.status === 401) {
+      if (error.status === 401 && isApiRequest) {
+        authService.clearUser();
         router.navigate(['/home']);
       }
       return throwError(() => error);

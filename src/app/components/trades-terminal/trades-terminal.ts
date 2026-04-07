@@ -16,9 +16,7 @@ import { AbbreviatePipe } from '../../core/pipes/abbreviate.pipe';
 // Services
 import { UtilsService } from '../../core/services/utils.service';
 import { FutureTradeService } from '../../core/services/future-trade.service';
-import { UserService } from '../../core/services/user.service';
 import { BinanceRestService } from '../../core/services/binance-rest.service';
-import { AuthService } from '../../core/services/auth.service';
 
 // Models
 import {
@@ -76,8 +74,6 @@ export class TradesTerminal implements OnInit {
   formBuilder = inject(FormBuilder);
   confirmationService = inject(ConfirmationService);
   utilsService = inject(UtilsService);
-  authService = inject(AuthService);
-  userService = inject(UserService);
   binanceRestService = inject(BinanceRestService);
   futureTradeService = inject(FutureTradeService);
 
@@ -215,13 +211,9 @@ export class TradesTerminal implements OnInit {
   });
 
   ngOnInit(): void {
-    if (this.authService.isLoggedIn()) {
-      this.fetchLeverageBracket();
-      this.fetchPendingTpSl();
-      this.getFuturesPositions();
-    } else {
-      this.createTradeForm([]);
-    }
+    this.fetchLeverageBracket();
+    this.fetchPendingTpSl();
+    this.getFuturesPositions();
   }
 
   createTradeForm(leverageBracket: LeverageBracket[]): void {
@@ -246,7 +238,7 @@ export class TradesTerminal implements OnInit {
           ],
           amount: [this.defaultAmount, [Validators.required, Validators.min(5)]],
           price: [null, Validators.required],
-          hasTPSL: [false],
+          hasTPSL: [true],
           takeProfit: [null],
           stopLoss: [null],
         });
@@ -282,7 +274,7 @@ export class TradesTerminal implements OnInit {
         const newPositions = res.filter((pos) => Number(pos.positionAmt) !== 0);
         if (newPositions.length > 0) {
           this.futurePos.set(newPositions);
-          this.updateForm();
+          // this.updateForm();
         }
       });
   }
@@ -299,38 +291,38 @@ export class TradesTerminal implements OnInit {
       });
   }
 
-  private updateForm(): void {
-    const futureSymbols = this.futureSymbols();
-    futureSymbols.forEach((symbol, index) => {
-      const ctrl = this.tradesFormArray.controls.find(
-        (c) => c.value.symbol.toLowerCase() === symbol.toLowerCase(),
-      );
-      if (ctrl) {
-        const pos = this.compFuturePos()[symbol];
-        if (pos.margin) {
-          this.tradesFormArray.controls[index].disable();
-        } else {
-          this.tradesFormArray.controls[index].enable();
-        }
-      }
-    });
-  }
+  // private updateForm(): void {
+  //   const futureSymbols = this.futureSymbols();
+  //   futureSymbols.forEach((symbol, index) => {
+  //     const ctrl = this.tradesFormArray.controls.find(
+  //       (c) => c.value.symbol.toLowerCase() === symbol.toLowerCase(),
+  //     );
+  //     if (ctrl) {
+  //       const pos = this.compFuturePos()[symbol];
+  //       if (pos.margin) {
+  //         this.tradesFormArray.controls[index].disable();
+  //       } else {
+  //         this.tradesFormArray.controls[index].enable();
+  //       }
+  //     }
+  //   });
+  // }
 
-  addToFormPrice(symbol: string, price: string): void {
-    const pos = this.compFuturePos()[symbol];
-    if (pos?.margin) {
-      return;
-    }
+  // addToFormPrice(symbol: string, price: string): void {
+  //   const pos = this.compFuturePos()[symbol];
+  //   if (pos?.margin) {
+  //     return;
+  //   }
 
-    this.tradesFormArray.controls.forEach((c) => {
-      if ((c.value.symbol || '').toLowerCase() === symbol.toLowerCase()) {
-        c.patchValue({ price: parseFloat(price) }, { emitEvent: false });
-      }
-    });
-  }
+  //   this.tradesFormArray.controls.forEach((c) => {
+  //     if ((c.value.symbol || '').toLowerCase() === symbol.toLowerCase()) {
+  //       c.patchValue({ price: parseFloat(price) }, { emitEvent: false });
+  //     }
+  //   });
+  // }
 
   placeOrder(data: FormGroup, side: OrderSideEnum): void {
-    if (data.invalid && !this.authService.isLoggedIn()) {
+    if (data.invalid) {
       return;
     }
 

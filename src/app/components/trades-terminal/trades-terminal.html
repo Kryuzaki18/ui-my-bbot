@@ -1,74 +1,10 @@
-<form [formGroup]="tradesForm" class="flex justify-center divide-x divide-gray-600 divide-dashed">
+<form [formGroup]="tradesForm" class="flex justify-center mt-3">
   <ng-container formArrayName="trades">
     @for (tradeGroup of tradesFormArray.controls; track $index; let tradeIndex = $index) {
       @let futurePosition = compFuturePos()[tradeGroup.value.symbol];
-      @let marketPrice = currentMarketPrice()(tradeGroup.value.symbol);
       @let isNegativePnl = (futurePosition?.pnl ?? 0) < 0;
-
       <div [formGroupName]="tradeIndex" class="flex px-5 pb-2">
-        <div class="flex flex-col p-3">
-          <span class="text-blue-400 text-md uppercase jetbrains-bold">{{
-            tradeGroup.value.symbol
-          }}</span>
-
-          <div
-            class="flex items-center justify-between gap-1 group cursor-pointer"
-            (click)="addToFormPrice(tradeGroup.value.symbol, marketPrice.p.toString())"
-          >
-            <span
-              class="text-center text-md text-left jetbrains-medium cursor-pointer"
-              [ngClass]="{
-                'text-red-500': marketPrice?.m,
-                'text-green-500': !marketPrice?.m,
-              }"
-              >{{ marketPrice?.p }}</span
-            >
-
-            <span
-              class="pi pi-arrow-circle-right opacity-0 group-hover:opacity-100 transition-opacity"
-            ></span>
-          </div>
-
-          <div class="flex flex-col gap-1 h-[400px] w-[170px] jetbrains-light">
-            <div class="flex justify-between">
-              <span class="text-xs text-gray-400">Price</span>
-              <span class="text-xs text-gray-400 flex-1 text-right mr-5">Amount</span>
-              <span class="text-xs text-gray-400">Time</span>
-            </div>
-            @for (trade of aggTrades()[tradeGroup.value.symbol]; track $index) {
-              <div
-                class="flex items-center justify-between gap-2 group cursor-pointer"
-                (click)="addToFormPrice(tradeGroup.value.symbol, trade.p)"
-              >
-                <span
-                  class="text-xs group-hover:text-blue-600"
-                  [ngClass]="{
-                    'text-red-500': trade.m,
-                    'text-green-500': !trade.m,
-                  }"
-                >
-                  {{ trade.p }}
-                </span>
-
-                <span
-                  class="flex-1 text-right text-[10px] group-hover:text-blue-600"
-                  [ngClass]="{
-                    'text-red-500': trade.m,
-                    'text-green-500': !trade.m,
-                  }"
-                  >{{ +trade.q * +trade.p | abbreviate }}</span
-                >
-
-                <span class="text-[9px] text-gray-500 group-hover:text-blue-600">{{
-                  trade.T | date: 'HH:mm:ss'
-                }}</span>
-              </div>
-            }
-          </div>
-        </div>
-
         <div class="card flex flex-col gap-2">
-          <h1 class="text-center text-lg">Trade</h1>
           <div class="flex flex-col gap-4">
             <label [for]="'leverage-' + tradeIndex" class="text-xs">
               Leverage
@@ -170,24 +106,16 @@
             <button
               (click)="placeOrder(tradeGroup, orderSideEnum.BUY)"
               type="button"
-              class="w-1/2 bg-green-700 text-white cursor-pointer rounded text-sm py-1"
-              [ngClass]="{
-                'bg-gray-900!': futurePosition?.margin,
-              }"
-              [disabled]="futurePosition?.margin"
+              class="w-1/2 bg-green-700 text-white cursor-pointer rounded text-xs py-2"
             >
-              Buy
+              Buy/Long
             </button>
             <button
               (click)="placeOrder(tradeGroup, orderSideEnum.SELL)"
               type="button"
-              class="w-1/2 bg-red-700 text-white cursor-pointer rounded text-sm py-1"
-              [ngClass]="{
-                'bg-gray-900!': futurePosition?.margin,
-              }"
-              [disabled]="futurePosition?.margin"
+              class="w-1/2 bg-red-700 text-white cursor-pointer rounded text-xs py-2"
             >
-              Sell
+              Sell/Short
             </button>
           </div>
           @if (futurePosition?.margin) {

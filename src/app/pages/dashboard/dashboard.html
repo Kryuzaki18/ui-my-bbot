@@ -2,12 +2,16 @@
 <main class="flex flex-col justify-center items-center">
   <div class="container flex flex-col">
     <div class="flex justify-center items-center">
-      <div class="grid grid-cols-6 gap-1 container">
-        <div class="col-span-5">
-          <app-trades-terminal [aggTrades]="aggTrades()"> </app-trades-terminal>
+      <div class="flex container">
+        <div class="flex-4">
+          <app-trading-chart [aggTrades]="aggTrades()"></app-trading-chart>
         </div>
-        <div class="col-span-1 bg-gray-900/50">
-          <app-mini-info></app-mini-info>
+        <div class="flex-1">
+          <div class="sticky top-13 right-0 bg-gray-900/50 pb-5">
+            <app-mini-info></app-mini-info>
+            <app-trades-terminal [aggTrades]="aggTrades()" [futureSymbols]="defaultSymbols">
+            </app-trades-terminal>
+          </div>
         </div>
       </div>
     </div>

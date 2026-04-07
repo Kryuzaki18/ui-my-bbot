@@ -16,7 +16,7 @@
       </p-tablist>
       <p-tabpanels>
         <p-tabpanel value="0">
-          <form [formGroup]="emailForm" (ngSubmit)="onSubmit()" class="flex flex-col gap-4">
+          <form [formGroup]="emailForm" (ngSubmit)="signInWithEmail()" class="flex flex-col gap-4">
             <p-floatlabel variant="on">
               <input
                 pInputText
