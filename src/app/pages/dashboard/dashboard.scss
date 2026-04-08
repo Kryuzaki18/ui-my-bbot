@@ -1,7 +1,12 @@
-@use 'index' as *;
+@use '../../styles/variables' as *;
 
 main {
   .container {
     max-width: $default-width;
   }
+}
+
+.side-trade-container {
+  width: $side-trade-width;
+  height: calc(100% - #{$header-height});
 }

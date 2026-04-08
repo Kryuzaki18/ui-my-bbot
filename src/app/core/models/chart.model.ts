@@ -1,6 +1,15 @@
-import { Subject } from "rxjs";
-
-export type Timeframe = '1m' | '3m' | '5m' | '15m' | '30m' | '1h' | '2h' | '4h' | '1d' | '3d' | '1w';
+export type Timeframe =
+  | '1m'
+  | '3m'
+  | '5m'
+  | '15m'
+  | '30m'
+  | '1h'
+  | '2h'
+  | '4h'
+  | '1d'
+  | '3d'
+  | '1w';
 
 export interface CandleData {
   time: number;
@@ -9,6 +18,16 @@ export interface CandleData {
   low: number;
   close: number;
   volume: number;
+}
+
+export interface Ticker24hrData {
+  lastPrice: number;
+  priceChange: number;
+  priceChangePercent: number;
+  highPrice: number;
+  lowPrice: number;
+  volume: number;
+  quoteVolume: number;
 }
 
 export interface TickerData {
@@ -32,23 +51,36 @@ export interface OpenInterestData {
   openInterest: number;
 }
 
+export interface Ticker24hrWsMessage {
+  e: string;
+  E: number;
+  s: string;
+  p: string;
+  P: string;
+  c: string;
+  h: string;
+  l: string;
+  v: string;
+  q: string;
+}
+
 export interface KlineWsMessage {
   e: string;
   E: number;
   s: string;
   k: {
-    t: number;  // Kline start time
-    T: number;  // Kline close time
-    s: string;  // Symbol
-    i: string;  // Interval
-    o: string;  // Open
-    c: string;  // Close
-    h: string;  // High
-    l: string;  // Low
-    v: string;  // Volume
-    n: number;  // Number of trades
+    t: number; // Kline start time
+    T: number; // Kline close time
+    s: string; // Symbol
+    i: string; // Interval
+    o: string; // Open
+    c: string; // Close
+    h: string; // High
+    l: string; // Low
+    v: string; // Volume
+    n: number; // Number of trades
     x: boolean; // Is this kline closed
-    q: string;  // Quote asset volume
+    q: string; // Quote asset volume
   };
 }
 
@@ -60,7 +92,7 @@ export interface AggTradeWsMessage {
   p: string; // price
   q: string; // quantity
   m: boolean; // maker
-  T: number;  // trade time
+  T: number; // trade time
 }
 
 export interface DepthLevel {
@@ -84,7 +116,7 @@ export interface RecentTrade {
 
 export interface AllRecentTrade {
   symbol: string;
-  trades: RecentTrade[]
+  trades: RecentTrade[];
 }
 
 export interface ChartTheme {

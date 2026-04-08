@@ -4,13 +4,12 @@
     <div class="flex justify-center items-center">
       <div class="flex container">
         <div class="flex-4">
-          <app-trading-chart [aggTrades]="aggTrades()"></app-trading-chart>
+          <app-trading-chart></app-trading-chart>
         </div>
         <div class="flex-1">
-          <div class="sticky top-13 right-0 bg-gray-900/50 pb-5">
+          <div class="fixed bg-gray-900/50 side-trade-container">
             <app-mini-info></app-mini-info>
-            <app-trades-terminal [aggTrades]="aggTrades()" [futureSymbols]="defaultSymbols">
-            </app-trades-terminal>
+            <app-trades-terminal></app-trades-terminal>
           </div>
         </div>
       </div>

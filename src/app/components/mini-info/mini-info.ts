@@ -8,13 +8,16 @@ import { UserService } from '../../core/services/user.service';
 // Models
 import { UserInfo } from '../../core/models/user-info.model';
 
+// PrimeNG
+import { Skeleton } from 'primeng/skeleton';
+
 @Component({
   selector: 'app-mini-info',
-  imports: [CurrencyPipe],
+  imports: [CurrencyPipe, Skeleton],
   templateUrl: './mini-info.html',
   styleUrl: './mini-info.scss',
 })
-export class MiniInfo implements OnInit, OnDestroy {
+export class MiniInfoComponent implements OnInit, OnDestroy {
   private destroyRef = inject(DestroyRef);
   private userService = inject(UserService);
 
@@ -22,8 +25,6 @@ export class MiniInfo implements OnInit, OnDestroy {
 
   ngOnInit(): void {
     this.getUserInfo();
-
-    this.userService.startUserDataStream();
 
     this.userService
       .getUserDataStream()

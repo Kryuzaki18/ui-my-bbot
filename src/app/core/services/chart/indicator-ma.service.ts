@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { CandleData, MaPoint } from '../models/chart.model';
+import { CandleData, MaPoint } from '../../models/chart.model';
 
 @Injectable({ providedIn: 'root' })
 export class IndicatorMaService {

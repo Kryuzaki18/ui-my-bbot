@@ -7,6 +7,9 @@ import { Router } from '@angular/router';
 // Services
 import { AuthService } from '../../core/services/auth.service';
 
+// Constants
+import { EMAIL_PATTERN } from '../../core/constants/regex.constant';
+
 // PrimeNG Modules
 import { ButtonModule } from 'primeng/button';
 import { InputTextModule } from 'primeng/inputtext';
@@ -18,6 +21,7 @@ import { TabsModule } from 'primeng/tabs';
 import { FloatLabelModule } from 'primeng/floatlabel';
 import { DividerModule } from 'primeng/divider';
 import { DynamicDialogRef } from 'primeng/dynamicdialog';
+import { PasswordModule } from 'primeng/password';
 
 @Component({
   selector: 'app-signin',
@@ -34,25 +38,24 @@ import { DynamicDialogRef } from 'primeng/dynamicdialog';
     TabsModule,
     FloatLabelModule,
     DividerModule,
+    PasswordModule,
   ],
   templateUrl: './signin.html',
   styleUrls: ['./signin.scss'],
 })
 export class SigninComponent implements OnInit {
-  loading = signal<boolean>(false);
-  errorMessage = signal<string | null>(null);
+  private readonly authService = inject(AuthService);
+  private readonly router = inject(Router);
+  private readonly destroyRef = inject(DestroyRef);
+  private readonly fb = inject(FormBuilder);
+
+  readonly loading = signal<boolean>(false);
+  readonly errorMessage = signal<string | null>(null);
 
   binanceForm!: FormGroup;
   emailForm!: FormGroup;
 
   private dialogRef = inject(DynamicDialogRef);
-  private destroyRef = inject(DestroyRef);
-
-  constructor(
-    private fb: FormBuilder,
-    private authService: AuthService,
-    private router: Router,
-  ) {}
 
   ngOnInit(): void {
     if (this.authService.isLoggedIn()) {
@@ -60,7 +63,16 @@ export class SigninComponent implements OnInit {
     }
 
     this.emailForm = this.fb.group({
-      email: ['', [Validators.required, Validators.minLength(10)]],
+      email: [
+        '',
+        [
+          Validators.required,
+          Validators.minLength(10),
+          Validators.maxLength(100),
+          Validators.email,
+          Validators.pattern(EMAIL_PATTERN),
+        ],
+      ],
       password: ['', [Validators.required, Validators.minLength(7)]],
       rememberMe: [false],
       useTestnet: [true],
@@ -73,7 +85,7 @@ export class SigninComponent implements OnInit {
     });
   }
 
-  onSubmit(): void {
+  signInBinanceKey(): void {
     if (this.binanceForm.invalid) return;
 
     this.loading.set(true);
@@ -92,7 +104,7 @@ export class SigninComponent implements OnInit {
         },
         error: (err) => {
           this.loading.set(false);
-          this.errorMessage.set(err.error?.error || 'Could not verify API keys');
+          this.errorMessage.set(err.error?.error);
         },
       });
   }
@@ -110,13 +122,13 @@ export class SigninComponent implements OnInit {
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
         next: (res) => {
-          this.loading.set(false);
           this.dialogRef.close();
+          this.loading.set(false);
           this.router.navigate(['/future']);
         },
         error: (err) => {
           this.loading.set(false);
-          this.errorMessage.set(err.error?.error || 'Could not verify API keys');
+          this.errorMessage.set(err.error?.error);
         },
       });
   }

@@ -21,6 +21,7 @@
               <input
                 pInputText
                 id="email"
+                placeholder="user@domain.com"
                 formControlName="email"
                 autocomplete="off"
                 class="w-full"
@@ -29,12 +30,14 @@
             </p-floatlabel>
 
             <p-floatlabel variant="on">
-              <input
-                pInputText
+              <p-password
                 id="password"
                 formControlName="password"
+                [toggleMask]="true"
+                [feedback]="false"
+                [showClear]="emailForm.get('password')?.value?.length > 3"
                 autocomplete="off"
-                class="w-full"
+                fluid
               />
               <label for="password">Password</label>
             </p-floatlabel>
@@ -105,25 +108,33 @@
         </p-tabpanel>
 
         <p-tabpanel value="1">
-          <form [formGroup]="binanceForm" (ngSubmit)="onSubmit()" class="flex flex-col gap-4">
+          <form
+            [formGroup]="binanceForm"
+            (ngSubmit)="signInBinanceKey()"
+            class="flex flex-col gap-4"
+          >
             <p-floatlabel variant="on">
-              <input
-                pInputText
+              <p-password
                 id="apiKey"
                 formControlName="apiKey"
+                [toggleMask]="true"
+                [feedback]="false"
+                [showClear]="binanceForm.get('apiKey')?.value?.length > 3"
                 autocomplete="off"
-                class="w-full"
+                fluid
               />
               <label for="apiKey">API Key</label>
             </p-floatlabel>
 
             <p-floatlabel variant="on">
-              <input
-                pInputText
+              <p-password
                 id="apiSecret"
                 formControlName="apiSecret"
+                [toggleMask]="true"
+                [feedback]="false"
+                [showClear]="binanceForm.get('apiSecret')?.value?.length > 3"
                 autocomplete="off"
-                class="w-full"
+                fluid
               />
               <label for="apiSecret">API Secret</label>
             </p-floatlabel>

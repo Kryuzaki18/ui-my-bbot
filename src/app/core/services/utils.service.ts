@@ -38,7 +38,10 @@ export class UtilsService {
     return { pnl, pnlStr, pnlPercent };
   }
 
-  calculatePnl(entryPrice: number, targetPrice: number, positionAmt: number, leverage: number) {
+  calculatePnl(entryPrice: number, targetPrice: number, positionAmt: number, leverage: number): {
+    pnl: number;
+    pnlPercent: number;
+  } {
     const ep = entryPrice;
     const amt = positionAmt;
     const lev = leverage;

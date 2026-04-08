@@ -31,7 +31,7 @@ import { DynamicDialogConfig, DynamicDialogRef } from 'primeng/dynamicdialog';
   templateUrl: './tp-sl-dialog.html',
   styleUrl: './tp-sl-dialog.scss',
 })
-export class TpSlDialog implements OnInit {
+export class TpSlDialogComponent implements OnInit {
   private utilsService = inject(UtilsService);
   private config = inject(DynamicDialogConfig);
   private dialogRef = inject(DynamicDialogRef);

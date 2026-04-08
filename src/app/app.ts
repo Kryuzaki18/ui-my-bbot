@@ -5,7 +5,7 @@ import { RouterModule } from '@angular/router';
 import { BinanceWsService } from './core/services/binance-ws.service';
 
 // Constants
-import { DEFAULT_TIMEFRAME, SYMBOLS } from './core/constants/binance.constant';
+import {  DEFAULT_SYMBOL } from './core/constants/binance.constant';
 
 // PrimeNG Modules
 import { ConfirmDialogModule } from 'primeng/confirmdialog';
@@ -22,7 +22,6 @@ export class App {
   private binanceWsService = inject(BinanceWsService);
 
   ngOnInit(): void {
-    this.binanceWsService.createAggTradeStream(SYMBOLS.BTCUSDT);
-    this.binanceWsService.createAggTradeStream(SYMBOLS.ETHUSDT);
+    this.binanceWsService.createAggTradeStream(DEFAULT_SYMBOL);
   }
 }

@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { CandleData, BollingerPoint } from '../models/chart.model';
+import { CandleData, BollingerPoint } from '../../models/chart.model';
 
 @Injectable({ providedIn: 'root' })
 export class IndicatorBollingerService {

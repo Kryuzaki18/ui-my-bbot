@@ -8,6 +8,9 @@ import { API_ROUTES, environment } from '../../../environments/environment';
 // Models
 import { BinanceWsEventTypeEnum } from '../models/trades.model';
 
+// Constants
+import { KEEP_ALIVE_USER_DATA_STREAM } from '../constants/binance.constant';
+
 interface UserStream {
   listenKey: string;
 }
@@ -41,12 +44,11 @@ export class UserService {
           this.userDataListenKey = res.listenKey;
           this.connectUserDataWebSocket();
 
-          // keepalive — Binance requires a PUT every 30–60 minutes
           this.userDataPingInterval = setInterval(
             () => {
               this.keepAliveUserDataStream();
             },
-            30 * 60 * 1000,
+            KEEP_ALIVE_USER_DATA_STREAM,
           );
         },
         error: (err) => console.error('Failed to start user data stream', err),
@@ -77,7 +79,7 @@ export class UserService {
     const socket = new WebSocket(WS_URL);
 
     socket.onopen = () => {
-      console.log(`[WS] User Data Stream Connected`);
+      // console.log(`[WS] User Data Stream Connected`);
     };
 
     socket.onmessage = (event) => {
@@ -92,14 +94,14 @@ export class UserService {
     };
 
     socket.onclose = () => {
-      console.log(`[WS] User Data Stream Reconnecting...`);
+      // console.log(`[WS] User Data Stream Reconnecting...`);
       setTimeout(() => {
         this.connectUserDataWebSocket();
       }, 5000);
     };
 
     socket.onerror = (err) => {
-      console.error(`[WS] User Data Stream Error`, err);
+      // console.error(`[WS] User Data Stream Error`, err);
       socket.close();
     };
 

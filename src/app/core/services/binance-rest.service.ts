@@ -32,7 +32,7 @@ export class BinanceRestService {
 
   getKlines(symbol: string, interval: Timeframe, limit: number = 500): Observable<CandleData[]> {
     const params = new HttpParams()
-      .set('symbol', symbol.toUpperCase())
+      .set('symbol', symbol.toLowerCase())
       .set('interval', interval)
       .set('limit', limit.toString());
 
@@ -54,7 +54,7 @@ export class BinanceRestService {
   }
 
   getTicker(symbol: string): Observable<TickerData> {
-    const params = new HttpParams().set('symbol', symbol.toUpperCase());
+    const params = new HttpParams().set('symbol', symbol.toLowerCase());
 
     return this.http
       .get<any>(`${this.base}${BINANCE_PUBLIC_API_ROUTES.chart.ticker}`, { params })
@@ -73,7 +73,7 @@ export class BinanceRestService {
   }
 
   getMarkPrice(symbol: string): Observable<MarkPriceData> {
-    const params = new HttpParams().set('symbol', symbol.toUpperCase());
+    const params = new HttpParams().set('symbol', symbol.toLowerCase());
 
     return this.http
       .get<any>(`${this.base}${BINANCE_PUBLIC_API_ROUTES.chart.markPrice}`, { params })

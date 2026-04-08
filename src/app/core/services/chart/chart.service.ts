@@ -1,13 +1,28 @@
-import { Injectable } from '@angular/core';
+import { inject, Injectable } from '@angular/core';
 import { BehaviorSubject } from 'rxjs';
-import { ChartTheme } from '../models/chart.model';
+
+// Models
+import { ChartTheme } from '../../models/chart.model';
+
+// Constants
+import { DEFAULT_SYMBOL, STORAGE } from '../../constants/binance.constant';
+
+// Services
+import { LocalStorageService } from '../local-storage.service';
 
 @Injectable({ providedIn: 'root' })
-export class ChartThemeService {
+export class ChartService {
+  private readonly localStorageService = inject(LocalStorageService);
   private themeSubject = new BehaviorSubject<ChartTheme>(this.buildTheme());
+
+  readonly selectedSymbol = this.localStorageService.getLocalStorageSignal<string>(
+    STORAGE.SYMBOL,
+    DEFAULT_SYMBOL,
+  );
+
   readonly theme$ = this.themeSubject.asObservable();
 
-  get current(): ChartTheme {
+  get currentTheme(): ChartTheme {
     return this.themeSubject.value;
   }
 

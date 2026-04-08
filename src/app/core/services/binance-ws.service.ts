@@ -1,12 +1,12 @@
 import { Injectable } from '@angular/core';
-import { Observable, Subject } from 'rxjs';
+import { EMPTY, Observable, Subject } from 'rxjs';
 
 // Environment
 import { environment } from '../../../environments/environment';
 
 // Models
-import { AggTradeWsMessage, KlineWsMessage, Timeframe } from '../models/chart.model';
-import { MAX_TRADE_HISTORY } from '../constants/binance.constant';
+import { AggTradeWsMessage, KlineWsMessage, Ticker24hrData, Ticker24hrWsMessage, Timeframe } from '../models/chart.model';
+import { MAX_TRADE_HISTORY, STREAM_NAME } from '../constants/binance.constant';
 
 export type WsStatus = 'connecting' | 'live' | 'error' | 'closed';
 
@@ -22,14 +22,14 @@ export class BinanceWsService {
   private readonly marketWsBase = environment.binanceMarketWSBaseUrl;
 
   private aggTradeConnections: Record<string, AggTradeWs> = {};
-  private connections = new Map<string, WebSocket>();
+  private marketWSconnections = new Map<string, WebSocket>();
 
   /** Reconnect delay: 1s, 2s, 4s, 8s … capped at 30s */
   private retryDelays = [1000, 2000, 4000, 8000, 16000, 30000];
   private retryAttempts = new Map<string, number>();
 
   // ── Status stream ───────────────────────────────────────────────────────
-  private statusSubject = new Subject<{ url: string; status: WsStatus }>();
+  private statusSubject = new Subject<{ key: string; status: WsStatus }>();
   readonly status$ = this.statusSubject.asObservable();
 
   // ── Kline stream ────────────────────────────────────────────────────────
@@ -40,54 +40,79 @@ export class BinanceWsService {
   private markPriceSubject = new Subject<any>();
   readonly markPrice$ = this.markPriceSubject.asObservable();
 
+  // ── Ticker stream ───────────────────────────────────────────────────
+  private ticker24hSubject = new Subject<Ticker24hrWsMessage>();
+  readonly ticker24h$ = this.ticker24hSubject.asObservable();
+
   wsKline(symbol: string, interval: Timeframe): void {
-    const url = `${this.marketWsBase}/${symbol.toLowerCase()}@kline_${interval}`;
-    this.connect(url, (data) => {
-      if (data.e === 'kline') {
+    const stream = `${symbol.toLowerCase()}@kline_${interval}`;
+    this.connectWs(STREAM_NAME.KLINE, stream, (data) => {
+      if (data.e === STREAM_NAME.KLINE) {
         this.klineSubject.next(data as KlineWsMessage);
       }
     });
   }
 
+  wsTicker24h(symbol: string): void {
+    const stream = `${symbol.toLowerCase()}@ticker`;
+    this.connectWs(STREAM_NAME.TICKER_24HR, stream, (data) => {
+      if (data.e === STREAM_NAME.TICKER_24HR) {
+        this.ticker24hSubject.next(data);
+      }
+    });
+  }
+
   wsMarkPrice(symbol: string, timeInterval: string = '@1s'): void {
-    const url = `${this.marketWsBase}/${symbol.toLowerCase()}@markPrice${timeInterval}`;
-    this.connect(url, (data) => {
-      if (data.e === 'markPriceUpdate') {
+    const stream = `${symbol.toLowerCase()}@markPrice${timeInterval}`;
+    this.connectWs(STREAM_NAME.MARK_PRICE_UPDATE, stream, (data) => {
+      if (data.e === STREAM_NAME.MARK_PRICE_UPDATE) {
         this.markPriceSubject.next(data);
       }
     });
   }
 
-  unsubscribe(streamKey: string): void {
-    const ws = this.connections.get(streamKey);
+  unsubscribeWs(key: string): void {
+    const ws = this.marketWSconnections.get(key);
     if (ws) {
       ws.onclose = null;
       ws.close();
-      this.connections.delete(streamKey);
-      this.retryAttempts.delete(streamKey);
+      this.marketWSconnections.delete(key);
+      this.retryAttempts.delete(key);
+
+      if (key === STREAM_NAME.KLINE) {
+        this.klineSubject.next(null as any)
+      }
+
+      if (key === STREAM_NAME.TICKER_24HR) {
+        this.ticker24hSubject.next(null as any)
+      }
+
+      if (key === STREAM_NAME.MARK_PRICE_UPDATE) {
+        this.markPriceSubject.next(null as any)
+      }
     }
   }
 
-  closeAll(): void {
-    this.connections.forEach((ws, key) => {
+  closeAllWs(): void {
+    this.marketWSconnections.forEach((ws, key) => {
       ws.onclose = null;
       ws.close();
     });
-    this.connections.clear();
+    this.marketWSconnections.clear();
     this.retryAttempts.clear();
   }
 
-  private connect(url: string, onMessage: (data: any) => void): void {
-    this.unsubscribe(url);
+  private connectWs(key: string, stream: string, onMessage: (data: any) => void): void {
+    this.unsubscribeWs(key);
 
-    this.statusSubject.next({ url, status: 'connecting' });
+    this.statusSubject.next({ key, status: 'connecting' });
 
-    const ws = new WebSocket(url);
-    this.connections.set(url, ws);
+    const ws = new WebSocket(`${this.marketWsBase}/${stream}`);
+    this.marketWSconnections.set(key, ws);
 
     ws.onopen = () => {
-      this.retryAttempts.set(url, 0);
-      this.statusSubject.next({ url, status: 'live' });
+      this.retryAttempts.set(key, 0);
+      this.statusSubject.next({ key, status: 'live' });
     };
 
     ws.onmessage = (event: MessageEvent) => {
@@ -95,39 +120,30 @@ export class BinanceWsService {
         const data = JSON.parse(event.data);
         onMessage(data);
       } catch (e) {
-        console.error('[BinanceWs] Parse error:', e);
+        // console.error('[BinanceWs] Parse error:', e);
       }
     };
 
     ws.onerror = () => {
-      this.statusSubject.next({ url, status: 'error' });
+      this.statusSubject.next({ key, status: 'error' });
     };
 
     ws.onclose = () => {
-      this.statusSubject.next({ url, status: 'closed' });
-      this.scheduleReconnect(url, onMessage);
+      this.statusSubject.next({ key, status: 'closed' });
+      this.scheduleReconnect(key, stream, onMessage);
     };
   }
 
-  private scheduleReconnect(url: string, onMessage: (data: any) => void): void {
-    const attempt = (this.retryAttempts.get(url) ?? 0) + 1;
-    this.retryAttempts.set(url, attempt);
+  private scheduleReconnect(key: string, stream: string, onMessage: (data: any) => void): void {
+    const attempt = (this.retryAttempts.get(key) ?? 0) + 1;
+    this.retryAttempts.set(key, attempt);
     const delay = this.retryDelays[Math.min(attempt - 1, this.retryDelays.length - 1)];
 
     setTimeout(() => {
-      if (this.connections.has(url) || !url) return;
-      this.connect(url, onMessage);
+      if (this.marketWSconnections.has(key) || !key) return;
+      this.connectWs(key, stream, onMessage);
     }, delay);
   }
-
-  // wsAggTrade(symbol: string): void {
-  //   const url = `${this.marketWsBase}/${symbol.toLowerCase()}@aggTrade`;
-  //   this.connect(url, (data) => {
-  //     if (data.e === 'aggTrade') {
-  //       this.aggTradeSubject.next(data as AggTradeWsMessage);
-  //     }
-  //   });
-  // }
 
   createAggTradeStream(symbol: string) {
     const key = symbol.toLowerCase();
@@ -167,7 +183,7 @@ export class BinanceWsService {
     const history: AggTradeWsMessage[] = [];
 
     socket.onopen = () => {
-      console.log(`[WS] AggTrade Connected: ${symbol}`);
+      // console.log(`[WS] AggTrade Connected: ${symbol}`);
     };
 
     socket.onmessage = (event) => {
@@ -179,25 +195,25 @@ export class BinanceWsService {
         }
         aggTradeSubject.next([...history]);
       } catch (e) {
-        console.error('[WS] AggTrade error:', e);
+        // console.error('[WS] AggTrade error:', e);
       }
     };
 
     socket.onclose = () => {
-      console.log(`[WS] AggTrade Reconnecting: ${symbol}`);
+      // console.log(`[WS] AggTrade Reconnecting: ${symbol}`);
       setTimeout(() => {
         this.aggTradeConnections[symbol] = this.createAggTrade(symbol);
       }, 3000);
     };
 
     socket.onerror = (err) => {
-      console.error(`[WS] AggTrade Error: ${symbol}`, err);
+      // console.error(`[WS] AggTrade Error: ${symbol}`, err);
       socket.close();
     };
 
     return {
       socket,
-      subject: aggTradeSubject
+      subject: aggTradeSubject,
     };
   }
 }

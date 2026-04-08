@@ -1,14 +1,16 @@
-import { Component, DestroyRef, inject, signal } from '@angular/core';
+import { Component, DestroyRef, inject, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
 // Components
 import { SigninComponent } from '../../pages/signin/signin';
 
+// Services
+import { UserService } from '../../core/services/user.service';
+
 //PrimeNG Modules
 import { ButtonModule } from 'primeng/button';
 import { AuthService } from '../../core/services/auth.service';
-import { UserService } from '../../core/services/user.service';
 import { DialogService, DynamicDialogModule, DynamicDialogRef } from 'primeng/dynamicdialog';
 
 @Component({
@@ -18,26 +20,26 @@ import { DialogService, DynamicDialogModule, DynamicDialogRef } from 'primeng/dy
   styleUrl: './header.scss',
   standalone: true,
 })
-export class Header {
+export class Header implements OnInit {
   readonly authService = inject(AuthService);
-  private router = inject(Router);
-  private userService = inject(UserService);
-  private dialogService = inject(DialogService);
-  private destroyRef = inject(DestroyRef);
+  private readonly userService = inject(UserService);
+  private readonly router = inject(Router);
+  private readonly dialogService = inject(DialogService);
+  private readonly destroyRef = inject(DestroyRef);
   private dialogRef: DynamicDialogRef | null = null;
 
-  readonly isLoading = signal(false);
-
-  constructor() {
-    this.isLoading.set(true);
-    this.authService.checkAuth().subscribe({
-      next: (user) => {
-        this.isLoading.set(false);
-      },
-      error: (err) => {
-        this.isLoading.set(false);
-      },
-    });
+  ngOnInit(): void {
+    this.authService
+      .checkAuth()
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: () => {
+          // console.info('Signin.');
+        },
+        error: (err) => {
+          console.error(err);
+        },
+      });
   }
 
   signout(): void {
@@ -50,7 +52,6 @@ export class Header {
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
         next: () => {
-          this.userService.stopUserDataStream();
           this.router.navigate(['/home']);
         },
         error: (err) => {

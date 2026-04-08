@@ -28,7 +28,7 @@ $trades-container-width: 200px;
 
 .trades-container{
   width: $trades-container-width;
-  height: calc(100vh - #{$header-height} - #{$volume-chart-height} - #{$timeframe-height} - #{$symbol-info-height});
+  height: calc(100vh - #{$header-height} - #{$timeframe-height} - #{$symbol-info-height});
 }
 
 // ─── Indicator Dropdown ──────────────────────────────────────────────────────
