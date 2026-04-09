@@ -50,10 +50,8 @@ export class FutureTradeService {
     return this.http.post(`${environment.apiTradingBotUrl}${API_ROUTES.futures.cancelTpSl}`, body);
   }
 
-  cancelOrder(symbol: string, orderId: number): Observable<any> {
-    return this.http.post(`${environment.apiTradingBotUrl}${API_ROUTES.futures.cancel}`, {
-      symbol,
-      orderId,
-    });
+  cancelOrder(symbol: string, orderId: number, clientOrderId?: string): Observable<any> {
+    const payload = { symbol, orderId, clientOrderId };
+    return this.http.post(`${environment.apiTradingBotUrl}${API_ROUTES.futures.cancel}`, payload);
   }
 }

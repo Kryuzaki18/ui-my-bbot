@@ -173,7 +173,7 @@ export class TradesTerminalComponent implements OnInit {
 
   readonly compFuturePos = computed(() => {
     const sym = this.chartService.selectedSymbol();
-    const position = this.futurePos().find((pos: any) => pos.symbol.toLowerCase() === sym);
+    const position = this.futurePos().find((pos: any) => pos.symbol.toLowerCase() === sym.toLowerCase());
 
     if (position) {
       const margin = this.utilsService.calculateMargin(
@@ -241,8 +241,8 @@ export class TradesTerminalComponent implements OnInit {
     this.createTradeForm();
     this.subscribeWsMarkPrice();
     this.fetchLeverageBracket();
-    this.fetchPendingTpSl();
     this.getFuturesPositions();
+    this.fetchPendingTpSl();
 
     toObservable(this.markPriceData, { injector: this.injector })
       .pipe(
@@ -296,6 +296,7 @@ export class TradesTerminalComponent implements OnInit {
       .subscribe((res) => {
         const newPositions = res.filter((pos) => Number(pos.positionAmt) !== 0);
         if (newPositions.length > 0) {
+          console.log(newPositions);
           this.futurePos.set(newPositions);
         }
       });

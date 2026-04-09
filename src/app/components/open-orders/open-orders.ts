@@ -78,7 +78,7 @@ export class OpenOrders implements OnInit {
     this.loading = true;
 
     this.futureTradeService
-      .cancelOrder(order.symbol, order.orderId)
+      .cancelOrder(order.symbol, order.orderId, order.clientOrderId)
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
         next: () => this.fetchOrders(),
@@ -103,7 +103,7 @@ export class OpenOrders implements OnInit {
   }
 
   selectSymbol(symbol: string): void {
-    this.localStorageService.updateLocalStorageSignal(STORAGE.SYMBOL, symbol);
+    this.localStorageService.updateLocalStorageSignal(STORAGE.SYMBOL, symbol.toLowerCase());
     window.location.reload();
   }
 }
