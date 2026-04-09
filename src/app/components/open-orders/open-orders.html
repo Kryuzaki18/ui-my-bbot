@@ -42,11 +42,18 @@
       </p-tab>
     </p-tablist>
     <p-tabpanels>
-      <p-tabpanel value="0"> asdasd </p-tabpanel>
+      <p-tabpanel value="0">
+        @if (positions().length === 0) {
+          <div class="text-center text-gray-400 jetbrains-regular text-[10px] py-2 bg-green-900/5">
+            “No open positions. Awaiting trade setup.”
+          </div>
+        }
+      </p-tabpanel>
+
       <p-tabpanel value="1">
         @if (openOrders().length === 0) {
-          <div class="text-center text-gray-500 jetbrains-regular text-[10px] py-2 bg-green-900/10">
-            No open orders.
+          <div class="text-center text-gray-400 jetbrains-regular text-[10px] py-2 bg-green-900/5">
+            “No open orders. Awaiting execution opportunities.”
           </div>
         } @else {
           <p-table [value]="openOrders()" class="mt-2 jetbrains-light text-[10px]" size="small">

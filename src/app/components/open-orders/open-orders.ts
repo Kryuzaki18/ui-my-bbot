@@ -34,6 +34,7 @@ export class OpenOrders implements OnInit {
   private readonly futureTradeService = inject(FutureTradeService);
   readonly appSettingsService = inject(AppSettingsService);
   readonly openOrders = signal<any[]>([]);
+  readonly positions = signal<any[]>([]);
 
   ngOnInit(): void {
     this.fetchOrders();
