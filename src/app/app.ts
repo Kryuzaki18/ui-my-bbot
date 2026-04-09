@@ -1,11 +1,5 @@
-import { Component, inject } from '@angular/core';
+import { Component } from '@angular/core';
 import { RouterModule } from '@angular/router';
-
-// Services
-import { BinanceWsService } from './core/services/binance-ws.service';
-
-// Constants
-import {  DEFAULT_SYMBOL } from './core/constants/binance.constant';
 
 // PrimeNG Modules
 import { ConfirmDialogModule } from 'primeng/confirmdialog';
@@ -19,9 +13,4 @@ import { ScrollPanelModule } from 'primeng/scrollpanel';
   styleUrl: './app.scss',
 })
 export class App {
-  private binanceWsService = inject(BinanceWsService);
-
-  ngOnInit(): void {
-    this.binanceWsService.createAggTradeStream(DEFAULT_SYMBOL);
-  }
 }

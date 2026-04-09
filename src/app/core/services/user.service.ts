@@ -26,6 +26,10 @@ export class UserService {
 
   constructor(private http: HttpClient) {}
 
+  getLeverageBracket(): Observable<any> {
+    return this.http.post(`${environment.apiTradingBotUrl}${API_ROUTES.futures.leverageBracket}`, {});
+  }
+
   getUserInfo(): Observable<any> {
     return this.http.get(`${environment.apiTradingBotUrl}${API_ROUTES.user.userInfo}`);
   }
@@ -44,12 +48,9 @@ export class UserService {
           this.userDataListenKey = res.listenKey;
           this.connectUserDataWebSocket();
 
-          this.userDataPingInterval = setInterval(
-            () => {
-              this.keepAliveUserDataStream();
-            },
-            KEEP_ALIVE_USER_DATA_STREAM,
-          );
+          this.userDataPingInterval = setInterval(() => {
+            this.keepAliveUserDataStream();
+          }, KEEP_ALIVE_USER_DATA_STREAM);
         },
         error: (err) => console.error('Failed to start user data stream', err),
       });

@@ -4,10 +4,6 @@ import { Injectable } from '@angular/core';
   providedIn: 'root',
 })
 export class UtilsService {
-  fmtPrice(n: number): string {
-    return n.toLocaleString('en-US', { minimumFractionDigits: 1, maximumFractionDigits: 1 });
-  }
-
   fmtVol(n: number): string {
     if (n >= 1e9) return (n / 1e9).toFixed(2) + 'B';
     if (n >= 1e6) return (n / 1e6).toFixed(2) + 'M';

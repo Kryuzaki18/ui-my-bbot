@@ -11,7 +11,8 @@ export const environment = {
 };
 
 export const BINANCE_PUBLIC_API_ROUTES = {
-  publicLeverageBracket: '/fapi/v1/leverageBracket',
+  leverageBracket: '/fapi/v1/leverageBracket',
+  exchangeInfo: '/fapi/v1/exchangeInfo',
   chart: {
     klines: '/fapi/v1/klines',
     ticker: '/fapi/v1/ticker/24hr',

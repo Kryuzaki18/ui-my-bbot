@@ -1,5 +1,10 @@
 @use '../../styles/variables' as *;
 
+$chart-height: calc(
+  100vh - #{$header-height} - #{$volume-chart-height} - #{$timeframe-height} -
+    #{$symbol-info-height} - #{$open-orders-height}
+);
+
 main {
   .container {
     max-width: $default-width;
@@ -9,4 +14,12 @@ main {
 .side-trade-container {
   width: $side-trade-width;
   height: calc(100% - #{$header-height});
+}
+
+:host ::ng-deep app-trading-chart .chart-container {
+  height: $chart-height;
+}
+
+:host ::ng-deep app-trading-chart .trades-scroll-panel {
+  height: calc(#{$chart-height} + #{$volume-chart-height} - 45px);
 }

@@ -1,239 +1,280 @@
 <form [formGroup]="tradeForm" class="flex justify-center mt-3">
-  <div class="flex pb-2">
-    <div class="card flex flex-col gap-2">
-      <div class="flex flex-col gap-4">
-        <label for="leverage" class="text-xs">
-          Leverage
-          <span
-            class="text-xs"
-            [ngClass]="{
-              'text-emerald-300': tradeForm.get('leverage')?.value <= 50,
-              'text-red-300':
-                tradeForm.get('leverage')?.value > 50 && tradeForm.get('leverage')?.value <= 75,
-              'text-red-700': tradeForm.get('leverage')?.value > 75,
-            }"
-            >{{ tradeForm.get('leverage')?.value }}x</span
-          >
-        </label>
-        <p-slider
-          id="leverage"
-          formControlName="leverage"
-          [min]="1"
-          [max]="compLeverageBracket()?.maxLeverage || 100"
-          class="w-full"
-        />
+  <div class="card flex flex-col gap-2">
+    <p-selectbutton
+      [allowEmpty]="false"
+      [options]="orderTypes"
+      formControlName="orderType"
+      aria-labelledby="orderType"
+      optionLabel="label"
+      optionValue="value"
+      dataKey="value"
+      size="small"
+      class="text-xs"
+      (onChange)="onOrderTypeChange()"
+    />
 
-        <p-iftalabel>
-          <p-inputnumber
-            id="amount"
-            formControlName="amount"
-            autocomplete="off"
-            mode="currency"
-            currency="USD"
-            locale="en-US"
-            [showButtons]="true"
-            [inputSize]="22"
-            [min]="5"
-          />
-          <label for="amount">Amount</label>
-        </p-iftalabel>
-      </div>
+    <div class="flex flex-col gap-4">
+      <label for="leverage" class="text-xs">
+        Leverage
+        <span
+          class="text-xs"
+          [ngClass]="{
+            'text-emerald-300': tradeForm.get('leverage')?.value <= 50,
+            'text-red-300':
+              tradeForm.get('leverage')?.value > 50 && tradeForm.get('leverage')?.value <= 75,
+            'text-red-700': tradeForm.get('leverage')?.value > 75,
+          }"
+          >{{ tradeForm.get('leverage')?.value }}x</span
+        >
+      </label>
+      <p-slider
+        inputId="leverage"
+        formControlName="leverage"
+        [min]="1"
+        [max]="compLeverageBracket()?.maxLeverage || 100"
+        class="w-full"
+      />
 
       <p-iftalabel>
         <p-inputnumber
-          id="price"
-          formControlName="price"
+          inputId="amount"
+          formControlName="amount"
           autocomplete="off"
-          mode="decimal"
-          [minFractionDigits]="0"
-          [maxFractionDigits]="7"
+          mode="currency"
+          currency="USD"
+          locale="en-US"
           [showButtons]="true"
           [inputSize]="22"
+          [min]="5"
         />
-
-        <label for="price">Price</label>
+        <label for="amount">Amount</label>
       </p-iftalabel>
+    </div>
 
-      <div class="flex flex-col gap-2">
-        <div class="flex items-center gap-2">
-          <p-checkbox inputId="tpsl" formControlName="hasTPSL" [binary]="true" />
-          <label for="tpsl" class="text-xs"> TP/SL </label>
-        </div>
+    <p-iftalabel [hidden]="tradeForm.get('orderType')?.value === orderTypeEnum.MARKET">
+      <p-inputnumber
+        inputId="price"
+        formControlName="price"
+        autocomplete="off"
+        mode="decimal"
+        [minFractionDigits]="0"
+        [maxFractionDigits]="7"
+        [showButtons]="true"
+        [inputSize]="22"
+      />
 
-        @if (tradeForm.get('hasTPSL')?.value) {
-          <div class="flex flex-col gap-2">
-            <p-iftalabel>
+      <label for="price">Price</label>
+    </p-iftalabel>
+
+    <div class="flex flex-col gap-2">
+      <div class="flex items-center gap-2">
+        <p-checkbox inputId="tpsl" formControlName="hasTPSL" [binary]="true" />
+        <label for="tpsl" class="text-xs"> TP/SL </label>
+      </div>
+
+      @if (tradeForm.get('hasTPSL')?.value) {
+        <div class="flex flex-col gap-2">
+          <p-iftalabel>
+            <p-inputgroup>
               <p-inputnumber
-                id="takeProfit"
+                inputId="takeProfit"
                 formControlName="takeProfit"
                 autocomplete="off"
                 mode="decimal"
-                [minFractionDigits]="0"
-                [maxFractionDigits]="7"
-                [showButtons]="true"
                 [inputSize]="22"
+                [placeholder]="selectedTpType().label"
               />
               <label for="takeProfit">Take Profit</label>
-            </p-iftalabel>
 
-            <p-iftalabel>
+              <p-inputgroup-addon>
+                <span
+                  class="cursor-pointer p-[6px] text-xs"
+                  [pTooltip]="selectedTpType().label"
+                  tooltipPosition="left"
+                  (click)="optionTp.toggle($event)"
+                  >{{ selectedTpType().value }}</span
+                >
+              </p-inputgroup-addon>
+            </p-inputgroup>
+            <p-menu
+              #optionTp
+              [model]="optionTpItems"
+              [popup]="true"
+              appendTo="body"
+              styleClass="text-xs"
+            />
+          </p-iftalabel>
+
+          <p-iftalabel>
+            <p-inputgroup>
               <p-inputnumber
-                id="stopLoss"
+                inputId="stopLoss"
                 formControlName="stopLoss"
                 autocomplete="off"
                 mode="decimal"
-                [minFractionDigits]="0"
-                [maxFractionDigits]="7"
-                [showButtons]="true"
                 [inputSize]="22"
+                [placeholder]="selectedSlType().label"
               />
               <label for="stopLoss">Stop loss</label>
-            </p-iftalabel>
-          </div>
-        }
-      </div>
 
-      <div class="flex items-center gap-1 w-full">
-        <button
-          (click)="placeOrder(orderSideEnum.BUY)"
-          type="button"
-          class="w-1/2 bg-green-700 text-white cursor-pointer rounded text-xs py-2"
-        >
-          Buy/Long
-        </button>
-        <button
-          (click)="placeOrder(orderSideEnum.SELL)"
-          type="button"
-          class="w-1/2 bg-red-700 text-white cursor-pointer rounded text-xs py-2"
-        >
-          Sell/Short
-        </button>
-      </div>
-      @if (compFuturePos()?.margin) {
-        <div
-          class="flex flex-col text-sm mt-2 border-1 border-dashed border-gray-700 rounded"
-          [ngClass]="{
-            'border-red-700 bg-red-900/10': compFuturePos()?.position === PositionSideEnum.SHORT,
-            'border-green-700 bg-green-900/10': compFuturePos()?.position === PositionSideEnum.LONG,
-          }"
-        >
-          <div
-            class="text-xs text-gray-300 text-center rounded-t py-1"
-            [ngClass]="{
-              'bg-red-900/70': compFuturePos()?.position === PositionSideEnum.SHORT,
-              'bg-green-900/70': compFuturePos()?.position === PositionSideEnum.LONG,
-            }"
-          >
-            {{ compFuturePos()?.position }}
-            <span class="text-[10px]">{{ compFuturePos()?.leverage }}x</span>
-          </div>
-
-          <div
-            class="flex justify-between border-b border-gray-700 border-dashed divide-x divide-gray-700 divide-dashed"
-          >
-            <div class="flex flex-col w-1/2 justify-between text-xs p-1 gap-1">
-              <div class="flex justify-between">
-                <div class="text-gray-500">Entry:</div>
-                <div>
-                  <span class="text-gray-300">
-                    {{ compFuturePos()?.entryPrice | number: '1.0-2' }}</span
-                  >
-                </div>
-              </div>
-
-              <div class="flex justify-between">
-                <div class="text-gray-500">Margin:</div>
-                <div>
-                  <span class="text-emerald-600">
-                    {{ compFuturePos()?.margin | currency: 'USD' : 'symbol' : '1.0-2' }}
-                  </span>
-                </div>
-              </div>
-            </div>
-
-            <div class="flex w-1/2 justify-between p-1">
-              <span class="text-xs text-gray-500">PnL:</span>
-              <div
-                class="flex flex-col items-end text-xs"
-                [ngClass]="{
-                  'text-red-500': compFuturePos()?.position === PositionSideEnum.SHORT,
-                  'text-green-500': compFuturePos()?.position === PositionSideEnum.LONG,
-                }"
-              >
-                <span>{{ getPnL().pnl }}</span>
-                <span>{{ getPnL().pnlPercent }}% </span>
-              </div>
-            </div>
-          </div>
-
-          <div
-            class="flex justify-between items-center border-b border-gray-700 border-dashed px-1"
-          >
-            <span class="text-xs text-gray-500">Stop Loss:</span>
-            <div class="flex justify-between items-center gap-1">
-              @if (compFuturePos()?.stopLoss) {
-                <div class="flex flex-col items-end">
-                  <span class="text-xs text-red-300">{{
-                    compFuturePos()?.stopLoss | number: '1.0-7'
-                  }}</span>
-                  <span class="text-[11px] text-red-400"
-                    >-{{ compFuturePos()?.stopLossPnlPercent }}% / -{{
-                      compFuturePos()?.stopLossPnl
-                    }}</span
-                  >
-                </div>
-              } @else {
-                <span>-</span>
-              }
-
-              <p-button
-                icon="pi pi-pen-to-square"
-                [rounded]="true"
-                [text]="true"
-                size="small"
-                severity="danger"
-                (click)="openTPSLDialog(orderTypeEnum.STOP_MARKET)"
-              />
-            </div>
-          </div>
-
-          <div
-            class="flex justify-between items-center border-b border-gray-700 border-dashed px-1"
-          >
-            <span class="text-xs text-gray-500">Take Profit:</span>
-            <div class="flex justify-between items-center gap-1">
-              @if (compFuturePos()?.takeProfit) {
-                <div class="flex flex-col items-end">
-                  <span class="text-xs text-emerald-200">{{
-                    compFuturePos()?.takeProfit | number: '1.0-7'
-                  }}</span>
-                  <span class="text-[11px] text-emerald-400"
-                    >+{{ compFuturePos()?.takeProfitPnlPercent }}% / +{{
-                      compFuturePos()?.takeProfitPnl
-                    }}</span
-                  >
-                </div>
-              } @else {
-                <span>-</span>
-              }
-
-              <p-button
-                icon="pi pi-pen-to-square"
-                [rounded]="true"
-                [text]="true"
-                size="small"
-                (click)="openTPSLDialog(orderTypeEnum.TAKE_PROFIT_MARKET)"
-              />
-            </div>
-          </div>
-
-          <div class="flex justify-center items-center p-2">
-            <p-button size="small" variant="outlined" severity="warn" (click)="closePosition()">
-              <span class="text-xs">Close Position</span>
-            </p-button>
-          </div>
+              <p-inputgroup-addon>
+                <span
+                  class="cursor-pointer p-[6px] text-xs"
+                  [pTooltip]="selectedSlType().label"
+                  tooltipPosition="left"
+                  (click)="optionSl.toggle($event)"
+                  >{{ selectedSlType().value }}</span
+                >
+              </p-inputgroup-addon>
+            </p-inputgroup>
+            <p-menu
+              #optionSl
+              [model]="optionSlItems"
+              [popup]="true"
+              appendTo="body"
+              styleClass="text-xs"
+            />
+          </p-iftalabel>
         </div>
       }
     </div>
+
+    <div class="flex items-center gap-2 w-full">
+      <button
+        (click)="placeOrder(orderSideEnum.BUY)"
+        type="button"
+        class="w-1/2 bg-green-700 text-white cursor-pointer rounded text-xs py-2"
+      >
+        Buy/Long
+      </button>
+      <button
+        (click)="placeOrder(orderSideEnum.SELL)"
+        type="button"
+        class="w-1/2 bg-red-700 text-white cursor-pointer rounded text-xs py-2"
+      >
+        Sell/Short
+      </button>
+    </div>
+    @if (compFuturePos()?.margin) {
+      <div
+        class="flex flex-col text-sm mt-2 border-1 border-dashed border-gray-700 rounded"
+        [ngClass]="{
+          'border-red-700 bg-red-900/10': compFuturePos()?.position === PositionSideEnum.SHORT,
+          'border-green-700 bg-green-900/10': compFuturePos()?.position === PositionSideEnum.LONG,
+        }"
+      >
+        <div
+          class="text-xs text-gray-300 text-center rounded-t py-1"
+          [ngClass]="{
+            'bg-red-900/70': compFuturePos()?.position === PositionSideEnum.SHORT,
+            'bg-green-900/70': compFuturePos()?.position === PositionSideEnum.LONG,
+          }"
+        >
+          {{ compFuturePos()?.position }}
+          <span class="text-[10px]">{{ compFuturePos()?.leverage }}x</span>
+        </div>
+
+        <div
+          class="flex justify-between border-b border-gray-700 border-dashed divide-x divide-gray-700 divide-dashed"
+        >
+          <div class="flex flex-col w-1/2 justify-between text-xs p-1 gap-1">
+            <div class="flex justify-between">
+              <div class="text-gray-500">Entry:</div>
+              <div>
+                <span class="text-gray-300">
+                  {{ compFuturePos()?.entryPrice | number: '1.0-2' }}</span
+                >
+              </div>
+            </div>
+
+            <div class="flex justify-between">
+              <div class="text-gray-500">Margin:</div>
+              <div>
+                <span class="text-emerald-600">
+                  {{ compFuturePos()?.margin | currency: 'USD' : 'symbol' : '1.0-2' }}
+                </span>
+              </div>
+            </div>
+          </div>
+
+          <div class="flex w-1/2 justify-between p-1">
+            <span class="text-xs text-gray-500">PnL:</span>
+            <div
+              class="flex flex-col items-end text-xs"
+              [ngClass]="{
+                'text-red-500': getPnL().pnl.includes('-'),
+                'text-green-500': !getPnL().pnl.includes('-'),
+              }"
+            >
+              <span>{{ getPnL().pnl }}</span>
+              <span>{{ getPnL().pnlPercent }}% </span>
+            </div>
+          </div>
+        </div>
+
+        <div class="flex justify-between items-center border-b border-gray-700 border-dashed px-1">
+          <span class="text-xs text-gray-500">Stop Loss:</span>
+          <div class="flex justify-between items-center gap-1">
+            @if (compFuturePos()?.stopLoss) {
+              <div class="flex flex-col items-end">
+                <span class="text-xs text-red-300">{{
+                  compFuturePos()?.stopLoss | number: '1.0-7'
+                }}</span>
+                <span class="text-[11px] text-red-400"
+                  >-{{ compFuturePos()?.stopLossPnlPercent }}% / -{{
+                    compFuturePos()?.stopLossPnl
+                  }}</span
+                >
+              </div>
+            } @else {
+              <span>-</span>
+            }
+
+            <p-button
+              icon="pi pi-pen-to-square"
+              [rounded]="true"
+              [text]="true"
+              size="small"
+              severity="danger"
+              (click)="openTPSLDialog(orderTypeEnum.STOP_MARKET)"
+            />
+          </div>
+        </div>
+
+        <div class="flex justify-between items-center border-b border-gray-700 border-dashed px-1">
+          <span class="text-xs text-gray-500">Take Profit:</span>
+          <div class="flex justify-between items-center gap-1">
+            @if (compFuturePos()?.takeProfit) {
+              <div class="flex flex-col items-end">
+                <span class="text-xs text-emerald-200">{{
+                  compFuturePos()?.takeProfit | number: '1.0-7'
+                }}</span>
+                <span class="text-[11px] text-emerald-400"
+                  >+{{ compFuturePos()?.takeProfitPnlPercent }}% / +{{
+                    compFuturePos()?.takeProfitPnl
+                  }}</span
+                >
+              </div>
+            } @else {
+              <span>-</span>
+            }
+
+            <p-button
+              icon="pi pi-pen-to-square"
+              [rounded]="true"
+              [text]="true"
+              size="small"
+              (click)="openTPSLDialog(orderTypeEnum.TAKE_PROFIT_MARKET)"
+            />
+          </div>
+        </div>
+
+        <div class="flex justify-center items-center p-2">
+          <p-button size="small" variant="outlined" severity="warn" (click)="closePosition()">
+            <span class="text-xs">Close Position</span>
+          </p-button>
+        </div>
+      </div>
+    }
   </div>
 </form>

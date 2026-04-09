@@ -1,4 +1,4 @@
-import { Component, computed, inject, OnInit, signal, DestroyRef } from '@angular/core';
+import { Component, computed, inject, OnInit, signal, DestroyRef, Injector } from '@angular/core';
 import { NgClass, DecimalPipe, CurrencyPipe } from '@angular/common';
 import {
   FormBuilder,
@@ -7,7 +7,8 @@ import {
   Validators,
   FormGroup,
 } from '@angular/forms';
-import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { takeUntilDestroyed, toObservable } from '@angular/core/rxjs-interop';
+import { filter, startWith, take } from 'rxjs';
 
 // Models
 import {
@@ -27,8 +28,8 @@ import { TpSlDialogComponent } from '../dialogs/tp-sl-dialog/tp-sl-dialog';
 // Services
 import { UtilsService } from '../../core/services/utils.service';
 import { FutureTradeService } from '../../core/services/future-trade.service';
-import { BinanceRestService } from '../../core/services/binance-rest.service';
 import { BinanceWsService } from '../../core/services/binance-ws.service';
+import { UserService } from '../../core/services/user.service';
 import { ChartService } from '../../core/services/chart/chart.service';
 
 // PrimeNG Modules
@@ -40,9 +41,18 @@ import { IftaLabelModule } from 'primeng/iftalabel';
 import { InputNumberModule } from 'primeng/inputnumber';
 import { DialogModule } from 'primeng/dialog';
 import { CheckboxModule } from 'primeng/checkbox';
-import { RadioButtonModule } from 'primeng/radiobutton';
 import { ConfirmationService } from 'primeng/api';
 import { DialogService, DynamicDialogModule, DynamicDialogRef } from 'primeng/dynamicdialog';
+import { SelectButtonModule } from 'primeng/selectbutton';
+import { InputGroupModule } from 'primeng/inputgroup';
+import { InputGroupAddonModule } from 'primeng/inputgroupaddon';
+import { MenuModule } from 'primeng/menu';
+import { TooltipModule } from 'primeng/tooltip';
+
+interface TPSLOption {
+  label: string;
+  value: string;
+}
 
 @Component({
   selector: 'app-trades-terminal',
@@ -60,17 +70,22 @@ import { DialogService, DynamicDialogModule, DynamicDialogRef } from 'primeng/dy
     InputNumberModule,
     DialogModule,
     CheckboxModule,
-    RadioButtonModule,
     DynamicDialogModule,
+    SelectButtonModule,
+    InputGroupModule,
+    InputGroupAddonModule,
+    MenuModule,
+    TooltipModule,
   ],
   templateUrl: './trades-terminal.html',
   styleUrl: './trades-terminal.scss',
 })
 export class TradesTerminalComponent implements OnInit {
+  private readonly injector = inject(Injector);
   private readonly utilsService = inject(UtilsService);
   private readonly confirmationService = inject(ConfirmationService);
   private readonly binanceWsService = inject(BinanceWsService);
-  private readonly binanceRestService = inject(BinanceRestService);
+  private readonly userService = inject(UserService);
   private readonly futureTradeService = inject(FutureTradeService);
   private readonly chartService = inject(ChartService);
   private readonly dialogService = inject(DialogService);
@@ -78,17 +93,83 @@ export class TradesTerminalComponent implements OnInit {
   private readonly fb = inject(FormBuilder);
   private dialogRef: DynamicDialogRef | null = null;
 
+  tradeForm!: FormGroup;
+
   readonly defaultAmount = 5;
   readonly defaultLeverage = 20;
   readonly futurePos = signal<FuturePosition[]>([]);
   readonly tpslOrders = signal<TPSLOrder[]>([]);
   readonly leverageBracket = signal<LeverageBracket | null>(null);
   readonly markPriceData = signal<MarkPriceData | null>(null);
+
   readonly PositionSideEnum = PositionSideEnum;
   readonly orderTypeEnum = OrderTypeEnum;
   readonly orderSideEnum = OrderSideEnum;
 
-  tradeForm!: FormGroup;
+  readonly orderTypes = [
+    { label: 'Limit', value: OrderTypeEnum.LIMIT },
+    { label: 'Market', value: OrderTypeEnum.MARKET },
+  ];
+
+  readonly tpslOptions = [
+    { label: 'Price', value: '$' },
+    { label: 'Pnl', value: '%' },
+    { label: 'ROI', value: 'R' },
+  ];
+  readonly selectedTpType = signal<TPSLOption>(this.tpslOptions[0]);
+  readonly selectedSlType = signal<TPSLOption>(this.tpslOptions[0]);
+
+  readonly optionTpItems = [
+    {
+      label: 'TP Settings',
+      items: [
+        {
+          label: 'Price',
+          command: () => {
+            this.selectedTpType.set(this.tpslOptions[0]);
+          },
+        },
+        {
+          label: 'Pnl',
+          command: () => {
+            this.selectedTpType.set(this.tpslOptions[1]);
+          },
+        },
+        {
+          label: 'ROI',
+          command: () => {
+            this.selectedTpType.set(this.tpslOptions[2]);
+          },
+        },
+      ],
+    },
+  ];
+
+  readonly optionSlItems = [
+    {
+      label: 'SL Settings',
+      items: [
+        {
+          label: 'Price',
+          command: () => {
+            this.selectedSlType.set(this.tpslOptions[0]);
+          },
+        },
+        {
+          label: 'Pnl',
+          command: () => {
+            this.selectedSlType.set(this.tpslOptions[1]);
+          },
+        },
+        {
+          label: 'ROI',
+          command: () => {
+            this.selectedSlType.set(this.tpslOptions[2]);
+          },
+        },
+      ],
+    },
+  ];
 
   readonly compFuturePos = computed(() => {
     const sym = this.chartService.selectedSymbol();
@@ -162,11 +243,22 @@ export class TradesTerminalComponent implements OnInit {
     this.fetchLeverageBracket();
     this.fetchPendingTpSl();
     this.getFuturesPositions();
+
+    toObservable(this.markPriceData, { injector: this.injector })
+      .pipe(
+        startWith(this.markPriceData()),
+        filter((data) => !!data?.markPrice),
+        take(1),
+      )
+      .subscribe(() => {
+        this.onOrderTypeChange();
+      });
   }
 
   createTradeForm(): void {
     const sym = this.chartService.selectedSymbol();
     this.tradeForm = this.fb.group({
+      orderType: [OrderTypeEnum.LIMIT, [Validators.required]],
       symbol: [sym, [Validators.required]],
       leverage: [this.defaultLeverage, [Validators.required]],
       amount: [this.defaultAmount, [Validators.required, Validators.min(5)]],
@@ -178,7 +270,7 @@ export class TradesTerminalComponent implements OnInit {
   }
 
   fetchLeverageBracket(): void {
-    this.binanceRestService
+    this.userService
       .getLeverageBracket()
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
@@ -226,7 +318,8 @@ export class TradesTerminalComponent implements OnInit {
       return;
     }
 
-    const { symbol, amount, price, leverage, stopLoss, takeProfit } = this.tradeForm.value;
+    const { symbol, amount, price, leverage, orderType, stopLoss, takeProfit } =
+      this.tradeForm.value;
     const executionPrice = Number(price || this.markPriceData()?.markPrice);
 
     if (!executionPrice) {
@@ -239,7 +332,7 @@ export class TradesTerminalComponent implements OnInit {
     const params = {
       symbol,
       side,
-      type: price ? OrderTypeEnum.LIMIT : OrderTypeEnum.MARKET,
+      type: orderType,
       quantity,
       price,
       leverage,
@@ -428,6 +521,12 @@ export class TradesTerminalComponent implements OnInit {
       pnl: data.pnl > 0 ? '+' + pnl : pnl,
       pnlPercent: data.pnlPercent > 0 ? '+' + pnlPercent : pnlPercent,
     };
+  }
+
+  onOrderTypeChange(): void {
+    this.tradeForm
+      .get('price')
+      ?.setValue(this.markPriceData()?.markPrice.toFixed(2), { emitEvent: false });
   }
 
   private subscribeWsMarkPrice(): void {

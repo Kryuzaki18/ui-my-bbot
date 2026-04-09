@@ -1,3 +1,5 @@
+import { Ticker24hrData } from "./chart.model";
+
 export enum OrderSideEnum {
   BUY = 'BUY',
   SELL = 'SELL',
@@ -78,4 +80,31 @@ export interface PublicLeverageBracket {
     notionalCap: string;
     maintMarginRate: number;
   }>;
+}
+
+export interface ExchangeSymbolsWithVolume extends ExchangeSymbol, Ticker24hrData {
+  volNumber: number;
+}
+
+export interface ExchangeInfo {
+  symbols: ExchangeSymbol[];
+  serverTime: number;
+}
+
+export interface ExchangeSymbol {
+  symbol: string;
+  baseAsset: string;
+  quoteAsset: string;
+  baseAssetPrecision: number;
+  quoteAssetPrecision: number;
+  liquidationFee: string;
+  maintMarginPercent: string;
+  marginAsset: string;
+  deliveryDate: number;
+  onboardDate: number;
+  underlyingType: string;
+  underlyingSubType: string[];
+  filters: any[];
+  status: string;
+  contractType: string;
 }

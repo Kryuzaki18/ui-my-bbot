@@ -1,13 +1,9 @@
 import { Injectable, inject } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
-import { Observable, map, catchError, throwError } from 'rxjs';
+import { Observable, map, catchError, throwError, forkJoin } from 'rxjs';
 
 // Environments
-import {
-  API_ROUTES,
-  BINANCE_PUBLIC_API_ROUTES,
-  environment,
-} from '../../../environments/environment';
+import { BINANCE_PUBLIC_API_ROUTES, environment } from '../../../environments/environment';
 
 // Models
 import {
@@ -16,17 +12,55 @@ import {
   MarkPriceData,
   OpenInterestData,
   Timeframe,
+  Ticker24hrData,
+  AggTradeRest,
 } from '../models/chart.model';
+import { ExchangeInfo, ExchangeSymbolsWithVolume } from '../models/trades.model';
 
 @Injectable({ providedIn: 'root' })
 export class BinanceRestService {
   private readonly http = inject(HttpClient);
   private readonly base = environment.binanceFutureRestBaseUrl;
 
-  getLeverageBracket(body: any = {}): Observable<any> {
-    return this.http.post(
-      `${environment.apiTradingBotUrl}${API_ROUTES.futures.leverageBracket}`,
-      body,
+  getAggTrades(symbol: string, limit: number = 50): Observable<AggTradeRest[]> {
+    const params = new HttpParams()
+      .set('symbol', symbol.toLowerCase())
+      .set('limit', limit.toString());
+    return this.http.get<AggTradeRest[]>(`${this.base}${BINANCE_PUBLIC_API_ROUTES.aggTrades}`, { params });
+  }
+
+  getExchangeInfo(): Observable<ExchangeInfo> {
+    return this.http.get<ExchangeInfo>(`${this.base}${BINANCE_PUBLIC_API_ROUTES.exchangeInfo}`);
+  }
+
+  getAllSymbolsWithVolume(): Observable<ExchangeSymbolsWithVolume[]> {
+    return forkJoin({
+      info: this.http.get<ExchangeInfo>(`${this.base}${BINANCE_PUBLIC_API_ROUTES.exchangeInfo}`),
+      stats: this.http.get<Ticker24hrData[]>(
+        `${this.base}${BINANCE_PUBLIC_API_ROUTES.chart.ticker}`,
+      ),
+    }).pipe(
+      map(({ info, stats }) => {
+        const activeSymbols = info.symbols.filter(
+          (s) => s.status === 'TRADING' && s.contractType === 'PERPETUAL',
+        );
+
+        return activeSymbols.map((s) => {
+          const ticker = stats.find((t) => t.symbol === s.symbol);
+          return {
+            ...s,
+            ...ticker,
+            lastPrice: ticker?.lastPrice || 0,
+            priceChange: ticker?.priceChange || 0,
+            priceChangePercent: ticker?.priceChangePercent || 0,
+            highPrice: ticker?.highPrice || 0,
+            lowPrice: ticker?.lowPrice || 0,
+            volume: ticker?.volume || 0,
+            quoteVolume: ticker?.quoteVolume || 0,
+            volNumber: Number(ticker?.quoteVolume)
+          };
+        });
+      }),
     );
   }
 
@@ -76,7 +110,7 @@ export class BinanceRestService {
     const params = new HttpParams().set('symbol', symbol.toLowerCase());
 
     return this.http
-      .get<any>(`${this.base}${BINANCE_PUBLIC_API_ROUTES.chart.markPrice}`, { params })
+      .get<any>(`${this.base}${BINANCE_PUBLIC_API_ROUTES.markPrice}`, { params })
       .pipe(
         map((d) => ({
           markPrice: parseFloat(d.markPrice),
@@ -92,7 +126,7 @@ export class BinanceRestService {
     const params = new HttpParams().set('symbol', symbol.toUpperCase());
 
     return this.http
-      .get<any>(`${this.base}${BINANCE_PUBLIC_API_ROUTES.chart.openInterest}`, { params })
+      .get<any>(`${this.base}${BINANCE_PUBLIC_API_ROUTES.openInterest}`, { params })
       .pipe(
         map((d) => ({ openInterest: parseFloat(d.openInterest) })),
         catchError((err) => throwError(() => err)),
@@ -105,7 +139,7 @@ export class BinanceRestService {
       .set('limit', limit.toString());
 
     return this.http
-      .get<any>(`${this.base}${BINANCE_PUBLIC_API_ROUTES.chart.depth}`, { params })
+      .get<any>(`${this.base}${BINANCE_PUBLIC_API_ROUTES.depth}`, { params })
       .pipe(catchError((err) => throwError(() => err)));
   }
 }

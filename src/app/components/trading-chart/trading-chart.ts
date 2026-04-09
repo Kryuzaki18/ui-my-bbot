@@ -50,6 +50,7 @@ import {
   IndicatorConfig,
   Ticker24hrData,
 } from '../../core/models/chart.model';
+import { ExchangeSymbolsWithVolume } from '../../core/models/trades.model';
 
 // Services
 import { BinanceRestService } from '../../core/services/binance-rest.service';
@@ -65,11 +66,29 @@ import { LocalStorageService } from '../../core/services/local-storage.service';
 import { ButtonModule } from 'primeng/button';
 import { TableModule } from 'primeng/table';
 import { SkeletonModule } from 'primeng/skeleton';
+import { ScrollPanelModule } from 'primeng/scrollpanel';
+import { PopoverModule } from 'primeng/popover';
+import { InputTextModule } from 'primeng/inputtext';
+import { IconFieldModule } from 'primeng/iconfield';
+import { InputIconModule } from 'primeng/inputicon';
+import { ScrollTopModule } from 'primeng/scrolltop';
 
 @Component({
   selector: 'app-trading-chart',
   standalone: true,
-  imports: [CommonModule, FormsModule, ButtonModule, TableModule, SkeletonModule],
+  imports: [
+    CommonModule,
+    FormsModule,
+    ButtonModule,
+    TableModule,
+    SkeletonModule,
+    ScrollPanelModule,
+    PopoverModule,
+    InputTextModule,
+    IconFieldModule,
+    InputIconModule,
+    ScrollTopModule,
+  ],
   templateUrl: './trading-chart.html',
   styleUrls: ['./trading-chart.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -117,9 +136,9 @@ export class TradingChartComponent implements OnInit, AfterViewInit, OnDestroy {
   readonly timeframes: Timeframe[] = TIMEFRAMES;
   readonly currentPrice = signal(0);
   readonly previousPrice = signal(0);
-
   readonly MAX_TRADE_HISTORY = MAX_TRADE_HISTORY;
   readonly selectedSymbol = this.chartService.selectedSymbol();
+  readonly exchangeSymbols = signal<ExchangeSymbolsWithVolume[]>([]);
 
   readonly selectedTimeframe = this.localStorageService.getLocalStorageSignal<Timeframe>(
     STORAGE.TIMEFRAME,
@@ -137,7 +156,7 @@ export class TradingChartComponent implements OnInit, AfterViewInit, OnDestroy {
   readonly activeIndicatorCount = computed(() => this.indicators().filter((i) => i.enabled).length);
 
   readonly isLoadingMaxRecentTrades = computed(() => {
-    return this.aggTrades()?.length >= MAX_TRADE_HISTORY;
+    return this.aggTrades()?.length > 0;
   });
 
   readonly wsStatusLabel = computed(() => {
@@ -175,24 +194,18 @@ export class TradingChartComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   ngOnInit(): void {
-    this.binanceWsService.wsKline(this.selectedSymbol, this.selectedTimeframe());
-    this.binanceWsService.wsMarkPrice(this.selectedSymbol);
-    this.binanceWsService.wsTicker24h(this.selectedSymbol);
-
-    // Subscribe Web Sockets
-    this.subscribeWsStatus();
-    this.subscribeWsAggTrades();
-    this.subscribeWsMarkPrice();
-    this.subscribeWsTicker24h();
-
-    // Subscribe Rest
-    this.subscribeRestTicker();
-    this.subscribeRestOpenInterest();
+    this.initAllWs();
   }
 
   ngAfterViewInit(): void {
-    this.initCharts();
+    this.ngZone.runOutsideAngular(() => {
+      this.subscribeAllWs();
+      this.subscribeAllRest();
+    });
+
     this.fetchKlines(this.selectedTimeframe());
+
+    this.initCharts();
     this.movingTheChart();
 
     this.ngZone.runOutsideAngular(() => {
@@ -202,8 +215,34 @@ export class TradingChartComponent implements OnInit, AfterViewInit, OnDestroy {
 
   ngOnDestroy(): void {
     this.binanceWsService.closeAllWs();
+    this.binanceWsService.disconnectAllAggTrade();
     this.chart?.remove();
     this.volumeChart?.remove();
+  }
+
+  private initAllWs(): void {
+    this.binanceWsService.createAggTradeStream(this.selectedSymbol);
+    this.binanceWsService.wsKline(this.selectedSymbol, this.selectedTimeframe());
+    this.binanceWsService.wsMarkPrice(this.selectedSymbol);
+    this.binanceWsService.wsTicker24h(this.selectedSymbol);
+  }
+
+  private subscribeAllWs(): void {
+    this.subscribeWsStatus();
+    this.subscribeWsAggTrades();
+    this.subscribeWsMarkPrice();
+    this.subscribeWsTicker24h();
+  }
+
+  private subscribeAllRest(): void {
+    this.subscribeRestExchangeSymbols();
+    this.subscribeRestTicker();
+    this.subscribeRestOpenInterest();
+  }
+
+  selectSymbol(symbol: string): void {
+    this.chartService.selectedSymbol.set(symbol);
+    window.location.reload();
   }
 
   setTimeframe(tf: Timeframe): void {
@@ -212,6 +251,9 @@ export class TradingChartComponent implements OnInit, AfterViewInit, OnDestroy {
     this.fetchKlines(tf);
     this.binanceWsService.unsubscribeWs(STREAM_NAME.KLINE);
     this.binanceWsService.wsKline(this.selectedSymbol, tf);
+    this.ngZone.runOutsideAngular(() => {
+      this.subscribeWsKline();
+    });
   }
 
   toggleVolume(): void {
@@ -300,7 +342,6 @@ export class TradingChartComponent implements OnInit, AfterViewInit, OnDestroy {
       ...sharedOpts,
       rightPriceScale: { borderColor: theme.border, scaleMargins: { top: 0.1, bottom: 0 } },
       timeScale: { visible: true, borderColor: theme.border },
-      handleScroll: false,
       width: this.volumeContainerRef.nativeElement.clientWidth,
     });
 
@@ -319,10 +360,10 @@ export class TradingChartComponent implements OnInit, AfterViewInit, OnDestroy {
       const vd = param.seriesData.get(this.volumeSeries) as any;
       if (!d) return;
       this.ohlc.set({
-        o: this.utilsService.fmtPrice(d.open),
-        h: this.utilsService.fmtPrice(d.high),
-        l: this.utilsService.fmtPrice(d.low),
-        c: this.utilsService.fmtPrice(d.close),
+        o: d.open.toFixed(7),
+        h: d.high.toFixed(7),
+        l: d.low.toFixed(7),
+        c: d.close.toFixed(7),
         v: this.utilsService.fmtVol(vd?.value ?? 0),
         isUp: d.close >= d.open,
       });
@@ -406,11 +447,10 @@ export class TradingChartComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   private subscribeWsStatus(): void {
-    this.binanceWsService.status$
-      .pipe(takeUntilDestroyed(this.destroyRef))
-      .subscribe(({ status }) => {
-        this.wsStatus.set(status);
-      });
+    this.binanceWsService.status$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((s) => {
+      if (!s) return;
+      this.wsStatus.set(s.status);
+    });
   }
 
   private subscribeWsAggTrades(): void {
@@ -418,23 +458,27 @@ export class TradingChartComponent implements OnInit, AfterViewInit, OnDestroy {
       .getAggTradeStream(this.selectedSymbol)
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe((data) => {
+        if (!data) return;
         this.aggTrades.set(data);
       });
   }
 
   private subscribeWsMarkPrice(): void {
     this.binanceWsService.markPrice$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((d) => {
+      if (!d) return;
       this.markPriceData.set({
-        markPrice: parseFloat(d.p),
-        indexPrice: parseFloat(d.i),
-        lastFundingRate: parseFloat(d.r),
-        nextFundingTime: d.T,
+        markPrice: parseFloat(d?.p),
+        indexPrice: parseFloat(d?.i),
+        lastFundingRate: parseFloat(d?.r),
+        nextFundingTime: d?.T,
       });
     });
   }
 
   private subscribeWsTicker24h(): void {
     this.binanceWsService.ticker24h$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((d) => {
+      if (!d) return;
+
       const price = parseFloat(d.p);
 
       if (this.currentPrice() !== 0) {
@@ -444,6 +488,7 @@ export class TradingChartComponent implements OnInit, AfterViewInit, OnDestroy {
       this.currentPrice.set(price);
 
       this.ticker24hr.set({
+        symbol: d.s,
         priceChange: price,
         priceChangePercent: parseFloat(d.P),
         lastPrice: parseFloat(d.c),
@@ -457,7 +502,9 @@ export class TradingChartComponent implements OnInit, AfterViewInit, OnDestroy {
 
   private subscribeWsKline(): void {
     this.binanceWsService.kline$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((msg) => {
-      const k = msg.k;
+      if (!msg) return;
+
+      const k = msg?.k;
 
       const time = Math.floor(k.t / 1000) as Time;
       const open = parseFloat(k.o);
@@ -482,24 +529,31 @@ export class TradingChartComponent implements OnInit, AfterViewInit, OnDestroy {
       });
 
       this.ohlc.set({
-        o: this.utilsService.fmtPrice(open),
-        h: this.utilsService.fmtPrice(high),
-        l: this.utilsService.fmtPrice(low),
-        c: this.utilsService.fmtPrice(close),
+        o: open.toFixed(7),
+        h: high.toFixed(7),
+        l: low.toFixed(7),
+        c: close.toFixed(7),
         v: this.utilsService.fmtVol(volume),
         isUp: close >= open,
       });
     });
   }
 
+  private subscribeRestExchangeSymbols(): void {
+    this.binanceRestService
+      .getAllSymbolsWithVolume()
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe((res) => {
+        this.exchangeSymbols.set(res);
+      });
+  }
+
   private subscribeRestTicker(): void {
     this.binanceRestService
       .getTicker(this.selectedSymbol)
       .pipe(takeUntilDestroyed(this.destroyRef))
-      .subscribe((t) => {
-        setTimeout(() => {
-          this.ticker.set(t);
-        }, 500);
+      .subscribe((res) => {
+        this.ticker.set(res);
       });
   }
 
@@ -507,10 +561,8 @@ export class TradingChartComponent implements OnInit, AfterViewInit, OnDestroy {
     this.binanceRestService
       .getOpenInterest(this.selectedSymbol)
       .pipe(takeUntilDestroyed(this.destroyRef))
-      .subscribe((oi) => {
-        setTimeout(() => {
-          this.openInterest.set(oi.openInterest);
-        }, 500);
+      .subscribe((res) => {
+        this.openInterest.set(res.openInterest);
       });
   }
 

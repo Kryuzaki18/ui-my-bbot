@@ -21,6 +21,7 @@ export interface CandleData {
 }
 
 export interface Ticker24hrData {
+  symbol: string;
   lastPrice: number;
   priceChange: number;
   priceChangePercent: number;
@@ -82,6 +83,18 @@ export interface KlineWsMessage {
     x: boolean; // Is this kline closed
     q: string; // Quote asset volume
   };
+}
+
+//https://developers.binance.com/docs/derivatives/usds-margined-futures/market-data/rest-api/Compressed-Aggregate-Trades-List
+//https://developers.binance.com/docs/derivatives/usds-margined-futures/market-data/REST-API#get-aggregate-trades
+export interface AggTradeRest {
+  a: number; // Aggregate tradeId
+  p: string; // Price
+  q: string; // Quantity
+  f: number; // First tradeId
+  l: number; // Last tradeId
+  T: number; // Timestamp
+  m: boolean; // Was the buyer the maker?
 }
 
 //https://developers.binance.com/docs/derivatives/usds-margined-futures/websocket-market-streams/Aggregate-Trade-Streams

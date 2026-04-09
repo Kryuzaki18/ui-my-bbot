@@ -20,7 +20,7 @@
             <p-floatlabel variant="on">
               <input
                 pInputText
-                id="email"
+                inputId="email"
                 placeholder="user@domain.com"
                 formControlName="email"
                 autocomplete="off"
@@ -31,7 +31,7 @@
 
             <p-floatlabel variant="on">
               <p-password
-                id="password"
+                inputId="password"
                 formControlName="password"
                 [toggleMask]="true"
                 [feedback]="false"
@@ -47,9 +47,9 @@
                 <p-checkbox
                   formControlName="useTestnet"
                   [binary]="true"
-                  inputId="email-testnet"
+                  inputId="emailTestnet"
                 ></p-checkbox>
-                <label for="email-testnet" class="text-sm">Use Testnet Environment</label>
+                <label for="emailTestnet" class="text-sm">Use Testnet Environment</label>
               </div>
 
               <div class="flex items-center gap-2">
@@ -115,7 +115,7 @@
           >
             <p-floatlabel variant="on">
               <p-password
-                id="apiKey"
+                inputId="apiKey"
                 formControlName="apiKey"
                 [toggleMask]="true"
                 [feedback]="false"
@@ -128,7 +128,7 @@
 
             <p-floatlabel variant="on">
               <p-password
-                id="apiSecret"
+                inputId="apiSecret"
                 formControlName="apiSecret"
                 [toggleMask]="true"
                 [feedback]="false"
@@ -143,9 +143,9 @@
               <p-checkbox
                 formControlName="useTestnet"
                 [binary]="true"
-                inputId="email-testnet"
+                inputId="binanceTestnet"
               ></p-checkbox>
-              <label for="email-testnet" class="text-sm">Use Testnet Environment</label>
+              <label for="binanceTestnet" class="text-sm">Use Testnet Environment</label>
             </div>
 
             @if (errorMessage()) {

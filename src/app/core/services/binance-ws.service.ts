@@ -1,11 +1,16 @@
 import { Injectable } from '@angular/core';
-import { EMPTY, Observable, Subject } from 'rxjs';
+import { Observable, Subject } from 'rxjs';
 
 // Environment
 import { environment } from '../../../environments/environment';
 
 // Models
-import { AggTradeWsMessage, KlineWsMessage, Ticker24hrData, Ticker24hrWsMessage, Timeframe } from '../models/chart.model';
+import {
+  AggTradeWsMessage,
+  KlineWsMessage,
+  Ticker24hrWsMessage,
+  Timeframe,
+} from '../models/chart.model';
 import { MAX_TRADE_HISTORY, STREAM_NAME } from '../constants/binance.constant';
 
 export type WsStatus = 'connecting' | 'live' | 'error' | 'closed';
@@ -74,22 +79,25 @@ export class BinanceWsService {
   unsubscribeWs(key: string): void {
     const ws = this.marketWSconnections.get(key);
     if (ws) {
+      if (key === STREAM_NAME.KLINE) {
+        this.klineSubject?.next(null as any);
+        this.klineSubject.complete();
+      }
+
+      if (key === STREAM_NAME.TICKER_24HR) {
+        this.ticker24hSubject?.next(null as any);
+        this.ticker24hSubject.complete();
+      }
+
+      if (key === STREAM_NAME.MARK_PRICE_UPDATE) {
+        this.markPriceSubject?.next(null as any);
+        this.markPriceSubject.complete();
+      }
+
       ws.onclose = null;
       ws.close();
       this.marketWSconnections.delete(key);
       this.retryAttempts.delete(key);
-
-      if (key === STREAM_NAME.KLINE) {
-        this.klineSubject.next(null as any)
-      }
-
-      if (key === STREAM_NAME.TICKER_24HR) {
-        this.ticker24hSubject.next(null as any)
-      }
-
-      if (key === STREAM_NAME.MARK_PRICE_UPDATE) {
-        this.markPriceSubject.next(null as any)
-      }
     }
   }
 

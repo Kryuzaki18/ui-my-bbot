@@ -5,13 +5,18 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 // Services
 import { UserService } from '../../core/services/user.service';
 import { FutureTradeService } from '../../core/services/future-trade.service';
-import { UtilsService } from '../../core/services/utils.service';
+import { LocalStorageService } from '../../core/services/local-storage.service';
+
+// Constants
+import { STORAGE } from '../../core/constants/binance.constant';
+
+// Models
+import { OrderTypeEnum } from '../../core/models/trades.model';
 
 // PrimeNG Modules
 import { TableModule } from 'primeng/table';
 import { ButtonModule } from 'primeng/button';
 import { ProgressBarModule } from 'primeng/progressbar';
-import { OrderTypeEnum } from '../../core/models/trades.model';
 
 @Component({
   selector: 'app-open-orders',
@@ -23,9 +28,10 @@ import { OrderTypeEnum } from '../../core/models/trades.model';
 export class OpenOrders implements OnInit {
   private destroyRef = inject(DestroyRef);
   private userService = inject(UserService);
+  private localStorageService = inject(LocalStorageService);
   private futureTradeService = inject(FutureTradeService);
 
-  openOrders  = signal<any[]>([]);
+  openOrders = signal<any[]>([]);
   loading = false;
 
   ngOnInit(): void {
@@ -94,5 +100,10 @@ export class OpenOrders implements OnInit {
     //     this.loading = false;
     //   }
     // });
+  }
+
+  selectSymbol(symbol: string): void {
+    this.localStorageService.updateLocalStorageSignal(STORAGE.SYMBOL, symbol);
+    window.location.reload();
   }
 }

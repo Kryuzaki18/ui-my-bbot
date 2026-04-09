@@ -20,7 +20,7 @@
         <p-inputnumber
           [(ngModel)]="riskDialogPercent"
           (ngModelChange)="updatePriceFromPercent()"
-          inputId="target-percent"
+          inputId="targetPercent"
           [min]="1"
           [max]="500"
           [minlength]="1"
@@ -29,7 +29,7 @@
           suffix="%"
           size="small"
         />
-        <label for="target-percent">Input %</label>
+        <label for="targetPercent">Input %</label>
       </p-floatlabel>
     </div>
   </div>
@@ -40,73 +40,73 @@
         <p-radiobutton
           value="10"
           [(ngModel)]="riskDialogPercent"
-          inputId="ten-percent"
+          inputId="tenPercent"
           size="small"
           (ngModelChange)="updatePriceFromPercent()"
         />
-        <label for="ten-percent" class="text-xs cursor-pointer">10%</label>
+        <label for="tenPercent" class="text-xs cursor-pointer">10%</label>
       </div>
       <div class="flex items-center gap-1">
         <p-radiobutton
           value="25"
           [(ngModel)]="riskDialogPercent"
-          inputId="twentyfive-percent"
+          inputId="twentyfivePercent"
           size="small"
           (ngModelChange)="updatePriceFromPercent()"
         />
-        <label for="twentyfive-percent" class="text-xs cursor-pointer">25%</label>
+        <label for="twentyfivePercent" class="text-xs cursor-pointer">25%</label>
       </div>
       <div class="flex items-center gap-1">
         <p-radiobutton
           value="50"
           [(ngModel)]="riskDialogPercent"
-          inputId="fifty-percent"
+          inputId="fiftyPercent"
           size="small"
           (ngModelChange)="updatePriceFromPercent()"
         />
-        <label for="fifty-percent" class="text-xs cursor-pointer">50%</label>
+        <label for="fiftyPercent" class="text-xs cursor-pointer">50%</label>
       </div>
 
       <div class="flex items-center gap-1">
         <p-radiobutton
           value="75"
           [(ngModel)]="riskDialogPercent"
-          inputId="seventyfive-percent"
+          inputId="seventyfivePercent"
           size="small"
           (ngModelChange)="updatePriceFromPercent()"
         />
-        <label for="seventyfive-percent" class="text-xs cursor-pointer">75%</label>
+        <label for="seventyfivePercent" class="text-xs cursor-pointer">75%</label>
       </div>
 
       <div class="flex items-center gap-1">
         <p-radiobutton
           value="100"
           [(ngModel)]="riskDialogPercent"
-          inputId="hundred-percent"
+          inputId="hundredPercent"
           size="small"
           (ngModelChange)="updatePriceFromPercent()"
         />
-        <label for="hundred-percent" class="text-xs cursor-pointer">100%</label>
+        <label for="hundredPercent" class="text-xs cursor-pointer">100%</label>
       </div>
       <div class="flex items-center gap-1">
         <p-radiobutton
           value="200"
           [(ngModel)]="riskDialogPercent"
-          inputId="twohundred-percent"
+          inputId="twohundredPercent"
           size="small"
           (ngModelChange)="updatePriceFromPercent()"
         />
-        <label for="twohundred-percent" class="text-xs cursor-pointer">200%</label>
+        <label for="twohundredPercent" class="text-xs cursor-pointer">200%</label>
       </div>
       <div class="flex items-center gap-1">
         <p-radiobutton
           value="500"
           [(ngModel)]="riskDialogPercent"
-          inputId="fivehundred-percent"
+          inputId="fivehundredPercent"
           size="small"
           (ngModelChange)="updatePriceFromPercent()"
         />
-        <label for="fivehundred-percent" class="text-xs cursor-pointer">500%</label>
+        <label for="fivehundredPercent" class="text-xs cursor-pointer">500%</label>
       </div>
     </div>
   </div>

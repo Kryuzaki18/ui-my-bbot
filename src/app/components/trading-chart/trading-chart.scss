@@ -1,10 +1,5 @@
 @use '../../styles/variables' as *;
 
-$volume-chart-height: 100px;
-$timeframe-height: 40px;
-$symbol-info-height: 70px;
-$trades-container-width: 200px;
-
 :host {
   width: $default-width;
   margin: auto;
@@ -18,19 +13,19 @@ $trades-container-width: 200px;
   height: $timeframe-height;
 }
 
-.chart-container {
-  height: calc(100vh - #{$header-height} - #{$volume-chart-height} - #{$timeframe-height} - #{$symbol-info-height});
-}
-
 .volume-container {
   height: $volume-chart-height;
 }
 
-.trades-container{
+.trades-container {
   width: $trades-container-width;
-  height: calc(100vh - #{$header-height} - #{$timeframe-height} - #{$symbol-info-height});
 }
 
+:host ::ng-deep {
+  .p-scrollpanel-bar-y {
+    display: none !important;
+  }
+}
 // ─── Indicator Dropdown ──────────────────────────────────────────────────────
 
 .indicator-menu-wrapper {

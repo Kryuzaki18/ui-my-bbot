@@ -1,5 +1,5 @@
 import { ApplicationConfig, provideBrowserGlobalErrorListeners } from '@angular/core';
-import { provideRouter } from '@angular/router';
+import { provideRouter, withRouterConfig } from '@angular/router';
 import { provideHttpClient, withFetch, withInterceptors } from '@angular/common/http';
 
 import { routes } from './app.routes';
@@ -13,11 +13,13 @@ import { ConfirmationService, MessageService } from 'primeng/api';
 export const appConfig: ApplicationConfig = {
   providers: [
     provideBrowserGlobalErrorListeners(),
-    provideRouter(routes),
-    provideHttpClient(
-      withFetch(), 
-      withInterceptors([AuthInterceptor]) 
+    provideRouter(
+      routes,
+      withRouterConfig({
+        onSameUrlNavigation: 'reload',
+      }),
     ),
+    provideHttpClient(withFetch(), withInterceptors([AuthInterceptor])),
     providePrimeNG({
       theme: {
         preset: Aura,
@@ -26,5 +28,5 @@ export const appConfig: ApplicationConfig = {
     DialogService,
     MessageService,
     ConfirmationService,
-  ]
+  ],
 };

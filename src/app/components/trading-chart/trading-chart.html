@@ -1,5 +1,5 @@
 <div class="border-x border-gray-900">
-  <div class="symbol-info-container flex items-center gap-5 px-2">
+  <div class="symbol-info-container flex items-center gap-2 px-2">
     <div class="flex flex-col">
       <div class="text-lg font-bold">
         {{ selectedSymbol.toUpperCase() }}
@@ -12,7 +12,7 @@
           'text-red-700': previousPrice() > currentPrice(),
         }"
       >
-        {{ ticker24hr() ? '$' + utilsService.fmtPrice(ticker24hr()!.lastPrice) : '—' }}
+        {{ ticker24hr() ? '$' + (ticker24hr()!.lastPrice | number: '1.0-7') : '—' }}
       </div>
       @if (ticker24hr(); as t) {
         <div
@@ -22,38 +22,152 @@
             'text-red-700': t.priceChangePercent < 0,
           }"
         >
-          <span>{{ utilsService.fmtPrice(t.priceChange) }}</span>
+          <span>{{ t.priceChange | number: '1.0-2' }}</span>
           <span
-            >{{ t.priceChangePercent >= 0 ? '+' : '' }}{{ t.priceChangePercent.toFixed(2) }}%</span
+            >{{ t.priceChangePercent >= 0 ? '+' : ''
+            }}{{ t.priceChangePercent | number: '1.0-2' }}%</span
           >
         </div>
       }
     </div>
 
-    <div class="flex items-center gap-1 divide-x-1 divide-gray-600 divide-dashed">
-      <div class="flex flex-col px-1">
+    <div>
+      <span
+        class="pi pi-caret-down cursor-pointer text-yellow-400 p-2"
+        style="font-size: 0.8rem"
+        (click)="symbolsPopover.toggle($event)"
+      ></span>
+      <p-popover #symbolsPopover>
+        <ng-template pTemplate="content">
+          <p-table
+            #dtSymbols
+            [value]="exchangeSymbols()"
+            size="small"
+            class="text-xs w-[500px]"
+            [globalFilterFields]="['symbol']"
+            scrollable
+            scrollHeight="400px"
+          >
+            <ng-template #caption>
+              <p-iconfield>
+                <p-inputicon class="pi pi-search" />
+
+                <input
+                  pInputText
+                  type="text"
+                  pSize="small"
+                  class="w-full"
+                  fluid
+                  placeholder="Search symbol eg. BTC"
+                  (input)="dtSymbols.filterGlobal($any($event.target).value, 'contains')"
+                />
+              </p-iconfield>
+            </ng-template>
+
+            <ng-template #header>
+              <tr class="sticky top-0">
+                <th pSortableColumn="symbol">
+                  <span class="flex items-center gap-1 text-gray-500">
+                    <span>Name</span>
+                    <p-sortIcon field="symbol"> </p-sortIcon>
+                  </span>
+                </th>
+                <th>
+                  <span class="text-gray-500">
+                    <span>Last Price</span>
+                  </span>
+                </th>
+
+                <th pSortableColumn="priceChangePercent">
+                  <span class="flex items-center gap-1 text-gray-500">
+                    <span>24h %</span>
+                    <p-sortIcon field="priceChangePercent"> </p-sortIcon>
+                  </span>
+                </th>
+                <th pSortableColumn="volNumber">
+                  <span class="flex items-center gap-1 text-gray-500">
+                    <span>Volume</span>
+                    <p-sortIcon field="volNumber"> </p-sortIcon>
+                  </span>
+                </th>
+              </tr>
+            </ng-template>
+            <ng-template #body let-item let-index="rowIndex">
+              <tr>
+                <td>
+                  <span
+                    class="text-yellow-400 cursor-pointer hover:text-yellow-200 jetbrains-bold"
+                    (click)="symbolsPopover.hide(); selectSymbol(item.symbol)"
+                    >{{ item.symbol }}</span
+                  >
+                </td>
+                <td
+                  [ngClass]="{
+                    'text-green-400': +item.priceChangePercent >= 0,
+                    'text-red-400': +item.priceChangePercent < 0,
+                  }"
+                >
+                  ${{ +item.lastPrice | number: '1.0-7' }}
+                </td>
+                <td
+                  [ngClass]="{
+                    'text-green-400': +item.priceChangePercent >= 0,
+                    'text-red-400': +item.priceChangePercent < 0,
+                  }"
+                >
+                  {{ +item.priceChangePercent >= 0 ? '+' : ''
+                  }}{{ +item.priceChangePercent | number: '1.0-2' }}%
+                </td>
+                <td>
+                  <span class="text-gray-600">
+                    {{ utilsService.fmtVol(+item.quoteVolume) }}
+                  </span>
+                </td>
+              </tr>
+            </ng-template>
+          </p-table>
+
+          @defer {
+            <p-scrolltop
+              target="parent"
+              [threshold]="100"
+              icon="pi pi-arrow-up"
+              [buttonProps]="{
+                severity: 'info',
+                rounded: true,
+                size: 'small',
+                text: true,
+              }"
+            />
+          }
+        </ng-template>
+      </p-popover>
+    </div>
+
+    <div class="flex items-center divide-x-1 divide-gray-600 divide-dashed">
+      <div class="flex flex-col px-2">
         <span class="text-[10px] text-gray-500">Mark Price</span>
         <span class="text-xs jetbrains-medium">
           @if (!markPriceData()) {
             <p-skeleton width="65px"></p-skeleton>
           } @else {
-            ${{ utilsService.fmtPrice(markPriceData()!.markPrice) }}
+            ${{ markPriceData()!.markPrice | number: '1.0-7' }}
           }
         </span>
       </div>
 
-      <div class="flex flex-col px-1">
+      <div class="flex flex-col px-2">
         <span class="text-[10px] text-gray-500">Index Price</span>
         <span class="text-xs jetbrains-medium">
           @if (!markPriceData()) {
             <p-skeleton width="65px"></p-skeleton>
           } @else {
-            ${{ utilsService.fmtPrice(markPriceData()!.indexPrice) }}
+            ${{ markPriceData()!.indexPrice | number: '1.0-7' }}
           }
         </span>
       </div>
 
-      <div class="flex flex-col px-1">
+      <div class="flex flex-col px-2">
         <span class="text-[10px] text-gray-500">Funding (8h) / Countdown</span>
 
         <span class="text-xs jetbrains-medium flex gap-1">
@@ -72,55 +186,57 @@
         </span>
       </div>
 
-      <div class="flex flex-col px-1">
+      <div class="flex flex-col px-2">
         <span class="text-[10px] text-gray-500">24h High</span>
         <span class="text-xs text-green-600 jetbrains-medium">
           @if (!ticker24hr()) {
             <p-skeleton width="65px"></p-skeleton>
           } @else {
-            ${{ utilsService.fmtPrice(ticker24hr()!.highPrice) }}
+            ${{ ticker24hr()!.highPrice | number: '1.0-7' }}
           }
         </span>
       </div>
-      <div class="flex flex-col px-1">
+
+      <div class="flex flex-col px-2">
         <span class="text-[10px] text-gray-500">24h Low</span>
         <span class="text-xs text-red-600 jetbrains-medium">
           @if (!ticker24hr()) {
             <p-skeleton width="65px"></p-skeleton>
           } @else {
-            ${{ utilsService.fmtPrice(ticker24hr()!.lowPrice) }}
+            ${{ ticker24hr()!.lowPrice | number: '1.0-7' }}
           }
         </span>
       </div>
-      <div class="flex flex-col px-1">
+
+      <div class="flex flex-col px-2">
         <span class="text-[10px] text-gray-500">24h Vol</span>
         <span class="text-xs jetbrains-medium text-gray-400">
           @if (!ticker24hr()) {
             <p-skeleton width="130px"></p-skeleton>
           } @else {
-            ${{ utilsService.fmtPrice(ticker24hr()!.volume) }}
+            ${{ ticker24hr()!.volume | number: '1.0-7' }}
           }
         </span>
       </div>
 
-      <div class="flex flex-col px-1">
+      <div class="flex flex-col px-2">
         <span class="text-[10px] text-gray-500">24h Vol(USDT)</span>
         <span class="text-xs jetbrains-medium text-gray-400">
           @if (!ticker24hr()) {
             <p-skeleton width="130px"></p-skeleton>
           } @else {
-            ${{ utilsService.fmtPrice(ticker24hr()!.quoteVolume) }}
+            ${{ ticker24hr()!.quoteVolume | number: '1.0-7' }}
           }
         </span>
       </div>
 
-      <div class="flex flex-col px-1">
+      <div class="flex flex-col px-2">
         <span class="text-[10px] text-gray-500">Open Interest</span>
         <span class="text-xs jetbrains-medium text-gray-400">
           @if (!openInterest()) {
             <p-skeleton width="100px"></p-skeleton>
           } @else {
-            ${{ utilsService.fmtPrice(openInterest()) }}
+            ${{ openInterest() | number: '1.0-7' }}
           }
         </span>
       </div>
@@ -277,37 +393,40 @@
         </div>
       </div>
 
-      <div class="trades-container border-x border-gray-700 relative">
+      <div class="trades-container border-x border-gray-700">
         <div class="text-center bg-gray-900 mb-1">
           <span class="text-xs jetbrains-bold text-gray-300">Recent Trades</span>
         </div>
 
-        <div class="flex text-[10px] jetbrains-medium justify-between text-gray-500 px-1">
-          <span class="w-auto">Price</span>
-          <span class="w-2/5 text-right">Amount</span>
-          <span class="w-1/3 text-right">Time</span>
+        <div class="flex text-[10px] jetbrains-medium justify-end text-gray-500 px-1">
+          <span class="flex-auto">Price</span>
+          <span class="w-[50px] text-right">Amount</span>
+          <span class="w-[60px] text-right">Time</span>
         </div>
-        @if (isLoadingMaxRecentTrades()) {
-          @for (aggTrade of aggTrades(); track $index) {
-            <div
-              class="flex jetbrains-medium justify-between py-1 border-t border-gray-900 px-1"
-              [ngClass]="{
-                'text-green-400': aggTrade.m,
-                'text-red-400': !aggTrade.m,
-              }"
-            >
-              <span class="w-auto text-[10px]">${{ utilsService.fmtPrice(+aggTrade.p) }}</span>
-              <span class="w-1/4 text-[10px] text-right">{{
-                utilsService.fmtVol(+aggTrade.q * +aggTrade.p)
-              }}</span>
-              <span class="w-1/3 text-[9px] text-gray-600 text-right">{{
-                aggTrade.T | date: 'h:mm:ss a' | lowercase
-              }}</span>
-            </div>
+
+        <p-scrollpanel class="trades-scroll-panel">
+          @if (isLoadingMaxRecentTrades()) {
+            @for (aggTrade of aggTrades(); track $index) {
+              <div
+                class="flex jetbrains-medium justify-end py-1 border-t border-gray-900 px-1"
+                [ngClass]="{
+                  'text-green-400': aggTrade.m,
+                  'text-red-400': !aggTrade.m,
+                }"
+              >
+                <span class="flex-auto text-[10px]">${{ +aggTrade.p | number: '1.0-7' }}</span>
+                <span class="w-[50px] text-[10px] text-right">{{
+                  utilsService.fmtVol(+aggTrade.q * +aggTrade.p)
+                }}</span>
+                <span class="w-[60px] text-[9px] text-gray-600 text-right">{{
+                  aggTrade.T | date: 'h:mm:ss' | lowercase
+                }}</span>
+              </div>
+            }
+          } @else {
+            <p-skeleton width="100%" height="100%" borderRadius="0"></p-skeleton>
           }
-        } @else {
-          <p-skeleton width="100%" height="calc(100% - 42px)" borderRadius="0"></p-skeleton>
-        }
+        </p-scrollpanel>
       </div>
     </div>
   </div>
