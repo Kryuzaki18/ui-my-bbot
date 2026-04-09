@@ -3,9 +3,9 @@ import { CommonModule } from '@angular/common';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
 // Services
-import { UserService } from '../../core/services/user.service';
 import { FutureTradeService } from '../../core/services/future-trade.service';
 import { LocalStorageService } from '../../core/services/local-storage.service';
+import { UserWsService } from '../../core/services/user-ws.service';
 
 // Constants
 import { STORAGE } from '../../core/constants/binance.constant';
@@ -17,27 +17,28 @@ import { OrderTypeEnum } from '../../core/models/trades.model';
 import { TableModule } from 'primeng/table';
 import { ButtonModule } from 'primeng/button';
 import { ProgressBarModule } from 'primeng/progressbar';
+import { TabsModule } from 'primeng/tabs';
+import { AppSettingsService } from '../../core/services/app-settings.service';
 
 @Component({
   selector: 'app-open-orders',
   standalone: true,
-  imports: [CommonModule, TableModule, ButtonModule, ProgressBarModule],
+  imports: [CommonModule, TableModule, ButtonModule, ProgressBarModule, TabsModule],
   templateUrl: './open-orders.html',
   styleUrl: './open-orders.scss',
 })
 export class OpenOrders implements OnInit {
-  private destroyRef = inject(DestroyRef);
-  private userService = inject(UserService);
-  private localStorageService = inject(LocalStorageService);
-  private futureTradeService = inject(FutureTradeService);
-
-  openOrders = signal<any[]>([]);
-  loading = false;
+  private readonly destroyRef = inject(DestroyRef);
+  private readonly userWsService = inject(UserWsService);
+  private readonly localStorageService = inject(LocalStorageService);
+  private readonly futureTradeService = inject(FutureTradeService);
+  readonly appSettingsService = inject(AppSettingsService);
+  readonly openOrders = signal<any[]>([]);
 
   ngOnInit(): void {
     this.fetchOrders();
 
-    this.userService
+    this.userWsService
       .getUserDataStream()
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe((data) => {
@@ -47,8 +48,14 @@ export class OpenOrders implements OnInit {
       });
   }
 
+  onTabChange(event: any) {
+    if (Number(event) === 1) {
+      this.fetchOrders();
+    }
+  }
+
   fetchOrders(): void {
-    this.loading = true;
+    this.appSettingsService.setIsLoadingOpenOrders(true);
 
     this.futureTradeService
       .getOpenOrders()
@@ -65,26 +72,29 @@ export class OpenOrders implements OnInit {
           });
 
           this.openOrders.set(filteredOrders);
-          this.loading = false;
+          setTimeout(() => {
+          this.appSettingsService.setIsLoadingOpenOrders(false);
+          }, 1000);
         },
         error: (err) => {
           console.error(err);
-          this.loading = false;
+          this.appSettingsService.setIsLoadingOpenOrders(false);
         },
       });
   }
 
   cancelOrder(order: any): void {
-    this.loading = true;
-
     this.futureTradeService
       .cancelOrder(order.symbol, order.orderId, order.clientOrderId)
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
-        next: () => this.fetchOrders(),
+        next: () => {
+          this.fetchOrders();
+          this.appSettingsService.setIsLoadingOpenOrders(false);
+        },
         error: (err) => {
           console.error(err);
-          this.loading = false;
+          this.appSettingsService.setIsLoadingOpenOrders(false);
         },
       });
   }

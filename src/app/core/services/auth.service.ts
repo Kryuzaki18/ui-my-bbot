@@ -4,7 +4,7 @@ import { catchError, Observable, of, tap } from 'rxjs';
 
 // Environment
 import { API_ROUTES, environment } from '../../../environments/environment';
-import { UserService } from './user.service';
+import { UserWsService } from './user-ws.service';
 
 interface IAuth {
   message: string;
@@ -15,7 +15,7 @@ interface IAuth {
 })
 export class AuthService {
   private readonly http = inject(HttpClient);
-  private readonly userService = inject(UserService);
+  private readonly userWsService = inject(UserWsService);
   private readonly session = signal<boolean>(false);
 
   isLoggedIn = computed(() => !!this.session());
@@ -43,7 +43,7 @@ export class AuthService {
       })
       .pipe(
         tap((res) => {
-          this.userService.startUserDataStream();
+          this.userWsService.startUserDataStream();
           this.session.set(true);
         }),
       );
@@ -58,14 +58,14 @@ export class AuthService {
       })
       .pipe(
         tap((res) => {
-          this.userService.startUserDataStream();
+          this.userWsService.startUserDataStream();
           this.session.set(true);
         }),
       );
   }
 
   signOut(): Observable<IAuth> {
-    this.userService.stopUserDataStream();
+    this.userWsService.stopUserDataStream();
 
     return this.http
       .post<IAuth>(`${environment.apiTradingBotUrl}${API_ROUTES.auth.signOut}`, {})

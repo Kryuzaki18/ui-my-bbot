@@ -24,14 +24,14 @@
               tradeForm.get('leverage')?.value > 50 && tradeForm.get('leverage')?.value <= 75,
             'text-red-700': tradeForm.get('leverage')?.value > 75,
           }"
-          >{{ tradeForm.get('leverage')?.value }}x</span
+          >{{ tradeForm.get('leverage')?.value + 'x' }}</span
         >
       </label>
       <p-slider
         inputId="leverage"
         formControlName="leverage"
         [min]="1"
-        [max]="compLeverageBracket()?.maxLeverage || 100"
+        [max]="defaultLeverage"
         class="w-full"
       />
 
@@ -155,7 +155,8 @@
         Sell/Short
       </button>
     </div>
-    @if (compFuturePos()?.margin) {
+
+    @if (compFuturePos()?.margin && !(appSettingsService.isCurrentPositionLoading$ | async)) {
       <div
         class="flex flex-col text-sm mt-2 border-1 border-dashed border-gray-700 rounded"
         [ngClass]="{
@@ -202,12 +203,12 @@
             <div
               class="flex flex-col items-end text-xs"
               [ngClass]="{
-                'text-red-500': getPnL().pnl.includes('-'),
-                'text-green-500': !getPnL().pnl.includes('-'),
+                'text-red-500': getPnL(compFuturePos()).pnl.startsWith('-'),
+                'text-green-500': !getPnL(compFuturePos()).pnl.startsWith('-'),
               }"
             >
-              <span>{{ getPnL().pnl }}</span>
-              <span>{{ getPnL().pnlPercent }}% </span>
+              <span>{{ getPnL(compFuturePos()).pnl }}</span>
+              <span>{{ getPnL(compFuturePos()).pnlPercent + '%' }} </span>
             </div>
           </div>
         </div>

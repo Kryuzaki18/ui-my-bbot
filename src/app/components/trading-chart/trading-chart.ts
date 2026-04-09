@@ -61,6 +61,7 @@ import { IndicatorMaService } from '../../core/services/chart/indicator-ma.servi
 import { IndicatorMacdService } from '../../core/services/chart/indicator-macd.service';
 import { IndicatorBollingerService } from '../../core/services/chart/indicator-bollinger.service';
 import { LocalStorageService } from '../../core/services/local-storage.service';
+import { AppSettingsService } from '../../core/services/app-settings.service';
 
 // PrimeNG
 import { ButtonModule } from 'primeng/button';
@@ -107,6 +108,7 @@ export class TradingChartComponent implements OnInit, AfterViewInit, OnDestroy {
   private readonly indicatorMacdService = inject(IndicatorMacdService);
   private readonly indicatorBollingerService = inject(IndicatorBollingerService);
   private readonly localStorageService = inject(LocalStorageService);
+  private readonly appSettingsService = inject(AppSettingsService);
   readonly utilsService = inject(UtilsService);
 
   private chart!: IChartApi;
@@ -241,6 +243,7 @@ export class TradingChartComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   selectSymbol(symbol: string): void {
+    this.appSettingsService.setIsCurrentPositionLoading(true);
     this.chartService.selectedSymbol.set(symbol);
     window.location.reload();
   }

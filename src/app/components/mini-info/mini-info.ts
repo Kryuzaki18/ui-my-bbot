@@ -1,8 +1,9 @@
-import { Component, OnInit, OnDestroy, inject, DestroyRef, signal } from '@angular/core';
+import { Component, OnInit, inject, DestroyRef, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { CurrencyPipe } from '@angular/common';
 
 // Services
+import { UserWsService } from '../../core/services/user-ws.service';
 import { UserService } from '../../core/services/user.service';
 
 // Models
@@ -17,8 +18,9 @@ import { Skeleton } from 'primeng/skeleton';
   templateUrl: './mini-info.html',
   styleUrl: './mini-info.scss',
 })
-export class MiniInfoComponent implements OnInit, OnDestroy {
+export class MiniInfoComponent implements OnInit {
   private destroyRef = inject(DestroyRef);
+  private userWsService = inject(UserWsService);
   private userService = inject(UserService);
 
   userInfo = signal<UserInfo | null>(null);
@@ -26,11 +28,11 @@ export class MiniInfoComponent implements OnInit, OnDestroy {
   ngOnInit(): void {
     this.getUserInfo();
 
-    this.userService
+    this.userWsService
       .getUserDataStream()
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
-        next: (update) => { 
+        next: (update) => {
           const balances = update.a?.B;
           const positions = update.a?.P;
 
@@ -66,10 +68,6 @@ export class MiniInfoComponent implements OnInit, OnDestroy {
           }
         },
       });
-  }
-
-  ngOnDestroy(): void {
-    this.userService.stopUserDataStream();
   }
 
   getUserInfo(): void {

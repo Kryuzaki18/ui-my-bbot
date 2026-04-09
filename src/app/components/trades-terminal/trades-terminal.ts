@@ -1,5 +1,14 @@
-import { Component, computed, inject, OnInit, signal, DestroyRef, Injector } from '@angular/core';
-import { NgClass, DecimalPipe, CurrencyPipe } from '@angular/common';
+import {
+  Component,
+  computed,
+  inject,
+  OnInit,
+  signal,
+  DestroyRef,
+  Injector,
+  AfterViewInit,
+} from '@angular/core';
+import { NgClass, DecimalPipe, CurrencyPipe, AsyncPipe } from '@angular/common';
 import {
   FormBuilder,
   ReactiveFormsModule,
@@ -12,7 +21,6 @@ import { filter, startWith, take } from 'rxjs';
 
 // Models
 import {
-  Bracket,
   FuturePosition,
   LeverageBracket,
   OrderSideEnum,
@@ -26,11 +34,13 @@ import { MarkPriceData } from '../../core/models/chart.model';
 import { TpSlDialogComponent } from '../dialogs/tp-sl-dialog/tp-sl-dialog';
 
 // Services
+import { AppSettingsService } from '../../core/services/app-settings.service';
 import { UtilsService } from '../../core/services/utils.service';
+import { ChartService } from '../../core/services/chart/chart.service';
 import { FutureTradeService } from '../../core/services/future-trade.service';
 import { BinanceWsService } from '../../core/services/binance-ws.service';
 import { UserService } from '../../core/services/user.service';
-import { ChartService } from '../../core/services/chart/chart.service';
+import { UserWsService } from '../../core/services/user-ws.service';
 
 // PrimeNG Modules
 import { SliderModule } from 'primeng/slider';
@@ -48,6 +58,7 @@ import { InputGroupModule } from 'primeng/inputgroup';
 import { InputGroupAddonModule } from 'primeng/inputgroupaddon';
 import { MenuModule } from 'primeng/menu';
 import { TooltipModule } from 'primeng/tooltip';
+import { SkeletonModule } from 'primeng/skeleton';
 
 interface TPSLOption {
   label: string;
@@ -60,6 +71,7 @@ interface TPSLOption {
     NgClass,
     DecimalPipe,
     CurrencyPipe,
+    AsyncPipe,
     ReactiveFormsModule,
     FormsModule,
     SliderModule,
@@ -76,27 +88,30 @@ interface TPSLOption {
     InputGroupAddonModule,
     MenuModule,
     TooltipModule,
+    SkeletonModule,
   ],
   templateUrl: './trades-terminal.html',
   styleUrl: './trades-terminal.scss',
 })
-export class TradesTerminalComponent implements OnInit {
+export class TradesTerminalComponent implements OnInit, AfterViewInit {
   private readonly injector = inject(Injector);
   private readonly utilsService = inject(UtilsService);
   private readonly confirmationService = inject(ConfirmationService);
   private readonly binanceWsService = inject(BinanceWsService);
   private readonly userService = inject(UserService);
+  private readonly userWsService = inject(UserWsService);
   private readonly futureTradeService = inject(FutureTradeService);
   private readonly chartService = inject(ChartService);
   private readonly dialogService = inject(DialogService);
   private readonly destroyRef = inject(DestroyRef);
   private readonly fb = inject(FormBuilder);
   private dialogRef: DynamicDialogRef | null = null;
+  readonly appSettingsService = inject(AppSettingsService);
 
   tradeForm!: FormGroup;
+  defaultLeverage = 20;
 
   readonly defaultAmount = 5;
-  readonly defaultLeverage = 20;
   readonly futurePos = signal<FuturePosition[]>([]);
   readonly tpslOrders = signal<TPSLOrder[]>([]);
   readonly leverageBracket = signal<LeverageBracket | null>(null);
@@ -173,7 +188,9 @@ export class TradesTerminalComponent implements OnInit {
 
   readonly compFuturePos = computed(() => {
     const sym = this.chartService.selectedSymbol();
-    const position = this.futurePos().find((pos: any) => pos.symbol.toLowerCase() === sym.toLowerCase());
+    const position = this.futurePos().find(
+      (pos: any) => pos.symbol.toLowerCase() === sym.toLowerCase(),
+    );
 
     if (position) {
       const margin = this.utilsService.calculateMargin(
@@ -244,15 +261,44 @@ export class TradesTerminalComponent implements OnInit {
     this.getFuturesPositions();
     this.fetchPendingTpSl();
 
+    // this.userWsService
+    //   .getUserDataStream()
+    //   .pipe(takeUntilDestroyed(this.destroyRef))
+    //   .subscribe((data) => {
+    //     console.log('user: ', data);
+    //   });
+
     toObservable(this.markPriceData, { injector: this.injector })
       .pipe(
         startWith(this.markPriceData()),
         filter((data) => !!data?.markPrice),
         take(1),
+        takeUntilDestroyed(this.destroyRef),
       )
       .subscribe(() => {
         this.onOrderTypeChange();
       });
+
+    toObservable(this.leverageBracket, { injector: this.injector })
+      .pipe(
+        startWith(this.leverageBracket()),
+        filter((data) => !!data),
+        take(1),
+        takeUntilDestroyed(this.destroyRef),
+      )
+      .subscribe({
+        next: (bracket) => {
+          const leverage = bracket.brackets[0]?.initialLeverage;
+          this.defaultLeverage = leverage;
+          this.tradeForm.get('leverage')?.patchValue(leverage, { emitEvent: false });
+          this.tradeForm.get('leverage')?.addValidators([Validators.max(leverage)]);
+        },
+        error: () => {},
+      });
+  }
+
+  ngAfterViewInit(): void {
+    this.appSettingsService.setIsCurrentPositionLoading(false);
   }
 
   createTradeForm(): void {
@@ -276,13 +322,11 @@ export class TradesTerminalComponent implements OnInit {
       .subscribe({
         next: (res) => {
           const sym = this.chartService.selectedSymbol();
-          const bracket = res.find((bracket: any) => bracket.symbol.toLowerCase() === sym);
+          const bracket = res.find(
+            (bracket: LeverageBracket) => bracket.symbol.toLowerCase() === sym.toLowerCase(),
+          );
           if (bracket) {
             this.leverageBracket.set(bracket);
-            const leverage = bracket.brackets[0]?.initialLeverage || this.defaultLeverage;
-            this.tradeForm.get('leverage')?.patchValue(leverage, { emitEvent: false });
-            this.tradeForm.get('leverage')?.addValidators([Validators.max(leverage)]);
-            this.tradeForm.get('leverage')?.updateValueAndValidity({ emitEvent: false });
           }
         },
         error: (err) => console.error(err),
@@ -296,7 +340,6 @@ export class TradesTerminalComponent implements OnInit {
       .subscribe((res) => {
         const newPositions = res.filter((pos) => Number(pos.positionAmt) !== 0);
         if (newPositions.length > 0) {
-          console.log(newPositions);
           this.futurePos.set(newPositions);
         }
       });
@@ -321,7 +364,7 @@ export class TradesTerminalComponent implements OnInit {
 
     const { symbol, amount, price, leverage, orderType, stopLoss, takeProfit } =
       this.tradeForm.value;
-    const executionPrice = Number(price || this.markPriceData()?.markPrice);
+    const executionPrice = orderType === OrderTypeEnum.MARKET ? Number(this.markPriceData()?.markPrice) : Number(price);
 
     if (!executionPrice) {
       console.error('Price is zero, cannot calculate quantity');
@@ -502,8 +545,7 @@ export class TradesTerminalComponent implements OnInit {
 
   startBot(index: number): void {}
 
-  getPnL(): { pnl: string; pnlPercent: string } {
-    const pos = this.compFuturePos();
+  getPnL(pos: any): { pnl: string; pnlPercent: string } {
     if (!pos) {
       return { pnl: '', pnlPercent: '' };
     }
