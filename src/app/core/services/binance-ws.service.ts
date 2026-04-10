@@ -49,6 +49,10 @@ export class BinanceWsService {
   private ticker24hSubject = new Subject<Ticker24hrWsMessage>();
   readonly ticker24h$ = this.ticker24hSubject.asObservable();
 
+  // ── All Tickers stream ──────────────────────────────────────────────
+  private allTickersSubject = new Subject<Ticker24hrWsMessage[]>();
+  readonly allTickers$ = this.allTickersSubject.asObservable();
+
   wsKline(symbol: string, interval: Timeframe): void {
     const stream = `${symbol.toLowerCase()}@kline_${interval}`;
     this.connectWs(STREAM_NAME.KLINE, stream, (data) => {
@@ -67,6 +71,13 @@ export class BinanceWsService {
     });
   }
 
+  wsAllTickers(): void {
+    const stream = `!ticker@arr`;
+    this.connectWs('allTickers', stream, (data) => {
+      this.allTickersSubject.next(data);
+    });
+  }
+
   wsMarkPrice(symbol: string, timeInterval: string = '@1s'): void {
     const stream = `${symbol.toLowerCase()}@markPrice${timeInterval}`;
     this.connectWs(STREAM_NAME.MARK_PRICE_UPDATE, stream, (data) => {
@@ -81,17 +92,18 @@ export class BinanceWsService {
     if (ws) {
       if (key === STREAM_NAME.KLINE) {
         this.klineSubject?.next(null as any);
-        this.klineSubject.complete();
       }
 
       if (key === STREAM_NAME.TICKER_24HR) {
         this.ticker24hSubject?.next(null as any);
-        this.ticker24hSubject.complete();
       }
 
       if (key === STREAM_NAME.MARK_PRICE_UPDATE) {
         this.markPriceSubject?.next(null as any);
-        this.markPriceSubject.complete();
+      }
+
+      if (key === 'allTickers') {
+        this.allTickersSubject?.next([] as any);
       }
 
       ws.onclose = null;
