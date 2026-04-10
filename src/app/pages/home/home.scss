@@ -2,7 +2,7 @@
 
 $chart-height: calc(
   100vh - #{$header-height} - #{$volume-chart-height} - #{$timeframe-height} -
-    #{$symbol-info-height}
+    #{$symbol-info-height} - #{$volume-maximize-height}
 );
 
 :host ::ng-deep app-trading-chart .chart-container {

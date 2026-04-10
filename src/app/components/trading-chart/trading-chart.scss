@@ -14,7 +14,7 @@
 }
 
 .volume-container {
-  height: $volume-chart-height;
+  min-height: $volume-chart-height;
 }
 
 .trades-container {

@@ -263,25 +263,25 @@
     </div>
 
     <div class="flex">
-      <div class="flex flex-col flex-auto">
-        <div #chartContainer class="chart-container"></div>
+      <div class="flex flex-col flex-auto chart-wrapper overflow-hidden">
+        <div #chartContainer class="chart-container flex-auto min-h-0 w-full"></div>
 
-        <div class="relative volume-container">
+        <div
+          class="h-1 w-full bg-gray-800 cursor-row-resize hover:bg-gray-500 transition-colors z-50 flex-none select-none relative"
+          (mousedown)="startResize($event)"
+        >
           <div
-            class="card flex justify-center absolute left-0 top-0 ml-2 z-10 rounded border-1 border-gray-800"
+            class="absolute inset-x-0 top-1/2 -translate-y-1/2 flex justify-center pointer-events-none"
           >
-            <p-button (click)="toggleVolume()" variant="text" size="small">
-              <span
-                class="pi"
-                [ngClass]="{
-                  'pi-eye-slash': !showVolume(),
-                  'pi-eye': showVolume(),
-                }"
-              ></span>
-            </p-button>
+            <div class="w-8 h-[2px] bg-gray-600 rounded"></div>
           </div>
+        </div>
 
-          <div #volumeContainer class="volume-container"></div>
+        <div
+          class="relative volume-container flex-none w-full border-t border-gray-900"
+          [style.height.px]="volumeHeight()"
+        >
+          <div #volumeContainer class="w-full h-full"></div>
         </div>
       </div>
 

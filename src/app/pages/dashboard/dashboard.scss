@@ -2,7 +2,7 @@
 
 $chart-height: calc(
   100vh - #{$header-height} - #{$volume-chart-height} - #{$timeframe-height} -
-    #{$symbol-info-height} - #{$open-orders-height}
+    #{$symbol-info-height} - #{$open-orders-height} - #{$volume-maximize-height}
 );
 
 main {
@@ -16,8 +16,12 @@ main {
   height: calc(100% - #{$header-height});
 }
 
+:host ::ng-deep app-trading-chart .chart-wrapper {
+  height: calc(#{$chart-height} + #{$volume-chart-height});
+}
+
 :host ::ng-deep app-trading-chart .chart-container {
-  height: $chart-height;
+  height: 100%;
 }
 
 :host ::ng-deep app-trading-chart .trades-scroll-panel {

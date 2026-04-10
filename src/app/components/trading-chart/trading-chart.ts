@@ -82,7 +82,7 @@ import { DividerModule } from 'primeng/divider';
     ScrollPanelModule,
     PopoverModule,
     DividerModule,
-    TradingSymbolsPopoverComponent
+    TradingSymbolsPopoverComponent,
   ],
   templateUrl: './trading-chart.html',
   styleUrls: ['./trading-chart.scss'],
@@ -110,6 +110,7 @@ export class TradingChartComponent implements OnInit, AfterViewInit, OnDestroy {
   private volumeChart!: IChartApi;
   private candleSeries!: ISeriesApi<'Candlestick'>;
   private volumeSeries!: ISeriesApi<'Histogram'>;
+  private resizeObserver!: ResizeObserver;
 
   // Indicator series references
   private maSeries: ISeriesApi<'Line'> | null = null;
@@ -124,7 +125,6 @@ export class TradingChartComponent implements OnInit, AfterViewInit, OnDestroy {
 
   private readonly initCandles = signal<CandleData[]>([]);
   readonly aggTrades = signal<AggTradeWsMessage[]>([]);
-  readonly showVolume = signal(true);
   readonly wsStatus = signal<WsStatus>('connecting');
   readonly ticker = signal<TickerData | null>(null);
   readonly ticker24hr = signal<Ticker24hrData | null>(null);
@@ -134,6 +134,7 @@ export class TradingChartComponent implements OnInit, AfterViewInit, OnDestroy {
   readonly timeframes: Timeframe[] = TIMEFRAMES;
   readonly currentPrice = signal(0);
   readonly previousPrice = signal(0);
+  readonly volumeHeight = signal(100);
   readonly MAX_TRADE_HISTORY = MAX_TRADE_HISTORY;
   readonly selectedSymbol = this.chartService.selectedSymbol();
 
@@ -212,6 +213,7 @@ export class TradingChartComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   ngOnDestroy(): void {
+    this.resizeObserver?.disconnect();
     this.binanceWsService.closeAllWs();
     this.binanceWsService.disconnectAllAggTrade();
     this.chart?.remove();
@@ -248,10 +250,30 @@ export class TradingChartComponent implements OnInit, AfterViewInit, OnDestroy {
     });
   }
 
-  toggleVolume(): void {
-    const next = !this.showVolume();
-    this.showVolume.set(next);
-    this.volumeContainerRef.nativeElement.style.display = next ? 'block' : 'none';
+  startResize(event: MouseEvent): void {
+    event.preventDefault();
+    const startY = event.clientY;
+    const startHeight = this.volumeHeight();
+
+    const onMouseMove = (e: MouseEvent) => {
+      // Moving mouse up locally decreases Y, so deltaY is positive, increasing volume height
+      const deltaY = startY - e.clientY;
+      let newHeight = startHeight + deltaY;
+
+      // Boundaries to prevent breaking the overall wrapper layout
+      if (newHeight < 50) newHeight = 50;
+      if (newHeight > 500) newHeight = 500;
+
+      this.volumeHeight.set(newHeight);
+    };
+
+    const onMouseUp = () => {
+      document.removeEventListener('mousemove', onMouseMove);
+      document.removeEventListener('mouseup', onMouseUp);
+    };
+
+    document.addEventListener('mousemove', onMouseMove);
+    document.addEventListener('mouseup', onMouseUp);
   }
 
   toggleIndicatorMenu(event: MouseEvent): void {
@@ -319,6 +341,7 @@ export class TradingChartComponent implements OnInit, AfterViewInit, OnDestroy {
     this.chart = createChart(this.chartContainerRef.nativeElement, {
       ...sharedOpts,
       width: this.chartContainerRef.nativeElement.clientWidth,
+      height: this.chartContainerRef.nativeElement.clientHeight,
     });
 
     this.candleSeries = this.chart.addSeries(CandlestickSeries, {
@@ -335,6 +358,7 @@ export class TradingChartComponent implements OnInit, AfterViewInit, OnDestroy {
       rightPriceScale: { borderColor: theme.border, scaleMargins: { top: 0.1, bottom: 0 } },
       timeScale: { visible: true, borderColor: theme.border },
       width: this.volumeContainerRef.nativeElement.clientWidth,
+      height: this.volumeContainerRef.nativeElement.clientHeight,
     });
 
     this.volumeSeries = this.volumeChart.addSeries(HistogramSeries, {
@@ -364,6 +388,21 @@ export class TradingChartComponent implements OnInit, AfterViewInit, OnDestroy {
     this.chartService.theme$
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe((t) => this.applyTheme(t));
+
+    // Start auto-resizing
+    this.resizeObserver = new ResizeObserver((entries) => {
+      for (const entry of entries) {
+        // Debounce or directly apply resize locally natively to Lightweight Charts arrays mappings
+        if (entry.target === this.chartContainerRef.nativeElement) {
+          this.chart?.resize(entry.contentRect.width, entry.contentRect.height);
+        } else if (entry.target === this.volumeContainerRef.nativeElement) {
+          this.volumeChart?.resize(entry.contentRect.width, entry.contentRect.height);
+        }
+      }
+    });
+
+    this.resizeObserver.observe(this.chartContainerRef.nativeElement);
+    this.resizeObserver.observe(this.volumeContainerRef.nativeElement);
   }
 
   private applyTheme(t: any): void {
