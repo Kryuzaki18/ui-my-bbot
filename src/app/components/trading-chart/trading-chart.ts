@@ -73,6 +73,7 @@ import { InputTextModule } from 'primeng/inputtext';
 import { IconFieldModule } from 'primeng/iconfield';
 import { InputIconModule } from 'primeng/inputicon';
 import { ScrollTopModule } from 'primeng/scrolltop';
+import { DividerModule } from 'primeng/divider';
 
 @Component({
   selector: 'app-trading-chart',
@@ -89,6 +90,7 @@ import { ScrollTopModule } from 'primeng/scrolltop';
     IconFieldModule,
     InputIconModule,
     ScrollTopModule,
+    DividerModule
   ],
   templateUrl: './trading-chart.html',
   styleUrls: ['./trading-chart.scss'],

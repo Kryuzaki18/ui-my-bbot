@@ -243,8 +243,8 @@
     </div>
   </div>
 
-  <div class="timeframe-container flex items-center justify-between border-y border-gray-800">
-    <div class="tf-group">
+  <div class="timeframe-container flex items-center border-y border-gray-800">
+    <div class="border-r border-gray-800 px-1">
       @for (tf of timeframes; track tf) {
         <p-button
           size="small"
@@ -257,79 +257,75 @@
       }
     </div>
 
-    <!-- Indicators dropdown -->
-    <div class="indicator-menu-wrapper" #indicatorMenuRef>
-      <button
-        id="indicator-toggle-btn"
-        class="indicator-btn"
-        [class.indicator-btn--active]="showIndicatorMenu()"
-        (click)="toggleIndicatorMenu($event)"
+    <div class="ml-3">
+      <p-button
+        size="small"
+        variant="outlined"
+        severity="secondary"
+        styleClass="w-38"
+        (click)="indicatorsPopover.toggle($event)"
       >
-        <svg
-          class="indicator-icon"
-          viewBox="0 0 20 20"
-          fill="none"
-          xmlns="http://www.w3.org/2000/svg"
-        >
-          <path
-            d="M3 14l4-5 3 3 4-6 3 4"
-            stroke="currentColor"
-            stroke-width="1.5"
-            stroke-linecap="round"
-            stroke-linejoin="round"
-          />
-        </svg>
-        <span>Indicators</span>
-        @if (activeIndicatorCount() > 0) {
-          <span class="indicator-badge">{{ activeIndicatorCount() }}</span>
-        }
-        <svg
-          class="chevron"
-          [class.chevron--open]="showIndicatorMenu()"
-          viewBox="0 0 10 6"
-          fill="none"
-          xmlns="http://www.w3.org/2000/svg"
-        >
-          <path
-            d="M1 1l4 4 4-4"
-            stroke="currentColor"
-            stroke-width="1.5"
-            stroke-linecap="round"
-            stroke-linejoin="round"
-          />
-        </svg>
-      </button>
-
-      @if (showIndicatorMenu()) {
-        <div class="indicator-dropdown" (click)="$event.stopPropagation()">
-          <div class="indicator-dropdown__header">
-            <span>Technical Indicators</span>
-          </div>
-          @for (ind of indicators(); track ind.type) {
-            <div
-              class="indicator-item"
-              [class.indicator-item--active]="ind.enabled"
-              (click)="toggleIndicator(ind.type, $event)"
-            >
-              <div class="indicator-item__check">
-                @if (ind.enabled) {
-                  <svg viewBox="0 0 12 12" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <path
-                      d="M2 6l3 3 5-5"
-                      stroke="currentColor"
-                      stroke-width="1.5"
-                      stroke-linecap="round"
-                      stroke-linejoin="round"
-                    />
-                  </svg>
-                }
+        <div class="flex items-center justify-between gap-2 w-full">
+          <div class="flex items-center">
+            <span class="pi pi-chart-line" style="font-size: 0.6rem"></span>
+            <span class="text-xs ml-3 mr-1">Indicators</span>
+            @if (activeIndicatorCount() > 0) {
+              <div class="bg-blue-600 text-white text-[9px] h-3 w-3 rounded">
+                {{ activeIndicatorCount() }}
               </div>
-              <span class="indicator-item__dot" [style.background]="ind.color"></span>
-              <span class="indicator-item__label">{{ ind.label }}</span>
-            </div>
-          }
+            }
+          </div>
+
+          <span class="pi pi-chevron-down" style="font-size: 0.6rem"></span>
         </div>
-      }
+      </p-button>
+
+      <p-popover #indicatorsPopover>
+        <ng-template pTemplate="content">
+          <div class="flex flex-col min-w-[200px]">
+            <div
+              class="px-3 py-2 border-b border-gray-800 text-xs text-gray-400 jetbrains-medium bg-gray-900 rounded-t"
+            >
+              Technical Indicators
+            </div>
+            <div class="flex flex-col py-1">
+              @for (ind of indicators(); track ind.type) {
+                <div
+                  class="flex items-center gap-2 p-2 cursor-pointer hover:bg-gray-800 transition-colors duration-200"
+                  [ngClass]="{ 'bg-gray-800/50': ind.enabled }"
+                  (click)="toggleIndicator(ind.type, $event)"
+                >
+                  <div
+                    class="w-4 h-4 flex items-center justify-center border rounded-sm"
+                    [ngClass]="
+                      ind.enabled ? 'bg-blue-600 border-blue-600' : 'border-gray-600 bg-gray-900'
+                    "
+                  >
+                    @if (ind.enabled) {
+                      <svg
+                        class="w-3 h-3 text-white"
+                        viewBox="0 0 12 12"
+                        fill="none"
+                        xmlns="http://www.w3.org/2000/svg"
+                      >
+                        <path
+                          d="M2 6l3 3 5-5"
+                          stroke="currentColor"
+                          stroke-width="1.5"
+                          stroke-linecap="round"
+                          stroke-linejoin="round"
+                        />
+                      </svg>
+                    }
+                  </div>
+                  <span class="w-2 h-2 rounded-full" [style.background]="ind.color"></span>
+                  <span class="text-[10px] text-gray-200 jetbrains-medium">{{ ind.label }}</span>
+                </div>
+              }
+            </div>
+          </div>
+        </ng-template>
+      </p-popover>
     </div>
   </div>
 
