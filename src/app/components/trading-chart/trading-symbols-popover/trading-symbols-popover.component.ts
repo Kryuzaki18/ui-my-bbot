@@ -10,6 +10,7 @@ import {
   OnDestroy,
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { Subscription } from 'rxjs';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
 // Services
@@ -58,6 +59,8 @@ export class TradingSymbolsPopoverComponent implements OnInit, OnDestroy {
   private readonly localStorageService = inject(LocalStorageService);
   readonly utilsService = inject(UtilsService);
 
+  private wsSubscription?: Subscription;
+
   readonly exchangeSymbols = signal<ExchangeSymbolsWithVolume[]>([]);
   readonly favorites = this.localStorageService.getLocalStorageSignal<string[]>(
     STORAGE.FAV_SYMBOLS,
@@ -80,43 +83,51 @@ export class TradingSymbolsPopoverComponent implements OnInit, OnDestroy {
       .subscribe((res) => {
         this.exchangeSymbols.set(res);
       });
+  }
 
+  onShow(): void {
     this.binanceWsService.wsAllTickers();
 
-    this.binanceWsService.allTickers$
-      .pipe(takeUntilDestroyed(this.destroyRef))
-      .subscribe((tickers) => {
-        if (!tickers || tickers.length === 0) return;
+    this.wsSubscription = this.binanceWsService.allTickers$.subscribe((tickers) => {
+      if (!tickers || tickers.length === 0) return;
 
-        const tickerMap = new Map(tickers.map((t) => [t.s, t]));
+      const tickerMap = new Map(tickers.map((t) => [t.s, t]));
 
-        this.exchangeSymbols.update((current) => {
-          let hasChanges = false;
-          const updatedList = current.map((sym) => {
-            const tick = tickerMap.get(sym.symbol);
-            if (tick) {
-              const lastPrice = parseFloat(tick.c);
-              const priceChangePercent = parseFloat(tick.P);
-              const quoteVolume = parseFloat(tick.q);
+      this.exchangeSymbols.update((current) => {
+        let hasChanges = false;
+        const updatedList = current.map((sym) => {
+          const tick = tickerMap.get(sym.symbol);
+          if (tick) {
+            const lastPrice = parseFloat(tick.c);
+            const priceChangePercent = parseFloat(tick.P);
+            const quoteVolume = parseFloat(tick.q);
 
-              if (
-                sym.lastPrice !== lastPrice ||
-                sym.priceChangePercent !== priceChangePercent ||
-                sym.quoteVolume !== quoteVolume
-              ) {
-                hasChanges = true;
-                return { ...sym, lastPrice, priceChangePercent, quoteVolume };
-              }
+            if (
+              sym.lastPrice !== lastPrice ||
+              sym.priceChangePercent !== priceChangePercent ||
+              sym.quoteVolume !== quoteVolume
+            ) {
+              hasChanges = true;
+              return { ...sym, lastPrice, priceChangePercent, quoteVolume };
             }
-            return sym;
-          });
-          return hasChanges ? updatedList : current;
+          }
+          return sym;
         });
+        return hasChanges ? updatedList : current;
       });
+    });
+  }
+
+  onHide(): void {
+    if (this.wsSubscription) {
+      this.wsSubscription.unsubscribe();
+      this.wsSubscription = undefined;
+    }
+    this.binanceWsService.unsubscribeWs('allTickers');
   }
 
   ngOnDestroy(): void {
-    this.binanceWsService.unsubscribeWs('allTickers');
+    this.onHide();
   }
 
   toggleFavorite(symbol: string, event: Event): void {

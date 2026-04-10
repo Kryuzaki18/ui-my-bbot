@@ -1,4 +1,4 @@
-<p-popover #symbolsPopover>
+<p-popover #symbolsPopover (onShow)="onShow()" (onHide)="onHide()">
   <ng-template pTemplate="content">
     <div class="px-3 pb-3 pt-1 flex items-center justify-between">
       <span class="text-xs text-gray-400 jetbrains-bold">SELECT MARKET</span>
