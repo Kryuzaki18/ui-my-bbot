@@ -60,6 +60,7 @@ import { UtilsService } from '../../core/services/utils.service';
 import { IndicatorMaService } from '../../core/services/chart/indicator-ma.service';
 import { IndicatorMacdService } from '../../core/services/chart/indicator-macd.service';
 import { IndicatorBollingerService } from '../../core/services/chart/indicator-bollinger.service';
+import { IndicatorRsiService } from '../../core/services/chart/indicator-rsi.service';
 import { LocalStorageService } from '../../core/services/local-storage.service';
 import { AppSettingsService } from '../../core/services/app-settings.service';
 
@@ -100,6 +101,7 @@ export class TradingChartComponent implements OnInit, AfterViewInit, OnDestroy {
   private readonly indicatorMaService = inject(IndicatorMaService);
   private readonly indicatorMacdService = inject(IndicatorMacdService);
   private readonly indicatorBollingerService = inject(IndicatorBollingerService);
+  private readonly indicatorRsiService = inject(IndicatorRsiService);
   private readonly localStorageService = inject(LocalStorageService);
   private readonly appSettingsService = inject(AppSettingsService);
   readonly utilsService = inject(UtilsService);
@@ -118,6 +120,7 @@ export class TradingChartComponent implements OnInit, AfterViewInit, OnDestroy {
   private macdLineSeries: ISeriesApi<'Line'> | null = null;
   private macdSignalSeries: ISeriesApi<'Line'> | null = null;
   private macdHistSeries: ISeriesApi<'Histogram'> | null = null;
+  private rsiSeries: ISeriesApi<'Line'> | null = null;
 
   private readonly initCandles = signal<CandleData[]>([]);
   readonly aggTrades = signal<AggTradeWsMessage[]>([]);
@@ -145,6 +148,7 @@ export class TradingChartComponent implements OnInit, AfterViewInit, OnDestroy {
     { type: 'EMA', label: 'EMA (20)', color: '#f0a500', enabled: false },
     { type: 'BB', label: 'BB (20, 2)', color: '#a371f7', enabled: false },
     { type: 'MACD', label: 'MACD (12, 26, 9)', color: '#3fb950', enabled: true },
+    { type: 'RSI', label: 'RSI (14)', color: '#eab308', enabled: false },
   ]);
 
   readonly activeIndicatorCount = computed(() => this.indicators().filter((i) => i.enabled).length);
@@ -553,6 +557,7 @@ export class TradingChartComponent implements OnInit, AfterViewInit, OnDestroy {
     this.renderEMA(candles);
     this.renderBollinger(candles);
     this.renderMacd(candles);
+    this.renderRsi(candles);
   }
 
   private renderMA(candles: CandleData[]): void {
@@ -662,7 +667,9 @@ export class TradingChartComponent implements OnInit, AfterViewInit, OnDestroy {
         this.macdHistSeries = null;
       }
       // Restore volume series visibility
-      this.volumeSeries.applyOptions({ visible: true });
+      if (!this.isIndicatorEnabled('RSI')) {
+        this.volumeSeries.applyOptions({ visible: true });
+      }
       return;
     }
 
@@ -706,5 +713,40 @@ export class TradingChartComponent implements OnInit, AfterViewInit, OnDestroy {
     );
     this.macdLineSeries.setData(data.map((p) => ({ time: p.time as Time, value: p.macd })));
     this.macdSignalSeries.setData(data.map((p) => ({ time: p.time as Time, value: p.signal })));
+  }
+
+  private renderRsi(candles: CandleData[]): void {
+    const enabled = this.isIndicatorEnabled('RSI');
+    const color = this.getIndicatorColor('RSI');
+
+    if (!enabled) {
+      if (this.rsiSeries) {
+        this.volumeChart.removeSeries(this.rsiSeries);
+        this.rsiSeries = null;
+      }
+      // Restore volume series visibility
+      if (!this.isIndicatorEnabled('MACD')) {
+        this.volumeSeries.applyOptions({ visible: true });
+      }
+      return;
+    }
+
+    const data = this.indicatorRsiService.calculate(candles, 14);
+    if (!data.length) return;
+
+    // Hide volume bars when RSI is active
+    this.volumeSeries.applyOptions({ visible: false });
+
+    if (!this.rsiSeries) {
+      this.rsiSeries = this.volumeChart.addSeries(LineSeries, {
+        color,
+        lineWidth: 1,
+        priceLineVisible: false,
+        lastValueVisible: false,
+        crosshairMarkerVisible: false,
+      });
+    }
+
+    this.rsiSeries.setData(data.map((p) => ({ time: p.time as Time, value: p.value })));
   }
 }

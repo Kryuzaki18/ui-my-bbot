@@ -1,0 +1,140 @@
+@if (positions().length === 0) {
+  <div class="text-center text-gray-400 jetbrains-regular text-[10px] py-2 bg-green-900/5">
+    “No open positions. Awaiting trade setup.”
+  </div>
+} @else {
+  <p-table
+    [value]="positions()"
+    [scrollable]="true"
+    class="mt-2 jetbrains-light text-[10px]"
+    size="small"
+  >
+    <ng-template pTemplate="header">
+      <tr class="text-left text-gray-600">
+        <th
+          pSortableColumn="symbol"
+          pFrozenColumn
+          alignFrozen="left"
+          class="bg-gray-900 z-30 shadow-[4px_0_12px_-4px_rgba(0,0,0,0.5)]"
+        >
+          <span class="flex items-center gap-1">
+            <span>Symbol</span>
+            <p-sortIcon field="symbol"></p-sortIcon>
+          </span>
+        </th>
+        <th>Side</th>
+        <th>Size</th>
+        <th>Entry Price</th>
+        <th pSortableColumn="unRealizedProfit">
+          <span class="flex items-center gap-1">
+            <span>Unrealized PnL</span>
+            <p-sortIcon field="unRealizedProfit"></p-sortIcon>
+          </span>
+        </th>
+        <th>Liq. Price</th>
+        <th>Take Profit</th>
+        <th>Stop Loss</th>
+        <th class="w-32">Action</th>
+      </tr>
+    </ng-template>
+    <ng-template pTemplate="body" let-pos>
+      <tr class="border-b border-gray-800 hover:bg-gray-800 transition-colors">
+        <td
+          pFrozenColumn
+          alignFrozen="left"
+          class="bg-gray-900 shadow-[4px_0_12px_-4px_rgba(0,0,0,0.5)] z-20"
+        >
+          <div class="flex flex-col gap-2 text-gray-400">
+            <span>
+              <span
+                class="jetbrains-bold text-yellow-500 hover:text-yellow-200 cursor-pointer text-xs bg-yellow-200/10 px-2 py-1 rounded"
+                (click)="selectSymbol(pos.symbol)"
+              >
+                {{ pos.symbol }}
+              </span>
+            </span>
+            <span class="flex items-center gap-1">
+              <span class="jetbrains-bold text-gray-200 bg-gray-800 px-1"
+                >{{ pos.leverage || '20' }}x</span
+              >
+              <span class="uppercase text-[9px]">{{ pos.marginType || 'cross' }}</span>
+            </span>
+          </div>
+        </td>
+        <td>
+          <span
+            class="text-[9px] px-1 py-[2px] rounded uppercase tracking-wider"
+            [ngClass]="
+              pos.positionSide === 'LONG' || pos.positionAmt > 0
+                ? 'bg-green-900/30 text-green-500 border border-green-700/50'
+                : 'bg-red-900/30 text-red-500 border border-red-700/50'
+            "
+          >
+            {{ pos.positionSide === 'LONG' || pos.positionAmt > 0 ? 'Buy/Long' : 'Sell/Short' }}
+          </span>
+        </td>
+        <td
+          [ngClass]="
+            pos.positionAmt > 0 ? 'text-green-500 jetbrains-bold' : 'text-red-500 jetbrains-bold'
+          "
+        >
+          {{ pos.positionAmt | number: '1.0-4' }}
+        </td>
+        <td>{{ pos.entryPrice | number: '1.0-5' }}</td>
+        <td
+          [ngClass]="
+            pos.unRealizedProfit >= 0
+              ? 'text-green-500 jetbrains-bold'
+              : 'text-red-500 jetbrains-bold'
+          "
+        >
+          {{ pos.unRealizedProfit >= 0 ? '+' : '' }}{{ pos.unRealizedProfit | number: '1.0-4' }}
+        </td>
+        <td class="text-yellow-500 jetbrains-bold">
+          {{
+            pos.liquidationPrice && pos.liquidationPrice !== '0'
+              ? (pos.liquidationPrice | number: '1.0-5')
+              : '--'
+          }}
+        </td>
+        <td>
+          @if (pos.tpPrice) {
+            <div class="flex flex-col gap-0.5">
+              <span class="text-green-500">{{ pos.tpPrice | number: '1.0-5' }}</span>
+              <span class="text-[9px] text-green-500/80"
+                >{{ pos.tpPercentage > 0 ? '+' : ''
+                }}{{ pos.tpPercentage | number: '1.0-2' }}%</span
+              >
+            </div>
+          } @else {
+            <span class="text-gray-500">--</span>
+          }
+        </td>
+        <td>
+          @if (pos.slPrice) {
+            <div class="flex flex-col gap-0.5">
+              <span class="text-red-500">{{ pos.slPrice | number: '1.0-5' }}</span>
+              <span class="text-[9px] text-red-500/80"
+                >{{ pos.slPercentage > 0 ? '+' : ''
+                }}{{ pos.slPercentage | number: '1.0-2' }}%</span
+              >
+            </div>
+          } @else {
+            <span class="text-gray-500">--</span>
+          }
+        </td>
+        <td>
+          <p-button
+            label="Close Position"
+            (click)="closePosition(pos)"
+            size="small"
+            severity="danger"
+            [outlined]="true"
+            class="[&_.p-button]:!text-[10px] [&_.p-button]:!px-2 [&_.p-button]:!py-1"
+          >
+          </p-button>
+        </td>
+      </tr>
+    </ng-template>
+  </p-table>
+}

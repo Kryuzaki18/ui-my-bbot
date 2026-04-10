@@ -5,9 +5,6 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 // Components
 import { SigninComponent } from '../../pages/signin/signin';
 
-// Services
-import { UserService } from '../../core/services/user.service';
-
 //PrimeNG Modules
 import { ButtonModule } from 'primeng/button';
 import { AuthService } from '../../core/services/auth.service';
@@ -16,13 +13,12 @@ import { DialogService, DynamicDialogModule, DynamicDialogRef } from 'primeng/dy
 @Component({
   selector: 'app-header',
   imports: [ButtonModule, DynamicDialogModule],
-  templateUrl: './header.html',
-  styleUrl: './header.scss',
+  templateUrl: './header.component.html',
+  styleUrl: './header.component.scss',
   standalone: true,
 })
-export class Header implements OnInit {
+export class HeaderComponent implements OnInit {
   readonly authService = inject(AuthService);
-  private readonly userService = inject(UserService);
   private readonly router = inject(Router);
   private readonly dialogService = inject(DialogService);
   private readonly destroyRef = inject(DestroyRef);

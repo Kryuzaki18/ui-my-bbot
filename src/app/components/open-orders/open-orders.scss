@@ -1,6 +1,0 @@
-@use '../../styles/variables' as *;
-
-.container {
-  width: calc(100% - #{$side-trade-width});
-  height: $open-orders-height;
-}

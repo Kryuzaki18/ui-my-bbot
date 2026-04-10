@@ -1,0 +1,110 @@
+<div class="flex justify-between items-center mb-3">
+  <p-selectButton
+    [options]="orderTypeOptions"
+    [ngModel]="orderTypeFilter()"
+    (ngModelChange)="filterChange($event)"
+    [allowEmpty]="false"
+    optionLabel="label"
+    optionValue="value"
+    size="small"
+    class="[&_.p-togglebutton]:!text-xs [&_.p-togglebutton]:!px-3 [&_.p-togglebutton]:!py-1.5"
+  >
+  </p-selectButton>
+</div>
+
+@if (visibleOrders().length === 0) {
+  <div class="text-center text-gray-400 jetbrains-regular text-[10px] py-2 bg-green-900/5">
+    “No {{ orderTypeFilter() }} open orders. Awaiting execution opportunities.”
+  </div>
+} @else {
+  <p-table
+    [value]="visibleOrders()"
+    [scrollable]="true"
+    class="mt-2 jetbrains-light text-[10px]"
+    size="small"
+  >
+    <ng-template pTemplate="header">
+      <tr class="text-left text-gray-600">
+        <th
+          pSortableColumn="updateTime"
+          pFrozenColumn
+          alignFrozen="left"
+          class="bg-gray-900 z-30 border-r border-gray-800"
+        >
+          <span class="flex items-center gap-1">
+            <span>Date</span>
+            <p-sortIcon field="updateTime"> </p-sortIcon>
+          </span>
+        </th>
+        <th
+          pSortableColumn="symbol"
+          pFrozenColumn
+          alignFrozen="left"
+          class="bg-gray-900 z-30 shadow-[4px_0_12px_-4px_rgba(0,0,0,0.5)]"
+        >
+          <span class="flex items-center gap-1">
+            <span>Symbol</span>
+            <p-sortIcon field="symbol"> </p-sortIcon>
+          </span>
+        </th>
+        <th>Side</th>
+        <th>Type</th>
+        <th>Price</th>
+        <th>Amount</th>
+        <th>Filled</th>
+        <th class="w-30">Action</th>
+      </tr>
+    </ng-template>
+    <ng-template pTemplate="body" let-order>
+      <tr class="border-b border-gray-800 hover:bg-gray-800 transition-colors">
+        <td pFrozenColumn alignFrozen="left" class="bg-gray-900 border-r border-gray-800 z-20">
+          {{ order.updateTime | date: 'MMMM d h:mma' }}
+        </td>
+        <td
+          pFrozenColumn
+          alignFrozen="left"
+          class="bg-gray-900 shadow-[4px_0_12px_-4px_rgba(0,0,0,0.5)] z-20"
+        >
+          <span
+            class="jetbrains-bold text-yellow-500 hover:text-yellow-200 cursor-pointer text-xs bg-yellow-200/10 px-2 py-1 rounded"
+            (click)="selectSymbol(order.symbol)"
+          >
+            {{ order.symbol }}
+          </span>
+        </td>
+        <td>
+          <span
+            [ngClass]="{
+              'text-green-500': order.side === 'BUY',
+              'text-red-500': order.side === 'SELL',
+              'jetbrains-bold': true,
+            }"
+          >
+            {{ order.side }}
+          </span>
+        </td>
+        <td>{{ order.type }}</td>
+        <td>{{ order.price | number: '1.0-7' }}</td>
+        <td>{{ order.origQty }}</td>
+        <td>
+          @if (order.executedQty && order.executedQty > 0) {
+            {{ ((order.executedQty / order.origQty) * 100).toFixed(0) }}%
+          } @else {
+            0%
+          }
+        </td>
+        <td>
+          <p-button
+            (click)="cancelOrder(order)"
+            icon="pi pi-times"
+            [text]="true"
+            [rounded]="true"
+            [outlined]="true"
+            severity="danger"
+          >
+          </p-button>
+        </td>
+      </tr>
+    </ng-template>
+  </p-table>
+}

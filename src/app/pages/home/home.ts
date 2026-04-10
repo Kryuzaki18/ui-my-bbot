@@ -1,12 +1,12 @@
 import { Component } from '@angular/core';
 
 // Commons
-import { Header } from '../../commons/header/header';
+import { HeaderComponent } from '../../commons/header/header.component';
 import { TradingChartComponent } from '../../components/trading-chart/trading-chart';
 
 @Component({
   selector: 'app-home',
-  imports: [Header, TradingChartComponent],
+  imports: [HeaderComponent, TradingChartComponent],
   templateUrl: './home.html',
   styleUrl: './home.scss',
   standalone: true,

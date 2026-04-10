@@ -153,7 +153,7 @@ export interface OhlcDisplay {
   isUp: boolean;
 }
 
-export type IndicatorType = 'MA' | 'EMA' | 'MACD' | 'BB';
+export type IndicatorType = 'MA' | 'EMA' | 'MACD' | 'BB' | 'RSI';
 
 export interface MaPoint {
   time: number;
@@ -179,4 +179,9 @@ export interface IndicatorConfig {
   label: string;
   color: string;
   enabled: boolean;
+}
+
+export interface RsiPoint {
+  time: number;
+  value: number;
 }
