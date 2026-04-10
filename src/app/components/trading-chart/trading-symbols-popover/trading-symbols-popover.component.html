@@ -1,0 +1,105 @@
+<p-popover #symbolsPopover>
+  <ng-template pTemplate="content">
+    <p-table
+      #dtSymbols
+      [value]="exchangeSymbols()"
+      size="small"
+      class="text-xs w-[500px]"
+      [globalFilterFields]="['symbol']"
+      scrollable
+      scrollHeight="400px"
+    >
+      <ng-template #caption>
+        <p-iconfield>
+          <p-inputicon class="pi pi-search" />
+
+          <input
+            pInputText
+            type="text"
+            pSize="small"
+            class="w-full"
+            fluid
+            placeholder="Search symbol eg. BTC"
+            (input)="dtSymbols.filterGlobal($any($event.target).value, 'contains')"
+          />
+        </p-iconfield>
+      </ng-template>
+
+      <ng-template #header>
+        <tr class="sticky top-0">
+          <th pSortableColumn="symbol">
+            <span class="flex items-center gap-1 text-gray-500">
+              <span>Name</span>
+              <p-sortIcon field="symbol"> </p-sortIcon>
+            </span>
+          </th>
+          <th>
+            <span class="text-gray-500">
+              <span>Last Price</span>
+            </span>
+          </th>
+
+          <th pSortableColumn="priceChangePercent">
+            <span class="flex items-center gap-1 text-gray-500">
+              <span>24h %</span>
+              <p-sortIcon field="priceChangePercent"> </p-sortIcon>
+            </span>
+          </th>
+          <th pSortableColumn="volNumber">
+            <span class="flex items-center gap-1 text-gray-500">
+              <span>Volume</span>
+              <p-sortIcon field="volNumber"> </p-sortIcon>
+            </span>
+          </th>
+        </tr>
+      </ng-template>
+      <ng-template #body let-item let-index="rowIndex">
+        <tr>
+          <td>
+            <span
+              class="text-yellow-400 cursor-pointer hover:text-yellow-200 jetbrains-bold"
+              (click)="hide(); selectSymbol(item.symbol)"
+              >{{ item.symbol }}</span
+            >
+          </td>
+          <td
+            [ngClass]="{
+              'text-green-400': +item.priceChangePercent >= 0,
+              'text-red-400': +item.priceChangePercent < 0
+            }"
+          >
+            ${{ +item.lastPrice | number: '1.0-7' }}
+          </td>
+          <td
+            [ngClass]="{
+              'text-green-400': +item.priceChangePercent >= 0,
+              'text-red-400': +item.priceChangePercent < 0
+            }"
+          >
+            {{ +item.priceChangePercent >= 0 ? '+' : ''
+            }}{{ +item.priceChangePercent | number: '1.0-2' }}%
+          </td>
+          <td>
+            <span class="text-gray-600">
+              {{ utilsService.fmtVol(+item.quoteVolume) }}
+            </span>
+          </td>
+        </tr>
+      </ng-template>
+    </p-table>
+
+    @defer {
+      <p-scrolltop
+        target="parent"
+        [threshold]="100"
+        icon="pi pi-arrow-up"
+        [buttonProps]="{
+          severity: 'info',
+          rounded: true,
+          size: 'small',
+          text: true
+        }"
+      />
+    }
+  </ng-template>
+</p-popover>

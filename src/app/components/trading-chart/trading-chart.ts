@@ -50,7 +50,7 @@ import {
   IndicatorConfig,
   Ticker24hrData,
 } from '../../core/models/chart.model';
-import { ExchangeSymbolsWithVolume } from '../../core/models/trades.model';
+import { TradingSymbolsPopoverComponent } from './trading-symbols-popover/trading-symbols-popover.component';
 
 // Services
 import { BinanceRestService } from '../../core/services/binance-rest.service';
@@ -65,14 +65,9 @@ import { AppSettingsService } from '../../core/services/app-settings.service';
 
 // PrimeNG
 import { ButtonModule } from 'primeng/button';
-import { TableModule } from 'primeng/table';
 import { SkeletonModule } from 'primeng/skeleton';
 import { ScrollPanelModule } from 'primeng/scrollpanel';
 import { PopoverModule } from 'primeng/popover';
-import { InputTextModule } from 'primeng/inputtext';
-import { IconFieldModule } from 'primeng/iconfield';
-import { InputIconModule } from 'primeng/inputicon';
-import { ScrollTopModule } from 'primeng/scrolltop';
 import { DividerModule } from 'primeng/divider';
 
 @Component({
@@ -82,15 +77,11 @@ import { DividerModule } from 'primeng/divider';
     CommonModule,
     FormsModule,
     ButtonModule,
-    TableModule,
     SkeletonModule,
     ScrollPanelModule,
     PopoverModule,
-    InputTextModule,
-    IconFieldModule,
-    InputIconModule,
-    ScrollTopModule,
-    DividerModule
+    DividerModule,
+    TradingSymbolsPopoverComponent
   ],
   templateUrl: './trading-chart.html',
   styleUrls: ['./trading-chart.scss'],
@@ -142,7 +133,6 @@ export class TradingChartComponent implements OnInit, AfterViewInit, OnDestroy {
   readonly previousPrice = signal(0);
   readonly MAX_TRADE_HISTORY = MAX_TRADE_HISTORY;
   readonly selectedSymbol = this.chartService.selectedSymbol();
-  readonly exchangeSymbols = signal<ExchangeSymbolsWithVolume[]>([]);
 
   readonly selectedTimeframe = this.localStorageService.getLocalStorageSignal<Timeframe>(
     STORAGE.TIMEFRAME,
@@ -239,15 +229,8 @@ export class TradingChartComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   private subscribeAllRest(): void {
-    this.subscribeRestExchangeSymbols();
     this.subscribeRestTicker();
     this.subscribeRestOpenInterest();
-  }
-
-  selectSymbol(symbol: string): void {
-    this.appSettingsService.setIsCurrentPositionLoading(true);
-    this.chartService.selectedSymbol.set(symbol);
-    window.location.reload();
   }
 
   setTimeframe(tf: Timeframe): void {
@@ -542,15 +525,6 @@ export class TradingChartComponent implements OnInit, AfterViewInit, OnDestroy {
         isUp: close >= open,
       });
     });
-  }
-
-  private subscribeRestExchangeSymbols(): void {
-    this.binanceRestService
-      .getAllSymbolsWithVolume()
-      .pipe(takeUntilDestroyed(this.destroyRef))
-      .subscribe((res) => {
-        this.exchangeSymbols.set(res);
-      });
   }
 
   private subscribeRestTicker(): void {
