@@ -1,6 +1,6 @@
 import { HttpClient } from '@angular/common/http';
 import { computed, inject, Injectable, signal } from '@angular/core';
-import { catchError, Observable, of, tap } from 'rxjs';
+import { catchError, Observable, of, tap, throwError } from 'rxjs';
 
 // Environment
 import { API_ROUTES, environment } from '../../../environments/environment';
@@ -69,6 +69,12 @@ export class AuthService {
 
     return this.http
       .post<IAuth>(`${environment.apiTradingBotUrl}${API_ROUTES.auth.signOut}`, {})
-      .pipe(tap(() => this.clearSession()));
+      .pipe(
+        tap(() => this.clearSession()),
+        catchError((err) => {
+          this.clearSession();
+          return throwError(() => err);
+        })
+      );
   }
 }

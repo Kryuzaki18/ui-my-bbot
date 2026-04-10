@@ -55,7 +55,8 @@ export class Header implements OnInit {
           this.router.navigate(['/home']);
         },
         error: (err) => {
-          console.error(err);
+          console.error('[Header] Signout Error:', err);
+          this.router.navigate(['/home']);
         },
       });
   }
