@@ -6,6 +6,7 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FutureTradeService } from '../../core/services/future-trade.service';
 import { LocalStorageService } from '../../core/services/local-storage.service';
 import { UserWsService } from '../../core/services/user-ws.service';
+import { BinanceWsService } from '../../core/services/binance-ws.service';
 import { AppSettingsService } from '../../core/services/app-settings.service';
 
 // Models
@@ -29,12 +30,14 @@ import { OpenOrdersComponent } from './open-orders/open-orders.component';
 export class PositionsAndOrdersComponent implements OnInit {
   private readonly destroyRef = inject(DestroyRef);
   private readonly userWsService = inject(UserWsService);
+  private readonly binanceWsService = inject(BinanceWsService);
   private readonly localStorageService = inject(LocalStorageService);
   private readonly futureTradeService = inject(FutureTradeService);
   readonly appSettingsService = inject(AppSettingsService);
   
   readonly allOpenOrders = signal<any[]>([]);
   readonly positions = signal<any[]>([]);
+  readonly livePrices = signal<Record<string, number>>({});
 
   readonly orderTypeFilter = signal('basic');
 
@@ -75,6 +78,13 @@ export class PositionsAndOrdersComponent implements OnInit {
       const leverage = parseFloat(pos.leverage || '20');
       const sign = pos.positionSide === 'SHORT' ? -1 : 1;
 
+      // Add live PNL calculation natively bypassing static properties
+      const currentPrice = this.livePrices()[pos.symbol] || parseFloat(pos.markPrice || pos.entryPrice);
+      const positionAmt = parseFloat(pos.positionAmt);
+      const livePnl = (currentPrice - entryPrice) * positionAmt; 
+      const initialMargin = (Math.abs(positionAmt) * entryPrice) / leverage;
+      const roi = initialMargin > 0 ? (livePnl / initialMargin) * 100 : 0;
+
       let tpPercentage = null;
       let slPercentage = null;
 
@@ -87,6 +97,8 @@ export class PositionsAndOrdersComponent implements OnInit {
 
       return {
         ...pos,
+        livePnl,
+        roi,
         tpPrice: tpOrder ? tpOrder.stopPrice : null,
         tpPercentage,
         slPrice: slOrder ? slOrder.stopPrice : null,
@@ -98,6 +110,29 @@ export class PositionsAndOrdersComponent implements OnInit {
   ngOnInit(): void {
     this.fetchOrders();
     this.fetchPositions();
+
+    this.binanceWsService.wsAllTickers();
+
+    this.binanceWsService.allTickers$
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe((tickers) => {
+        const _currentP = { ...this.livePrices() };
+        let updated = false;
+
+        const activeSymbols = new Set(this.positions().map((p) => p.symbol));
+        if (activeSymbols.size === 0) return;
+
+        for (const t of tickers) {
+          if (activeSymbols.has(t.s)) {
+             _currentP[t.s] = parseFloat(t.c);
+             updated = true;
+          }
+        }
+        
+        if (updated) {
+          this.livePrices.set(_currentP);
+        }
+      });
 
     this.userWsService
       .getUserDataStream()
@@ -126,7 +161,7 @@ export class PositionsAndOrdersComponent implements OnInit {
       });
   }
 
-  fetchOrders(): void {
+  private fetchOrders(): void {
     this.appSettingsService.setIsLoadingOpenOrders(true);
 
     this.futureTradeService
@@ -136,7 +171,6 @@ export class PositionsAndOrdersComponent implements OnInit {
         next: (orders) => {
           this.allOpenOrders.set(orders);
 
-          console.log(orders);
           setTimeout(() => {
             this.appSettingsService.setIsLoadingOpenOrders(false);
           }, 1000);
@@ -214,6 +248,8 @@ export class PositionsAndOrdersComponent implements OnInit {
       }
       return updated;
     });
+
+    this.fetchPositions();
   }
 
   cancelOrder(order: any): void {
