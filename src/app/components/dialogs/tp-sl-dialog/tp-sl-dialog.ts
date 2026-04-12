@@ -32,15 +32,15 @@ import { DynamicDialogConfig, DynamicDialogRef } from 'primeng/dynamicdialog';
   styleUrl: './tp-sl-dialog.scss',
 })
 export class TpSlDialogComponent implements OnInit {
-  private utilsService = inject(UtilsService);
+  private readonly utilsService = inject(UtilsService);
   private config = inject(DynamicDialogConfig);
   private dialogRef = inject(DynamicDialogRef);
 
-  private readonly defaultPntStr = '$0.00';
-  private readonly defaultPntPercent = 50;
+  private readonly defaultPntStr: string = '$0.00';
+  private readonly defaultPntPercent: number = 50;
 
   OrderTypeEnum = OrderTypeEnum;
-  tpslData: FuturePosition | null = null;
+  tpslData!: FuturePosition;
   riskDialogSymbol = '';
   riskDialogPrice: number | null = null;
   riskDialogType: OrderTypeEnum = OrderTypeEnum.STOP_MARKET;
@@ -61,17 +61,17 @@ export class TpSlDialogComponent implements OnInit {
     this.riskDialogSide =
       this.config.data?.type === OrderTypeEnum.STOP_MARKET ? OrderSideEnum.SELL : OrderSideEnum.BUY;
 
-    const stoploss = parseFloat(this.tpslData?.stopLoss as string) || 0;
-    const takeprofit = parseFloat(this.tpslData?.takeProfit as string) || 0;
+    const stoploss = parseFloat(this.tpslData?.stopLoss?.triggerPrice as string) || 0;
+    const takeprofit = parseFloat(this.tpslData?.takeProfit?.triggerPrice as string) || 0;
 
     if (this.isOrderSell()) {
       this.riskDialogPrice = stoploss || null;
-      this.riskDialogPercent = this.tpslData?.stopLossPnlPercent || this.defaultPntPercent;
-      this.riskDialogEstimatedPnLStr = this.tpslData?.stopLossPnl || this.defaultPntStr;
+      this.riskDialogPercent = this.tpslData?.stopLoss?.pnlPercent || this.defaultPntPercent;
+      this.riskDialogEstimatedPnLStr = this.tpslData?.stopLoss?.pnl || this.defaultPntStr;
     } else {
       this.riskDialogPrice = takeprofit || null;
-      this.riskDialogPercent = this.tpslData?.takeProfitPnlPercent || this.defaultPntPercent;
-      this.riskDialogEstimatedPnLStr = this.tpslData?.takeProfitPnl || this.defaultPntStr;
+      this.riskDialogPercent = this.tpslData?.takeProfit?.pnlPercent || this.defaultPntPercent;
+      this.riskDialogEstimatedPnLStr = this.tpslData?.takeProfit?.pnl || this.defaultPntStr;
     }
 
     if (!this.riskDialogPrice) {

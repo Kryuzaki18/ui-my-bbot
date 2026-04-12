@@ -11,6 +11,7 @@ import { UserInfo } from '../../core/models/user-info.model';
 
 // PrimeNG
 import { Skeleton } from 'primeng/skeleton';
+import { DynamicDialogConfig, DynamicDialogRef } from 'primeng/dynamicdialog';
 
 @Component({
   selector: 'app-mini-info',
@@ -22,6 +23,8 @@ export class MiniInfoComponent implements OnInit {
   private destroyRef = inject(DestroyRef);
   private userWsService = inject(UserWsService);
   private userService = inject(UserService);
+  private dialogRef = inject(DynamicDialogRef, { optional: true });
+  readonly dynamicDialogConfig = inject(DynamicDialogConfig, { optional: true });
 
   userInfo = signal<UserInfo | null>(null);
 
@@ -82,5 +85,9 @@ export class MiniInfoComponent implements OnInit {
           console.error(err);
         },
       });
+  }
+
+  close(): void {
+    this.dialogRef?.close();
   }
 }

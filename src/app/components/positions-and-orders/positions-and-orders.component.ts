@@ -1,25 +1,30 @@
 import { Component, inject, OnInit, DestroyRef, signal, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { debounceTime } from 'rxjs';
 
 // Services
+import { UtilsService } from '../../core/services/utils.service';
+import { AppSettingsService } from '../../core/services/app-settings.service';
 import { FutureTradeService } from '../../core/services/future-trade.service';
 import { LocalStorageService } from '../../core/services/local-storage.service';
 import { UserWsService } from '../../core/services/user-ws.service';
 import { BinanceWsService } from '../../core/services/binance-ws.service';
-import { AppSettingsService } from '../../core/services/app-settings.service';
 
 // Models
-import { OrderTypeEnum } from '../../core/models/trades.model';
+import { OrderSideEnum, OrderTypeEnum, PositionSideEnum } from '../../core/models/trades.model';
 import { STORAGE } from '../../core/constants/binance.constant';
-
-// PrimeNG Modules
-import { ProgressBarModule } from 'primeng/progressbar';
-import { TabsModule } from 'primeng/tabs';
 
 // Components
 import { PositionsComponent } from './positions/positions.component';
 import { OpenOrdersComponent } from './open-orders/open-orders.component';
+
+// PrimeNG Modules
+import { ProgressBarModule } from 'primeng/progressbar';
+import { TabsModule } from 'primeng/tabs';
+import { ConfirmationService } from 'primeng/api';
+import { DialogService, DynamicDialogRef } from 'primeng/dynamicdialog';
+import { TpSlDialogComponent } from '../dialogs/tp-sl-dialog/tp-sl-dialog';
 
 @Component({
   selector: 'app-positions-and-orders',
@@ -29,12 +34,17 @@ import { OpenOrdersComponent } from './open-orders/open-orders.component';
 })
 export class PositionsAndOrdersComponent implements OnInit {
   private readonly destroyRef = inject(DestroyRef);
+  private readonly utilsService = inject(UtilsService);
   private readonly userWsService = inject(UserWsService);
   private readonly binanceWsService = inject(BinanceWsService);
   private readonly localStorageService = inject(LocalStorageService);
   private readonly futureTradeService = inject(FutureTradeService);
+  private readonly dialogService = inject(DialogService);
+  readonly confirmationService = inject(ConfirmationService);
   readonly appSettingsService = inject(AppSettingsService);
-  
+
+  private dialogRef: DynamicDialogRef<any> | null = null;
+
   readonly allOpenOrders = signal<any[]>([]);
   readonly positions = signal<any[]>([]);
   readonly livePrices = signal<Record<string, number>>({});
@@ -44,7 +54,9 @@ export class PositionsAndOrdersComponent implements OnInit {
   readonly basicOrders = computed(() => {
     return this.allOpenOrders().filter((o: any) => {
       const type = o.type || o.orderType || '';
-      const isConditional = [OrderTypeEnum.STOP_MARKET, OrderTypeEnum.TAKE_PROFIT_MARKET].includes(type);
+      const isConditional = [OrderTypeEnum.STOP_MARKET, OrderTypeEnum.TAKE_PROFIT_MARKET].includes(
+        type,
+      );
       return !isConditional && o.closePosition !== true;
     });
   });
@@ -60,49 +72,65 @@ export class PositionsAndOrdersComponent implements OnInit {
     return this.orderTypeFilter() === 'basic' ? this.basicOrders() : this.conditionalOrders();
   });
 
+  readonly ordersCount = computed(() => {
+    return {
+      basic: this.basicOrders().length,
+      conditional: this.conditionalOrders().length,
+    };
+  });
+
   readonly enrichedPositions = computed(() => {
     const list = this.positions();
     const condOrders = this.conditionalOrders();
 
     return list.map((pos) => {
-      const crossSide = pos.positionSide === 'LONG' || parseFloat(pos.positionAmt) > 0 ? 'SELL' : 'BUY';
-
       const tpOrder = condOrders.find(
-        (o) => o.symbol === pos.symbol && o.side === crossSide && o.type === 'TAKE_PROFIT_MARKET',
+        (o) =>
+          o.symbol.toLowerCase() === pos.symbol.toLowerCase() &&
+          o.orderType === OrderTypeEnum.TAKE_PROFIT_MARKET,
       );
       const slOrder = condOrders.find(
-        (o) => o.symbol === pos.symbol && o.side === crossSide && o.type === 'STOP_MARKET',
+        (o) =>
+          o.symbol.toLowerCase() === pos.symbol.toLowerCase() &&
+          o.orderType === OrderTypeEnum.STOP_MARKET,
       );
 
       const entryPrice = parseFloat(pos.entryPrice);
       const leverage = parseFloat(pos.leverage || '20');
-      const sign = pos.positionSide === 'SHORT' ? -1 : 1;
+      const sign = pos.positionAmt > 0 ? 1 : -1;
 
-      // Add live PNL calculation natively bypassing static properties
-      const currentPrice = this.livePrices()[pos.symbol] || parseFloat(pos.markPrice || pos.entryPrice);
+      const currentPrice =
+        this.livePrices()[pos.symbol] || parseFloat(pos.markPrice || pos.entryPrice);
       const positionAmt = parseFloat(pos.positionAmt);
-      const livePnl = (currentPrice - entryPrice) * positionAmt; 
+      const livePnl = (currentPrice - entryPrice) * positionAmt;
       const initialMargin = (Math.abs(positionAmt) * entryPrice) / leverage;
       const roi = initialMargin > 0 ? (livePnl / initialMargin) * 100 : 0;
 
-      let tpPercentage = null;
-      let slPercentage = null;
+      let takeProfitPnlPercent = null;
+      let stopLossPnlPercent = null;
 
-      if (tpOrder && entryPrice > 0 && tpOrder.stopPrice) {
-        tpPercentage = ((tpOrder.stopPrice - entryPrice) / entryPrice) * leverage * sign * 100;
+      if (tpOrder && entryPrice > 0 && tpOrder.triggerPrice) {
+        takeProfitPnlPercent =
+          ((tpOrder.triggerPrice - entryPrice) / entryPrice) * leverage * sign * 100;
       }
-      if (slOrder && entryPrice > 0 && slOrder.stopPrice) {
-        slPercentage = ((slOrder.stopPrice - entryPrice) / entryPrice) * leverage * sign * 100;
+      if (slOrder && entryPrice > 0 && slOrder.triggerPrice) {
+        stopLossPnlPercent =
+          ((slOrder.triggerPrice - entryPrice) / entryPrice) * leverage * sign * 100;
       }
 
       return {
         ...pos,
         livePnl,
         roi,
-        tpPrice: tpOrder ? tpOrder.stopPrice : null,
-        tpPercentage,
-        slPrice: slOrder ? slOrder.stopPrice : null,
-        slPercentage,
+        takeProfit: {
+          ...tpOrder,
+          pnlPercent: takeProfitPnlPercent,
+        },
+        stopLoss: {
+          ...slOrder,
+          pnlPercent: stopLossPnlPercent,
+        },
+        margin: this.utilsService.calculateMargin(pos.positionAmt, pos.markPrice, pos.leverage),
       };
     });
   });
@@ -116,7 +144,7 @@ export class PositionsAndOrdersComponent implements OnInit {
     this.binanceWsService.allTickers$
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe((tickers) => {
-        const _currentP = { ...this.livePrices() };
+        const currentPrice = { ...this.livePrices() };
         let updated = false;
 
         const activeSymbols = new Set(this.positions().map((p) => p.symbol));
@@ -124,13 +152,13 @@ export class PositionsAndOrdersComponent implements OnInit {
 
         for (const t of tickers) {
           if (activeSymbols.has(t.s)) {
-             _currentP[t.s] = parseFloat(t.c);
-             updated = true;
+            currentPrice[t.s] = parseFloat(t.c);
+            updated = true;
           }
         }
-        
+
         if (updated) {
-          this.livePrices.set(_currentP);
+          this.livePrices.set(currentPrice);
         }
       });
 
@@ -145,6 +173,36 @@ export class PositionsAndOrdersComponent implements OnInit {
         } else if (data.e === 'ACCOUNT_UPDATE') {
           this.handleAccountUpdate(data.a);
         }
+      });
+
+    this.appSettingsService.isLoadingOpenOrders$
+      .pipe(debounceTime(1200), takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: (isLoading) => {
+          if (isLoading) {
+            this.appSettingsService.setIsLoadingOpenOrders(false);
+            this.fetchOrders();
+          }
+        },
+        error: (err) => {
+          console.error(err);
+          this.appSettingsService.setIsLoadingOpenOrders(false);
+        },
+      });
+
+    this.appSettingsService.isLoadingPositions$
+      .pipe(debounceTime(1200), takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: (isLoading) => {
+          if (isLoading) {
+            this.appSettingsService.setIsLoadingPositions(false);
+            this.fetchPositions();
+          }
+        },
+        error: (err) => {
+          console.error(err);
+          this.appSettingsService.setIsLoadingPositions(false);
+        },
       });
   }
 
@@ -162,22 +220,17 @@ export class PositionsAndOrdersComponent implements OnInit {
   }
 
   private fetchOrders(): void {
-    this.appSettingsService.setIsLoadingOpenOrders(true);
-
     this.futureTradeService
       .getPendingTpSl()
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
         next: (orders) => {
-          this.allOpenOrders.set(orders);
-
           setTimeout(() => {
-            this.appSettingsService.setIsLoadingOpenOrders(false);
+            this.allOpenOrders.set(orders);
           }, 1000);
         },
         error: (err) => {
           console.error(err);
-          this.appSettingsService.setIsLoadingOpenOrders(false);
         },
       });
   }
@@ -253,47 +306,174 @@ export class PositionsAndOrdersComponent implements OnInit {
   }
 
   cancelOrder(order: any): void {
-    this.appSettingsService.setIsLoadingOpenOrders(true);
     this.futureTradeService
       .cancelOrder(order.symbol, order.orderId, order.clientOrderId)
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
         next: () => {
-          this.appSettingsService.setIsLoadingOpenOrders(false);
+          this.appSettingsService.setIsLoadingOpenOrders(true);
+          this.appSettingsService.setIsLoadingPositions(true);
         },
         error: (err) => {
-          console.error(err);
           this.appSettingsService.setIsLoadingOpenOrders(false);
+          this.appSettingsService.setIsLoadingPositions(false);
+          console.error(err);
         },
       });
   }
 
   closePosition(pos: any): void {
     const positionSideMap =
-      pos.positionSide === 'LONG'
-        ? 'SELL'
-        : pos.positionSide === 'SHORT'
-          ? 'BUY'
+      pos.positionSide === PositionSideEnum.LONG
+        ? OrderSideEnum.SELL
+        : pos.positionSide === PositionSideEnum.SHORT
+          ? OrderSideEnum.BUY
           : pos.positionAmt > 0
-            ? 'SELL'
-            : 'BUY';
+            ? OrderSideEnum.SELL
+            : OrderSideEnum.BUY;
     const body = {
       symbol: pos.symbol,
       side: positionSideMap,
-      type: 'MARKET',
+      type: OrderTypeEnum.MARKET,
       quantity: Math.abs(parseFloat(pos.positionAmt)).toString(),
       reduceOnly: true,
     };
-    this.futureTradeService
-      .closePosition(body)
-      .pipe(takeUntilDestroyed(this.destroyRef))
-      .subscribe({
-        error: (err) => console.error('Failed to close position', err),
-      });
+
+    this.confirmationService.confirm({
+      message: `Are you sure you want to close ${pos.symbol} position?`,
+      header: 'Close Position?',
+      icon: 'pi pi-info-circle',
+      rejectLabel: 'Cancel',
+      rejectButtonProps: {
+        label: 'Cancel',
+        severity: 'secondary',
+        outlined: true,
+        size: 'small',
+      },
+      acceptButtonProps: {
+        label: 'Confirm',
+        severity: 'success',
+        outlined: true,
+        size: 'small',
+      },
+      accept: () => {
+        this.futureTradeService
+          .closePosition(body)
+          .pipe(takeUntilDestroyed(this.destroyRef))
+          .subscribe({
+            next: () => {
+              this.appSettingsService.setIsLoadingOpenOrders(true);
+              this.appSettingsService.setIsLoadingPositions(true);
+            },
+            error: (err) => {
+              this.appSettingsService.setIsLoadingOpenOrders(false);
+              this.appSettingsService.setIsLoadingPositions(false);
+              console.error('Failed to close position', err);
+            },
+          });
+      },
+      reject: () => {},
+    });
   }
 
   selectSymbol(symbol: string): void {
+    const getSymbol = this.localStorageService.getLocalStorageSignal(
+      STORAGE.SYMBOL,
+      symbol.toLowerCase(),
+    );
+    if (symbol.toLowerCase() === getSymbol().toLowerCase()) {
+      return;
+    }
+
     this.localStorageService.updateLocalStorageSignal(STORAGE.SYMBOL, symbol.toLowerCase());
     window.location.reload();
+  }
+
+  removeTPSL(pos: any): void {
+  }
+
+  openTPSLDialog({ pos, isTakeProfit }: { pos: any; isTakeProfit: boolean }): void {
+    this.dialogRef = this.dialogService.open(TpSlDialogComponent, {
+      header: isTakeProfit ? 'Set Take Profit' : 'Set Stop Loss',
+      data: { ...pos, type: pos.orderType },
+      width: '500px',
+      modal: true,
+      breakpoints: {
+        '425px': '90%',
+      },
+    });
+
+    this.dialogRef?.onClose.subscribe((payload) => {
+      if (!payload) {
+        return;
+      }
+
+      if (payload.isRemove) {
+        this.futureTradeService
+          .cancelTpSl({
+            algoId: isTakeProfit ? pos?.takeProfit?.algoId : pos?.stopLoss?.algoId,
+            clientAlgoId: isTakeProfit
+              ? pos?.takeProfit?.clientAlgoId
+              : pos?.stopLoss?.clientAlgoId,
+          })
+          .pipe(takeUntilDestroyed(this.destroyRef))
+          .subscribe({
+            next: (res) => {
+              this.appSettingsService.setIsLoadingOpenOrders(true);
+              this.appSettingsService.setIsLoadingPositions(true);
+            },
+            error: (err) => {
+              this.appSettingsService.setIsLoadingOpenOrders(false);
+              this.appSettingsService.setIsLoadingPositions(false);
+              console.error(err);
+            },
+          });
+        return;
+      }
+
+      const newPayload: any = {
+        symbol: pos.symbol,
+        triggerPrice: payload.triggerPrice,
+        closePosition: true,
+      };
+
+      if (payload?.type === OrderTypeEnum.STOP_MARKET) {
+        const side = Number(pos?.positionAmt) > 0 ? OrderSideEnum.SELL : OrderSideEnum.BUY;
+        newPayload.side = side;
+
+        this.futureTradeService
+          .stopLoss(newPayload)
+          .pipe(takeUntilDestroyed(this.destroyRef))
+          .subscribe({
+            next: (res) => {
+              this.appSettingsService.setIsLoadingOpenOrders(true);
+              this.appSettingsService.setIsLoadingPositions(true);
+            },
+            error: (err) => {
+              this.appSettingsService.setIsLoadingOpenOrders(false);
+              this.appSettingsService.setIsLoadingPositions(false);
+              console.error(err);
+            },
+          });
+      } else if (payload?.type === OrderTypeEnum.TAKE_PROFIT_MARKET) {
+        const side = Number(pos?.positionAmt) > 0 ? OrderSideEnum.BUY : OrderSideEnum.SELL;
+        newPayload.side = side;
+
+        this.futureTradeService
+          .takeProfit(newPayload)
+          .pipe(takeUntilDestroyed(this.destroyRef))
+          .subscribe({
+            next: (res) => {
+              this.appSettingsService.setIsLoadingOpenOrders(true);
+              this.appSettingsService.setIsLoadingPositions(true);
+            },
+            error: (err) => {
+              this.appSettingsService.setIsLoadingOpenOrders(false);
+              this.appSettingsService.setIsLoadingPositions(false);
+              console.error(err);
+            },
+          });
+      }
+    });
   }
 }

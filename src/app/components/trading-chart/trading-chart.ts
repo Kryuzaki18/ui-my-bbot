@@ -62,7 +62,7 @@ import { IndicatorMacdService } from '../../core/services/chart/indicator-macd.s
 import { IndicatorBollingerService } from '../../core/services/chart/indicator-bollinger.service';
 import { IndicatorRsiService } from '../../core/services/chart/indicator-rsi.service';
 import { LocalStorageService } from '../../core/services/local-storage.service';
-import { AppSettingsService } from '../../core/services/app-settings.service';
+import { AuthService } from '../../core/services/auth.service';
 
 // PrimeNG
 import { ButtonModule } from 'primeng/button';
@@ -70,6 +70,7 @@ import { SkeletonModule } from 'primeng/skeleton';
 import { ScrollPanelModule } from 'primeng/scrollpanel';
 import { PopoverModule } from 'primeng/popover';
 import { DividerModule } from 'primeng/divider';
+import { Router } from '@angular/router';
 
 @Component({
   selector: 'app-trading-chart',
@@ -103,8 +104,9 @@ export class TradingChartComponent implements OnInit, AfterViewInit, OnDestroy {
   private readonly indicatorBollingerService = inject(IndicatorBollingerService);
   private readonly indicatorRsiService = inject(IndicatorRsiService);
   private readonly localStorageService = inject(LocalStorageService);
-  private readonly appSettingsService = inject(AppSettingsService);
+  private readonly router = inject(Router);
   readonly utilsService = inject(UtilsService);
+  readonly authService = inject(AuthService);
 
   private chart!: IChartApi;
   private volumeChart!: IChartApi;
@@ -148,7 +150,7 @@ export class TradingChartComponent implements OnInit, AfterViewInit, OnDestroy {
     { type: 'MA', label: 'MA (20)', color: '#58a6ff', enabled: false },
     { type: 'EMA', label: 'EMA (20)', color: '#f0a500', enabled: false },
     { type: 'BB', label: 'BB (20, 2)', color: '#a371f7', enabled: false },
-    { type: 'MACD', label: 'MACD (12, 26, 9)', color: '#3fb950', enabled: true },
+    { type: 'MACD', label: 'MACD (12, 26, 9)', color: '#3fb950', enabled: false },
     { type: 'RSI', label: 'RSI (14)', color: '#eab308', enabled: false },
   ]);
 
@@ -193,6 +195,16 @@ export class TradingChartComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   ngOnInit(): void {
+     this.authService
+      .checkAuth()
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: () => {},
+        error: (err) => {
+          this.router.navigate(['/home']);
+        },
+      });
+
     this.initAllWs();
   }
 

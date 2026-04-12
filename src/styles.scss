@@ -9,3 +9,8 @@ body {
   padding: 0;
   font-family: 'JetBrains Mono', monospace;
 }
+
+.p-popover::before,
+.p-popover::after {
+  display: none !important;
+}

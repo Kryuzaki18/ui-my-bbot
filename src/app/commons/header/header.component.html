@@ -1,10 +1,13 @@
-<header class="bg-gray-900 flex items-center justify-center sticky top-0 z-10">
-  <div class="flex items-center justify-between container">
+<header class="bg-gray-900 flex items-center justify-center sticky top-0 z-20 w-full">
+  <div
+    class="flex items-center justify-between container max-w-[1440px] w-full mx-auto px-2 md:px-0"
+  >
     <div class="pl-3 flex items-center gap-2">
       <img src="/binance_logo.svg" alt="binance" width="20px" />
-      <h1 class="text-emerald-500 text-md font-bold">Trading Bot v1</h1>
+      <h1 class="text-emerald-500 text-md font-bold">Simple Binance Bot v1</h1>
     </div>
-    <div>
+
+    <div class="hidden min-[769px]:flex items-center">
       @if (authService.isLoggedIn()) {
         <p-button
           label="Signout"
@@ -24,6 +27,19 @@
           (onClick)="signin()"
         />
       }
+    </div>
+
+    <div class="block min-[769px]:hidden">
+      <p-button
+        icon="pi pi-user"
+        [rounded]="true"
+        variant="outlined"
+        size="small"
+        (onClick)="menuProfile.toggle($event)"
+        class="mr-3"
+      ></p-button>
+
+      <p-menu #menuProfile [model]="items" [popup]="true" />
     </div>
   </div>
 </header>

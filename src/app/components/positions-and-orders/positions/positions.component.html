@@ -23,8 +23,10 @@
           </span>
         </th>
         <th>Side</th>
-        <th>Size</th>
+        <th>Margin/Size</th>
         <th>Entry Price</th>
+        <th>Mark Price</th>
+        <th>Break Even Price</th>
         <th pSortableColumn="unRealizedProfit">
           <span class="flex items-center gap-1">
             <span>Unrealized PnL</span>
@@ -61,6 +63,7 @@
             </span>
           </div>
         </td>
+
         <td>
           <span
             class="text-[9px] px-1 py-[2px] rounded uppercase tracking-wider"
@@ -73,26 +76,34 @@
             {{ pos.positionSide === 'LONG' || pos.positionAmt > 0 ? 'Buy/Long' : 'Sell/Short' }}
           </span>
         </td>
-        <td
-          [ngClass]="
-            pos.positionAmt > 0 ? 'text-green-500 jetbrains-bold' : 'text-red-500 jetbrains-bold'
-          "
-        >
-          {{ pos.positionAmt | number: '1.0-4' }}
+
+        <td>
+          <div class="flex flex-col gap-1">
+            <span class="text-green-400">{{ pos.margin | number: '1.0-2' }} USDT</span>
+            <span
+              [ngClass]="
+                pos.notional > 0 ? 'text-green-500 jetbrains-bold' : 'text-red-500 jetbrains-bold'
+              "
+              >{{ pos.notional | number: '1.0-4' }}</span
+            >
+          </div>
         </td>
-        <td>{{ pos.entryPrice | number: '1.0-5' }}</td>
+        <td>{{ pos.entryPrice | number: '1.0-7' }}</td>
+        <td>{{ pos.markPrice | number: '1.0-7' }}</td>
+        <td>{{ pos.breakEvenPrice | number: '1.0-7' }}</td>
         <td
           [ngClass]="
             pos.livePnl >= 0 ? 'text-green-500 jetbrains-bold' : 'text-red-500 jetbrains-bold'
           "
         >
           <div class="flex flex-col gap-1">
-            <span>{{ pos.livePnl >= 0 ? '+' : '' }}{{ pos.livePnl | number: '1.2-4' }} USDT</span>
+            <span>{{ pos.livePnl >= 0 ? '+' : '' }}{{ pos.livePnl | number: '1.0-2' }} USDT</span>
             <span class="text-xs"
-              >{{ pos.roi >= 0 ? '+' : '' }}{{ pos.roi | number: '1.2-2' }}%</span
+              >{{ pos.roi >= 0 ? '+' : '' }}{{ pos.roi | number: '1.0-2' }}%</span
             >
           </div>
         </td>
+
         <td class="text-yellow-500 jetbrains-bold">
           {{
             pos.liquidationPrice && pos.liquidationPrice !== '0'
@@ -100,32 +111,79 @@
               : '--'
           }}
         </td>
+
         <td>
-          @if (pos.tpPrice) {
-            <div class="flex flex-col gap-0.5">
-              <span class="text-green-500">{{ pos.tpPrice | number: '1.0-5' }}</span>
-              <span class="text-[9px] text-green-500/80"
-                >{{ pos.tpPercentage > 0 ? '+' : ''
-                }}{{ pos.tpPercentage | number: '1.0-2' }}%</span
-              >
+          @if (pos.takeProfit?.triggerPrice) {
+            <div class="flex flex-col gap-2">
+              <div class="flex">
+                <span class="text-emerald-300"
+                  >+{{ pos.takeProfit.pnlPercent | number: '1.0-2' }}% /
+                  {{ pos.takeProfit.triggerPrice | number: '1.0-7' }}</span
+                >
+              </div>
+              <div class="flex gap-1">
+                <p-button
+                  size="small"
+                  severity="secondary"
+                  variant="outlined"
+                  (click)="openTPSLDialog(pos, true)"
+                >
+                  <span class="pi pi-pencil" style="font-size: 10px"></span>
+                </p-button>
+
+                <p-button
+                  size="small"
+                  severity="secondary"
+                  variant="outlined"
+                  (click)="removeTPSL(pos)"
+                >
+                  <span class="pi pi-trash" style="font-size: 10px"></span>
+                </p-button>
+              </div>
             </div>
           } @else {
-            <span class="text-gray-500">--</span>
+            <p-button size="small" severity="secondary" variant="outlined" styleClass="mt-2">
+              <span class="pi pi-plus" style="font-size: 10px"></span>
+            </p-button>
           }
         </td>
+
         <td>
-          @if (pos.slPrice) {
-            <div class="flex flex-col gap-0.5">
-              <span class="text-red-500">{{ pos.slPrice | number: '1.0-5' }}</span>
-              <span class="text-[9px] text-red-500/80"
-                >{{ pos.slPercentage > 0 ? '+' : ''
-                }}{{ pos.slPercentage | number: '1.0-2' }}%</span
-              >
+          @if (pos.stopLoss?.triggerPrice) {
+            <div class="flex flex-col gap-2">
+              <div class="flex">
+                <span class="text-red-300"
+                  >{{ pos.stopLoss.pnlPercent | number: '1.0-2' }}% /
+                  {{ pos.stopLoss.triggerPrice | number: '1.0-7' }}</span
+                >
+              </div>
+              <div class="flex gap-1">
+                <p-button
+                  size="small"
+                  severity="secondary"
+                  variant="outlined"
+                  (click)="openTPSLDialog(pos, false)"
+                >
+                  <span class="pi pi-pencil" style="font-size: 10px"></span>
+                </p-button>
+
+                <p-button
+                  size="small"
+                  severity="secondary"
+                  variant="outlined"
+                  (click)="removeTPSL(pos)"
+                >
+                  <span class="pi pi-trash" style="font-size: 10px"></span>
+                </p-button>
+              </div>
             </div>
           } @else {
-            <span class="text-gray-500">--</span>
+            <p-button size="small" severity="secondary" variant="outlined" styleClass="mt-2">
+              <span class="pi pi-plus" style="font-size: 9px"></span>
+            </p-button>
           }
         </td>
+
         <td>
           <p-button
             label="Close Position"
@@ -133,7 +191,7 @@
             size="small"
             severity="danger"
             [outlined]="true"
-            class="[&_.p-button]:!text-[10px] [&_.p-button]:!px-2 [&_.p-button]:!py-1"
+            class="[&_.p-button]:!text-[8px] [&_.p-button]:!px-2 [&_.p-button]:!py-1 jetbrains-medium"
           >
           </p-button>
         </td>

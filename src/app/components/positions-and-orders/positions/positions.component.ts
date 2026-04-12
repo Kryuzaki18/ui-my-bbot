@@ -13,9 +13,10 @@ import { ButtonModule } from 'primeng/button';
 })
 export class PositionsComponent {
   readonly positions = input.required<any[]>();
-
   readonly onClosePosition = output<any>();
   readonly onSelectSymbol = output<string>();
+  readonly onOpenTPSLDialog = output<{ pos: any; isTakeProfit: boolean }>();
+  readonly onRemoveTPSL = output<string>();
 
   closePosition(pos: any): void {
     this.onClosePosition.emit(pos);
@@ -23,5 +24,13 @@ export class PositionsComponent {
 
   selectSymbol(symbol: string): void {
     this.onSelectSymbol.emit(symbol);
+  }
+
+  openTPSLDialog(pos: any, isTakeProfit: boolean): void {
+    this.onOpenTPSLDialog.emit({ pos, isTakeProfit });
+  }
+
+  removeTPSL(pos: any): void {
+    this.onRemoveTPSL.emit(pos);
   }
 }

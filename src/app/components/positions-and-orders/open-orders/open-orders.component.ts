@@ -1,6 +1,9 @@
-import { Component, input, output } from '@angular/core';
+import { Component, input, OnChanges, output } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+
+// Models
+import { OrderTypeEnum } from '../../../core/models/trades.model';
 
 // PrimeNG Modules
 import { TableModule } from 'primeng/table';
@@ -13,18 +16,32 @@ import { SelectButtonModule } from 'primeng/selectbutton';
   imports: [CommonModule, FormsModule, TableModule, ButtonModule, SelectButtonModule],
   templateUrl: './open-orders.component.html',
 })
-export class OpenOrdersComponent {
+export class OpenOrdersComponent implements OnChanges {
   readonly visibleOrders = input.required<any[]>();
   readonly orderTypeFilter = input.required<string>();
-
-  readonly orderTypeOptions = [
-    { label: 'Basic', value: 'basic' },
-    { label: 'Conditional', value: 'conditional' },
-  ];
+  readonly ordersCount = input.required<{ basic: number; conditional: number }>();
 
   readonly onFilterChange = output<string>();
   readonly onCancelOrder = output<any>();
   readonly onSelectSymbol = output<string>();
+
+  orderTypeOptions = [
+    { label: 'Basic', value: 'basic' },
+    { label: 'Conditional', value: 'conditional' },
+  ];
+
+  ngOnChanges(): void {
+    this.orderTypeOptions = [
+      {
+        label: `Basic (${this.ordersCount().basic})`,
+        value: 'basic',
+      },
+      {
+        label: `Conditional (${this.ordersCount().conditional})`,
+        value: 'conditional',
+      },
+    ];
+  }
 
   filterChange(value: string): void {
     this.onFilterChange.emit(value);

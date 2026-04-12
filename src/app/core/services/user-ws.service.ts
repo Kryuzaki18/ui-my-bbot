@@ -68,7 +68,7 @@ export class UserWsService {
     const socket = new WebSocket(WS_URL);
 
     socket.onopen = () => {
-      console.log(`[WS] User Data Stream Connected`);
+      // console.log(`[WS] User Data Stream Connected`);
     };
 
     socket.onmessage = (event) => {
@@ -83,14 +83,14 @@ export class UserWsService {
     };
 
     socket.onclose = () => {
-      console.log(`[WS] User Data Stream Reconnecting...`);
+      // console.log(`[WS] User Data Stream Reconnecting...`);
       setTimeout(() => {
         this.connectUserDataWebSocket();
       }, 5000);
     };
 
     socket.onerror = (err) => {
-      console.error(`[WS] User Data Stream Error`, err);
+      // console.error(`[WS] User Data Stream Error`, err);
       socket.close();
     };
 

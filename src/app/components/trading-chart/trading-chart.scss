@@ -1,25 +1,24 @@
 @use '../../styles/variables' as *;
 
 :host {
-  width: $default-width;
-  margin: auto;
+  display: block;
+  width: 100%;
 }
 
 .symbol-info-container {
-  height: $symbol-info-height;
+  min-height: $symbol-info-height;
+  height: auto;
 }
 
 .timeframe-container {
-  height: $timeframe-height;
+  min-height: $timeframe-height;
+  height: auto;
 }
 
 .volume-container {
   min-height: $volume-chart-height;
 }
 
-.trades-container {
-  width: $trades-container-width;
-}
 
 :host ::ng-deep {
   .p-scrollpanel-bar-y {

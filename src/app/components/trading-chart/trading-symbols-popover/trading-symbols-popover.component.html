@@ -1,4 +1,4 @@
-<p-popover #symbolsPopover (onShow)="onShow()" (onHide)="onHide()">
+<p-popover #symbolsPopover (onShow)="onShow()" (onHide)="hide()">
   <ng-template pTemplate="content">
     <div class="px-3 pb-3 pt-1 flex items-center justify-between">
       <span class="text-xs text-gray-400 jetbrains-bold">SELECT MARKET</span>
@@ -19,13 +19,12 @@
       </p-iconfield>
     </div>
 
-    <div class="relative w-[520px]">
+    <div class="relative" [style]="{ 'max-width': 'min(520px, 92vw)', width: 'min(520px, 92vw)' }">
       <p-table
         #dtSymbols
         [value]="tableData()"
         [loading]="tableData().length === 0"
         size="small"
-        class="text-xs w-full"
         [scrollable]="true"
         scrollHeight="450px"
         [virtualScroll]="true"
@@ -33,15 +32,16 @@
         [globalFilterFields]="['symbol']"
         sortField="isFavorite"
         [sortOrder]="-1"
+        [tableStyle]="{ 'min-width': '100%' }"
       >
         <ng-template #header>
-          <tr class="shadow-sm">
+          <tr class="shadow-sm py-3 text-sm">
             <th
               pSortableColumn="isFavorite"
               pFrozenColumn
               alignFrozen="left"
               style="width: 40px"
-              class="py-3 !bg-gray-900 !opacity-100 border-b border-gray-800 z-30"
+              class="!bg-gray-900 z-10"
             >
               <span
                 class="flex items-center justify-center text-gray-500 hover:text-gray-300 transition-colors"
@@ -49,12 +49,7 @@
                 <i class="pi pi-star"></i>
               </span>
             </th>
-            <th
-              pSortableColumn="symbol"
-              pFrozenColumn
-              alignFrozen="left"
-              class="py-3 !bg-gray-900 !opacity-100 border-b border-gray-800 z-30"
-            >
+            <th pSortableColumn="symbol" pFrozenColumn alignFrozen="left" class="!bg-gray-900 z-10">
               <span
                 class="flex items-center gap-1 text-gray-500 hover:text-gray-300 transition-colors"
               >
@@ -62,16 +57,12 @@
                 <p-sortIcon field="symbol"></p-sortIcon>
               </span>
             </th>
-            <th class="py-3 bg-gray-900 border-b border-gray-800" style="width: 100px">
+            <th class="!bg-gray-900" style="width: 100px">
               <span class="text-gray-500">
                 <span>Last Price</span>
               </span>
             </th>
-            <th
-              pSortableColumn="priceChangePercent"
-              class="py-3 bg-gray-900 border-b border-gray-800"
-              style="width: 80px"
-            >
+            <th pSortableColumn="priceChangePercent" class="!bg-gray-900" style="width: 80px">
               <span
                 class="flex items-center gap-1 text-gray-500 hover:text-gray-300 transition-colors"
               >
@@ -79,11 +70,7 @@
                 <p-sortIcon field="priceChangePercent"></p-sortIcon>
               </span>
             </th>
-            <th
-              pSortableColumn="volNumber"
-              class="py-3 bg-gray-900 border-b border-gray-800"
-              style="width: 80px"
-            >
+            <th pSortableColumn="volNumber" class="!bg-gray-900" style="width: 80px">
               <span
                 class="flex items-center gap-1 text-gray-500 hover:text-gray-300 transition-colors"
               >
@@ -102,7 +89,7 @@
             <td
               pFrozenColumn
               alignFrozen="left"
-              class="text-center !bg-gray-900 !opacity-100 group-hover:!bg-gray-800 transition-colors border-r border-gray-800"
+              class="text-center !bg-gray-900 group-hover:!bg-gray-800 transition-colors"
             >
               <span
                 class="pi p-1.5 transition-all group-hover:scale-110"
@@ -117,13 +104,12 @@
             <td
               pFrozenColumn
               alignFrozen="left"
-              class="!bg-gray-900 !opacity-100 group-hover:!bg-gray-800 transition-colors shadow-[4px_0_12px_-4px_rgba(0,0,0,0.5)] z-20"
+              class="!bg-gray-900 group-hover:!bg-gray-800 transition-colors shadow-[4px_0_12px_-4px_rgba(0,0,0,0.5)] z-10"
             >
               <div class="flex items-center gap-1.5">
-                <span
-                  class="text-gray-200 group-hover:text-yellow-400 jetbrains-bold transition-colors"
-                  >{{ item.symbol }}</span
-                >
+                <span class="text-gray-200 group-hover:text-yellow-400 transition-colors text-sm">{{
+                  item.symbol
+                }}</span>
                 <span
                   class="text-[9px] bg-yellow-900/30 border border-yellow-700/50 text-yellow-500 px-1 py-[2px] rounded uppercase tracking-wider"
                   >PERP</span
@@ -131,7 +117,7 @@
               </div>
             </td>
             <td
-              class="jetbrains-medium"
+              class="text-xs"
               [ngClass]="{
                 'text-green-500': +item.priceChangePercent >= 0,
                 'text-red-500': +item.priceChangePercent < 0,
@@ -139,9 +125,9 @@
             >
               ${{ +item.lastPrice | number: '1.0-7' }}
             </td>
-            <td>
+            <td class="text-xs">
               <div
-                class="flex items-center gap-1 jetbrains-bold"
+                class="flex items-center gap-1"
                 [ngClass]="{
                   'text-green-500': +item.priceChangePercent >= 0,
                   'text-red-500': +item.priceChangePercent < 0,
@@ -153,11 +139,9 @@
                 >
               </div>
             </td>
-            <td>
+            <td class="text-xs">
               <div class="flex justify-start">
-                <span
-                  class="text-gray-500 group-hover:text-gray-300 transition-colors jetbrains-medium"
-                >
+                <span class="text-gray-500 group-hover:text-gray-300 transition-colors">
                   {{ utilsService.fmtVol(+item.quoteVolume) }}
                 </span>
               </div>

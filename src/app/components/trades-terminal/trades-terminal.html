@@ -1,5 +1,11 @@
+@if (dynamicDialogConfig?.data?.isDialog) {
+  <button type="button" class="cursor-pointer absolute top-0 right-0 p-1" (click)="close()">
+    ❌
+  </button>
+}
+
 <form [formGroup]="tradeForm" class="flex justify-center mt-3">
-  <div class="card flex flex-col gap-2">
+  <div class="flex flex-col gap-2">
     <p-selectbutton
       [allowEmpty]="false"
       [options]="orderTypes"
@@ -13,8 +19,8 @@
       (onChange)="onOrderTypeChange()"
     />
 
-    <div class="flex flex-col gap-4">
-      <label for="leverage" class="text-xs">
+    <div class="flex flex-col gap-2">
+      <span class="text-xs">
         Leverage
         <span
           class="text-xs"
@@ -26,30 +32,38 @@
           }"
           >{{ tradeForm.get('leverage')?.value + 'x' }}</span
         >
-      </label>
-      <p-slider
-        inputId="leverage"
-        formControlName="leverage"
-        [min]="1"
-        [max]="defaultLeverage"
-        class="w-full"
-      />
+      </span>
 
-      <p-iftalabel>
-        <p-inputnumber
-          inputId="amount"
-          formControlName="amount"
-          autocomplete="off"
-          mode="currency"
-          currency="USD"
-          locale="en-US"
-          [showButtons]="true"
-          [inputSize]="22"
-          [min]="5"
+      <div class="flex items-center gap-2">
+        <p-button size="small" variant="outlined" class="w-7" (click)="updateLeverage(-1)"
+          ><span class="text-xs">-</span></p-button
+        >
+        <p-slider
+          formControlName="leverage"
+          [min]="1"
+          [max]="defaultLeverage"
+          class="w-full mx-1"
         />
-        <label for="amount">Amount</label>
-      </p-iftalabel>
+        <p-button size="small" variant="outlined" class="w-7" (click)="updateLeverage(1)"
+          ><span class="text-xs">+</span></p-button
+        >
+      </div>
     </div>
+
+    <p-iftalabel>
+      <p-inputnumber
+        inputId="amount"
+        formControlName="amount"
+        autocomplete="off"
+        mode="currency"
+        currency="USD"
+        locale="en-US"
+        [showButtons]="true"
+        [inputSize]="21"
+        [min]="5"
+      />
+      <label for="amount">Amount</label>
+    </p-iftalabel>
 
     <p-iftalabel [hidden]="tradeForm.get('orderType')?.value === orderTypeEnum.MARKET">
       <p-inputnumber
@@ -60,7 +74,7 @@
         [minFractionDigits]="0"
         [maxFractionDigits]="7"
         [showButtons]="true"
-        [inputSize]="22"
+        [inputSize]="21"
       />
 
       <label for="price">Price</label>
@@ -81,7 +95,7 @@
                 formControlName="takeProfit"
                 autocomplete="off"
                 mode="decimal"
-                [inputSize]="22"
+                [inputSize]="21"
                 [placeholder]="selectedTpType().label"
               />
               <label for="takeProfit">Take Profit</label>
@@ -112,7 +126,7 @@
                 formControlName="stopLoss"
                 autocomplete="off"
                 mode="decimal"
-                [inputSize]="22"
+                [inputSize]="21"
                 [placeholder]="selectedSlType().label"
               />
               <label for="stopLoss">Stop loss</label>
@@ -139,143 +153,21 @@
       }
     </div>
 
-    <div class="flex items-center gap-2 w-full">
+    <div class="flex items-center gap-2 w-full jetbrains-medium">
       <button
         (click)="placeOrder(orderSideEnum.BUY)"
         type="button"
-        class="w-1/2 bg-green-700 text-white cursor-pointer rounded text-xs py-2"
+        class="w-1/2 bg-green-700 text-white cursor-pointer rounded text-xs py-2 hover:bg-green-600"
       >
         Buy/Long
       </button>
       <button
         (click)="placeOrder(orderSideEnum.SELL)"
         type="button"
-        class="w-1/2 bg-red-700 text-white cursor-pointer rounded text-xs py-2"
+        class="w-1/2 bg-red-700 text-white cursor-pointer rounded text-xs py-2 hover:bg-red-600"
       >
         Sell/Short
       </button>
     </div>
-
-    @if (compFuturePos()?.margin && !(appSettingsService.isCurrentPositionLoading$ | async)) {
-      <div
-        class="flex flex-col text-sm mt-2 border-1 border-dashed border-gray-700 rounded"
-        [ngClass]="{
-          'border-red-700 bg-red-900/10': compFuturePos()?.position === PositionSideEnum.SHORT,
-          'border-green-700 bg-green-900/10': compFuturePos()?.position === PositionSideEnum.LONG,
-        }"
-      >
-        <div
-          class="text-xs text-gray-300 text-center rounded-t py-1"
-          [ngClass]="{
-            'bg-red-900/70': compFuturePos()?.position === PositionSideEnum.SHORT,
-            'bg-green-900/70': compFuturePos()?.position === PositionSideEnum.LONG,
-          }"
-        >
-          {{ compFuturePos()?.position }}
-          <span class="text-[10px]">{{ compFuturePos()?.leverage }}x</span>
-        </div>
-
-        <div
-          class="flex justify-between border-b border-gray-700 border-dashed divide-x divide-gray-700 divide-dashed"
-        >
-          <div class="flex flex-col w-1/2 justify-between text-xs p-1 gap-1">
-            <div class="flex justify-between">
-              <div class="text-gray-500">Entry:</div>
-              <div>
-                <span class="text-gray-300">
-                  {{ compFuturePos()?.entryPrice | number: '1.0-2' }}</span
-                >
-              </div>
-            </div>
-
-            <div class="flex justify-between">
-              <div class="text-gray-500">Margin:</div>
-              <div>
-                <span class="text-emerald-600">
-                  {{ compFuturePos()?.margin | currency: 'USD' : 'symbol' : '1.0-2' }}
-                </span>
-              </div>
-            </div>
-          </div>
-
-          <div class="flex w-1/2 justify-between p-1">
-            <span class="text-xs text-gray-500">PnL:</span>
-            <div
-              class="flex flex-col items-end text-xs"
-              [ngClass]="{
-                'text-red-500': getPnL(compFuturePos()).pnl.startsWith('-'),
-                'text-green-500': !getPnL(compFuturePos()).pnl.startsWith('-'),
-              }"
-            >
-              <span>{{ getPnL(compFuturePos()).pnl }}</span>
-              <span>{{ getPnL(compFuturePos()).pnlPercent + '%' }} </span>
-            </div>
-          </div>
-        </div>
-
-        <div class="flex justify-between items-center border-b border-gray-700 border-dashed px-1">
-          <span class="text-xs text-gray-500">Stop Loss:</span>
-          <div class="flex justify-between items-center gap-1">
-            @if (compFuturePos()?.stopLoss) {
-              <div class="flex flex-col items-end">
-                <span class="text-xs text-red-300">{{
-                  compFuturePos()?.stopLoss | number: '1.0-7'
-                }}</span>
-                <span class="text-[11px] text-red-400"
-                  >-{{ compFuturePos()?.stopLossPnlPercent }}% / -{{
-                    compFuturePos()?.stopLossPnl
-                  }}</span
-                >
-              </div>
-            } @else {
-              <span>-</span>
-            }
-
-            <p-button
-              icon="pi pi-pen-to-square"
-              [rounded]="true"
-              [text]="true"
-              size="small"
-              severity="danger"
-              (click)="openTPSLDialog(orderTypeEnum.STOP_MARKET)"
-            />
-          </div>
-        </div>
-
-        <div class="flex justify-between items-center border-b border-gray-700 border-dashed px-1">
-          <span class="text-xs text-gray-500">Take Profit:</span>
-          <div class="flex justify-between items-center gap-1">
-            @if (compFuturePos()?.takeProfit) {
-              <div class="flex flex-col items-end">
-                <span class="text-xs text-emerald-200">{{
-                  compFuturePos()?.takeProfit | number: '1.0-7'
-                }}</span>
-                <span class="text-[11px] text-emerald-400"
-                  >+{{ compFuturePos()?.takeProfitPnlPercent }}% / +{{
-                    compFuturePos()?.takeProfitPnl
-                  }}</span
-                >
-              </div>
-            } @else {
-              <span>-</span>
-            }
-
-            <p-button
-              icon="pi pi-pen-to-square"
-              [rounded]="true"
-              [text]="true"
-              size="small"
-              (click)="openTPSLDialog(orderTypeEnum.TAKE_PROFIT_MARKET)"
-            />
-          </div>
-        </div>
-
-        <div class="flex justify-center items-center p-2">
-          <p-button size="small" variant="outlined" severity="warn" (click)="closePosition()">
-            <span class="text-xs">Close Position</span>
-          </p-button>
-        </div>
-      </div>
-    }
   </div>
 </form>

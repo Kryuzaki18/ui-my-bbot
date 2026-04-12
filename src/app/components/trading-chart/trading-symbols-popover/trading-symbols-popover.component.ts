@@ -7,10 +7,8 @@ import {
   computed,
   ChangeDetectionStrategy,
   DestroyRef,
-  OnDestroy,
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { Subscription } from 'rxjs';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
 // Services
@@ -45,9 +43,10 @@ import { Table } from 'primeng/table';
     InputIconModule,
   ],
   templateUrl: './trading-symbols-popover.component.html',
+  styleUrls: ['./trading-symbols-popover.component.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class TradingSymbolsPopoverComponent implements OnInit, OnDestroy {
+export class TradingSymbolsPopoverComponent implements OnInit {
   @ViewChild('symbolsPopover') popover!: Popover;
   @ViewChild('dtSymbols', { static: false }) dtSymbols?: Table;
 
@@ -58,8 +57,6 @@ export class TradingSymbolsPopoverComponent implements OnInit, OnDestroy {
   private readonly appSettingsService = inject(AppSettingsService);
   private readonly localStorageService = inject(LocalStorageService);
   readonly utilsService = inject(UtilsService);
-
-  private wsSubscription?: Subscription;
 
   readonly exchangeSymbols = signal<ExchangeSymbolsWithVolume[]>([]);
   readonly favorites = this.localStorageService.getLocalStorageSignal<string[]>(
@@ -88,46 +85,36 @@ export class TradingSymbolsPopoverComponent implements OnInit, OnDestroy {
   onShow(): void {
     this.binanceWsService.wsAllTickers();
 
-    this.wsSubscription = this.binanceWsService.allTickers$.subscribe((tickers) => {
-      if (!tickers || tickers.length === 0) return;
+    this.binanceWsService.allTickers$
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe((tickers) => {
+        if (!tickers || tickers.length === 0) return;
 
-      const tickerMap = new Map(tickers.map((t) => [t.s, t]));
+        const tickerMap = new Map(tickers.map((t) => [t.s, t]));
 
-      this.exchangeSymbols.update((current) => {
-        let hasChanges = false;
-        const updatedList = current.map((sym) => {
-          const tick = tickerMap.get(sym.symbol);
-          if (tick) {
-            const lastPrice = parseFloat(tick.c);
-            const priceChangePercent = parseFloat(tick.P);
-            const quoteVolume = parseFloat(tick.q);
+        this.exchangeSymbols.update((current) => {
+          let hasChanges = false;
+          const updatedList = current.map((sym) => {
+            const tick = tickerMap.get(sym.symbol);
+            if (tick) {
+              const lastPrice = parseFloat(tick.c);
+              const priceChangePercent = parseFloat(tick.P);
+              const quoteVolume = parseFloat(tick.q);
 
-            if (
-              sym.lastPrice !== lastPrice ||
-              sym.priceChangePercent !== priceChangePercent ||
-              sym.quoteVolume !== quoteVolume
-            ) {
-              hasChanges = true;
-              return { ...sym, lastPrice, priceChangePercent, quoteVolume };
+              if (
+                sym.lastPrice !== lastPrice ||
+                sym.priceChangePercent !== priceChangePercent ||
+                sym.quoteVolume !== quoteVolume
+              ) {
+                hasChanges = true;
+                return { ...sym, lastPrice, priceChangePercent, quoteVolume };
+              }
             }
-          }
-          return sym;
+            return sym;
+          });
+          return hasChanges ? updatedList : current;
         });
-        return hasChanges ? updatedList : current;
       });
-    });
-  }
-
-  onHide(): void {
-    if (this.wsSubscription) {
-      this.wsSubscription.unsubscribe();
-      this.wsSubscription = undefined;
-    }
-    this.binanceWsService.unsubscribeWs('allTickers');
-  }
-
-  ngOnDestroy(): void {
-    this.onHide();
   }
 
   toggleFavorite(symbol: string, event: Event): void {
@@ -151,7 +138,13 @@ export class TradingSymbolsPopoverComponent implements OnInit, OnDestroy {
   }
 
   selectSymbol(symbol: string): void {
-    this.appSettingsService.setIsCurrentPositionLoading(true);
+    const getSymbol = this.localStorageService.getLocalStorageSignal(
+      STORAGE.SYMBOL,
+      symbol.toLowerCase(),
+    );
+    if (symbol.toLowerCase() === getSymbol().toLowerCase()) {
+      return;
+    }
     this.chartService.selectedSymbol.set(symbol);
     window.location.reload();
   }

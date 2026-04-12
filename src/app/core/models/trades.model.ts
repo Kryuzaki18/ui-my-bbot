@@ -32,12 +32,16 @@ export interface FuturePosition {
   position?: PositionSideEnum;
   pnl?: number;
   pnlPercent?: number;
-  stopLoss?: string;
-  stopLossPnl?: string;
-  stopLossPnlPercent?: number;
-  takeProfit?: string;
-  takeProfitPnl?: string;
-  takeProfitPnlPercent?: number;
+  stopLoss?: {
+    triggerPrice: string;
+    pnl?: string;
+    pnlPercent?: number;
+  };
+  takeProfit?: {
+    triggerPrice: string;
+    pnl?: string;
+    pnlPercent?: number;
+  };
 }
 
 export interface OpenOrder {

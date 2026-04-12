@@ -5,17 +5,6 @@ $chart-height: calc(
     #{$symbol-info-height} - #{$open-orders-height} - #{$volume-maximize-height}
 );
 
-main {
-  .container {
-    max-width: $default-width;
-  }
-}
-
-.side-trade-container {
-  width: $side-trade-width;
-  height: calc(100% - #{$header-height});
-}
-
 :host ::ng-deep app-trading-chart .chart-wrapper {
   height: calc(#{$chart-height} + #{$volume-chart-height});
 }

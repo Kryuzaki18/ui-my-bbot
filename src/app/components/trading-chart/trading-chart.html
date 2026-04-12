@@ -1,325 +1,333 @@
-<div class="border-x border-gray-900">
-  <div class="symbol-info-container flex items-center gap-2 px-2">
-    <div class="flex flex-col">
-      <div class="text-lg font-bold">
-        {{ selectedSymbol.toUpperCase() }}
-        <span class="text-xs bg-yellow-800 text-yellow-300 px-1 rounded">PERP</span>
-      </div>
+<div
+  class="symbol-info-container flex items-center gap-2 px-2 overflow-x-auto flex-nowrap whitespace-nowrap py-1"
+>
+  <div class="flex flex-col">
+    <div class="text-lg font-bold">
+      {{ selectedSymbol.toUpperCase() }}
+      <span class="text-xs bg-yellow-800 text-yellow-300 px-1 rounded">PERP</span>
+    </div>
+    <div
+      class="jetbrains-bold"
+      [ngClass]="{
+        'text-green-500': previousPrice() < currentPrice(),
+        'text-red-700': previousPrice() > currentPrice(),
+      }"
+    >
+      {{ ticker24hr() ? '$' + (ticker24hr()!.lastPrice | number: '1.0-7') : '—' }}
+    </div>
+    @if (ticker24hr(); as t) {
       <div
-        class="jetbrains-bold"
+        class="text-[10px] jetbrains-medium flex gap-1"
         [ngClass]="{
-          'text-green-500': previousPrice() < currentPrice(),
-          'text-red-700': previousPrice() > currentPrice(),
+          'text-green-500': t.priceChangePercent >= 0,
+          'text-red-700': t.priceChangePercent < 0,
         }"
       >
-        {{ ticker24hr() ? '$' + (ticker24hr()!.lastPrice | number: '1.0-7') : '—' }}
-      </div>
-      @if (ticker24hr(); as t) {
-        <div
-          class="text-[10px] jetbrains-medium flex gap-1"
-          [ngClass]="{
-            'text-green-500': t.priceChangePercent >= 0,
-            'text-red-700': t.priceChangePercent < 0,
-          }"
+        <span>{{ t.priceChange | number: '1.0-2' }}</span>
+        <span
+          >{{ t.priceChangePercent >= 0 ? '+' : ''
+          }}{{ t.priceChangePercent | number: '1.0-2' }}%</span
         >
-          <span>{{ t.priceChange | number: '1.0-2' }}</span>
-          <span
-            >{{ t.priceChangePercent >= 0 ? '+' : ''
-            }}{{ t.priceChangePercent | number: '1.0-2' }}%</span
-          >
-        </div>
-      }
-    </div>
-
-    <div>
-      <span
-        class="pi pi-caret-down cursor-pointer text-yellow-400 p-2"
-        style="font-size: 0.8rem"
-        (click)="symbolsPopover.toggle($event)"
-      ></span>
-      <app-trading-symbols-popover #symbolsPopover />
-    </div>
-
-    <div class="flex items-center divide-x-1 divide-gray-600 divide-dashed">
-      <div class="flex flex-col px-2">
-        <span class="text-[10px] text-gray-500">Mark Price</span>
-        <span class="text-xs jetbrains-medium">
-          @if (!markPriceData()) {
-            <p-skeleton width="65px"></p-skeleton>
-          } @else {
-            ${{ markPriceData()!.markPrice | number: '1.0-7' }}
-          }
-        </span>
       </div>
-
-      <div class="flex flex-col px-2">
-        <span class="text-[10px] text-gray-500">Index Price</span>
-        <span class="text-xs jetbrains-medium">
-          @if (!markPriceData()) {
-            <p-skeleton width="65px"></p-skeleton>
-          } @else {
-            ${{ markPriceData()!.indexPrice | number: '1.0-7' }}
-          }
-        </span>
-      </div>
-
-      <div class="flex flex-col px-2">
-        <span class="text-[10px] text-gray-500">Funding (8h) / Countdown</span>
-
-        <span class="text-xs jetbrains-medium flex gap-1">
-          @if (!markPriceData()) {
-            <p-skeleton width="145px"></p-skeleton>
-          } @else {
-            <span
-              [ngClass]="{
-                'text-green-500': markPriceData()!.lastFundingRate >= 0,
-                'text-red-700': markPriceData()!.lastFundingRate < 0,
-              }"
-              >{{ markPriceData()!.lastFundingRate * 100 | number: '1.0-5' }}</span
-            ><span class="text-gray-400">/</span
-            ><span class="text-orange-400">{{ countdownFundingFee() }}</span>
-          }
-        </span>
-      </div>
-
-      <div class="flex flex-col px-2">
-        <span class="text-[10px] text-gray-500">24h High</span>
-        <span class="text-xs text-green-600 jetbrains-medium">
-          @if (!ticker24hr()) {
-            <p-skeleton width="65px"></p-skeleton>
-          } @else {
-            ${{ ticker24hr()!.highPrice | number: '1.0-7' }}
-          }
-        </span>
-      </div>
-
-      <div class="flex flex-col px-2">
-        <span class="text-[10px] text-gray-500">24h Low</span>
-        <span class="text-xs text-red-600 jetbrains-medium">
-          @if (!ticker24hr()) {
-            <p-skeleton width="65px"></p-skeleton>
-          } @else {
-            ${{ ticker24hr()!.lowPrice | number: '1.0-7' }}
-          }
-        </span>
-      </div>
-
-      <div class="flex flex-col px-2">
-        <span class="text-[10px] text-gray-500">24h Vol</span>
-        <span class="text-xs jetbrains-medium text-gray-400">
-          @if (!ticker24hr()) {
-            <p-skeleton width="130px"></p-skeleton>
-          } @else {
-            ${{ ticker24hr()!.volume | number: '1.0-7' }}
-          }
-        </span>
-      </div>
-
-      <div class="flex flex-col px-2">
-        <span class="text-[10px] text-gray-500">24h Vol(USDT)</span>
-        <span class="text-xs jetbrains-medium text-gray-400">
-          @if (!ticker24hr()) {
-            <p-skeleton width="130px"></p-skeleton>
-          } @else {
-            ${{ ticker24hr()!.quoteVolume | number: '1.0-7' }}
-          }
-        </span>
-      </div>
-
-      <div class="flex flex-col px-2">
-        <span class="text-[10px] text-gray-500">Open Interest</span>
-        <span class="text-xs jetbrains-medium text-gray-400">
-          @if (!openInterest()) {
-            <p-skeleton width="100px"></p-skeleton>
-          } @else {
-            ${{ openInterest() | number: '1.0-7' }}
-          }
-        </span>
-      </div>
-    </div>
+    }
   </div>
 
-  <div class="timeframe-container flex items-center border-y border-gray-800">
-    <div class="border-r border-gray-800 px-1">
-      @for (tf of timeframes; track tf) {
-        <p-button
-          size="small"
-          variant="text"
-          [severity]="selectedTimeframe() === tf ? 'primary' : 'secondary'"
-          (click)="setTimeframe(tf)"
-        >
-          <span class="text-xs">{{ tf }}</span>
-        </p-button>
-      }
+  <div>
+    <span
+      class="pi pi-caret-down cursor-pointer text-yellow-400 p-2"
+      style="font-size: 0.8rem"
+      (click)="symbolsPopover.toggle($event)"
+    ></span>
+    <app-trading-symbols-popover #symbolsPopover />
+  </div>
+
+  <div class="flex items-center divide-x-1 divide-gray-600 divide-dashed">
+    <div class="flex flex-col px-2">
+      <span class="text-[10px] text-gray-500">Mark Price</span>
+      <span class="text-xs jetbrains-medium">
+        @if (!markPriceData()) {
+          <p-skeleton width="65px"></p-skeleton>
+        } @else {
+          ${{ markPriceData()!.markPrice | number: '1.0-7' }}
+        }
+      </span>
     </div>
 
-    <div class="ml-3">
+    <div class="flex flex-col px-2">
+      <span class="text-[10px] text-gray-500">Index Price</span>
+      <span class="text-xs jetbrains-medium">
+        @if (!markPriceData()) {
+          <p-skeleton width="65px"></p-skeleton>
+        } @else {
+          ${{ markPriceData()!.indexPrice | number: '1.0-7' }}
+        }
+      </span>
+    </div>
+
+    <div class="flex flex-col px-2">
+      <span class="text-[10px] text-gray-500">Funding (8h) / Countdown</span>
+
+      <span class="text-xs jetbrains-medium flex gap-1">
+        @if (!markPriceData()) {
+          <p-skeleton width="145px"></p-skeleton>
+        } @else {
+          <span
+            [ngClass]="{
+              'text-green-500': markPriceData()!.lastFundingRate >= 0,
+              'text-red-700': markPriceData()!.lastFundingRate < 0,
+            }"
+            >{{ markPriceData()!.lastFundingRate * 100 | number: '1.0-5' }}</span
+          ><span class="text-gray-400">/</span
+          ><span class="text-orange-400">{{ countdownFundingFee() }}</span>
+        }
+      </span>
+    </div>
+
+    <div class="flex flex-col px-2">
+      <span class="text-[10px] text-gray-500">24h High</span>
+      <span class="text-xs text-green-600 jetbrains-medium">
+        @if (!ticker24hr()) {
+          <p-skeleton width="65px"></p-skeleton>
+        } @else {
+          ${{ ticker24hr()!.highPrice | number: '1.0-7' }}
+        }
+      </span>
+    </div>
+
+    <div class="flex flex-col px-2">
+      <span class="text-[10px] text-gray-500">24h Low</span>
+      <span class="text-xs text-red-600 jetbrains-medium">
+        @if (!ticker24hr()) {
+          <p-skeleton width="65px"></p-skeleton>
+        } @else {
+          ${{ ticker24hr()!.lowPrice | number: '1.0-7' }}
+        }
+      </span>
+    </div>
+
+    <div class="flex flex-col px-2">
+      <span class="text-[10px] text-gray-500">24h Vol</span>
+      <span class="text-xs jetbrains-medium text-gray-400">
+        @if (!ticker24hr()) {
+          <p-skeleton width="130px"></p-skeleton>
+        } @else {
+          ${{ ticker24hr()!.volume | number: '1.0-7' }}
+        }
+      </span>
+    </div>
+
+    <div class="flex flex-col px-2">
+      <span class="text-[10px] text-gray-500">24h Vol(USDT)</span>
+      <span class="text-xs jetbrains-medium text-gray-400">
+        @if (!ticker24hr()) {
+          <p-skeleton width="130px"></p-skeleton>
+        } @else {
+          ${{ ticker24hr()!.quoteVolume | number: '1.0-7' }}
+        }
+      </span>
+    </div>
+
+    <div class="flex flex-col px-2">
+      <span class="text-[10px] text-gray-500">Open Interest</span>
+      <span class="text-xs jetbrains-medium text-gray-400">
+        @if (!openInterest()) {
+          <p-skeleton width="100px"></p-skeleton>
+        } @else {
+          ${{ openInterest() | number: '1.0-7' }}
+        }
+      </span>
+    </div>
+  </div>
+</div>
+
+<div
+  class="timeframe-container flex items-center border-y border-gray-800 overflow-x-auto flex-nowrap whitespace-nowrap py-1"
+>
+  <div class="border-r border-gray-800 px-1">
+    @for (tf of timeframes; track tf) {
       <p-button
         size="small"
-        variant="outlined"
-        severity="secondary"
-        styleClass="w-38"
-        (click)="indicatorsPopover.toggle($event)"
+        variant="text"
+        [severity]="selectedTimeframe() === tf ? 'primary' : 'secondary'"
+        (click)="setTimeframe(tf)"
       >
-        <div class="flex items-center justify-between gap-2 w-full">
-          <div class="flex items-center">
-            <span class="pi pi-chart-line" style="font-size: 0.6rem"></span>
-            <span class="text-xs ml-3 mr-1">Indicators</span>
-            @if (activeIndicatorCount() > 0) {
-              <div class="bg-blue-600 text-white text-[9px] h-3 w-3 rounded">
-                {{ activeIndicatorCount() }}
-              </div>
-            }
-          </div>
-
-          <span class="pi pi-chevron-down" style="font-size: 0.6rem"></span>
-        </div>
+        <span class="text-xs">{{ tf }}</span>
       </p-button>
-
-      <p-popover #indicatorsPopover>
-        <ng-template pTemplate="content">
-          <div class="flex flex-col min-w-[200px]">
-            <div
-              class="px-3 py-2 border-b border-gray-800 text-xs text-gray-400 jetbrains-medium bg-gray-900 rounded-t"
-            >
-              Technical Indicators
-            </div>
-            <div class="flex flex-col py-1">
-              @for (ind of indicators(); track ind.type) {
-                <div
-                  class="flex items-center gap-2 p-2 cursor-pointer hover:bg-gray-800 transition-colors duration-200"
-                  [ngClass]="{ 'bg-gray-800/50': ind.enabled }"
-                  (click)="toggleIndicator(ind.type, $event)"
-                >
-                  <div
-                    class="w-4 h-4 flex items-center justify-center border rounded-sm"
-                    [ngClass]="
-                      ind.enabled ? 'bg-blue-600 border-blue-600' : 'border-gray-600 bg-gray-900'
-                    "
-                  >
-                    @if (ind.enabled) {
-                      <svg
-                        class="w-3 h-3 text-white"
-                        viewBox="0 0 12 12"
-                        fill="none"
-                        xmlns="http://www.w3.org/2000/svg"
-                      >
-                        <path
-                          d="M2 6l3 3 5-5"
-                          stroke="currentColor"
-                          stroke-width="1.5"
-                          stroke-linecap="round"
-                          stroke-linejoin="round"
-                        />
-                      </svg>
-                    }
-                  </div>
-                  <span class="w-2 h-2 rounded-full" [style.background]="ind.color"></span>
-                  <span class="text-[10px] text-gray-200 jetbrains-medium">{{ ind.label }}</span>
-                </div>
-              }
-            </div>
-          </div>
-        </ng-template>
-      </p-popover>
-    </div>
+    }
   </div>
 
-  <div class="flex flex-col relative">
-    <div
-      class="flex items-center gap-2 absolute left-0 top-0 ml-2 mt-2 z-10 border-1 border-gray-700 rounded"
+  <div class="mx-3">
+    <p-button
+      size="small"
+      variant="outlined"
+      severity="secondary"
+      styleClass="w-38"
+      (click)="indicatorsPopover.toggle($event)"
     >
-      <div class="flex items-center px-2">
-        <span class="ws-dot" [class.ws-dot--live]="wsStatus() === 'live'"></span>
-        <span class="text-sm text-blue-400">{{ wsStatusLabel() }}</span>
-      </div>
-      @if (ohlc(); as o) {
-        <div class="flex gap-2 text-xs px-2 jetbrains-light">
-          <div class="flex items-center gap-1">
-            <span class="text-gray-400">O</span><span>{{ o.o }}</span>
-          </div>
-          <div class="flex items-center gap-1">
-            <span class="text-gray-400">H</span><span class="text-green-400">{{ o.h }}</span>
-          </div>
-          <div class="flex items-center gap-1">
-            <span class="text-gray-400">L</span><span class="text-red-400">{{ o.l }}</span>
-          </div>
-          <div class="flex items-center gap-1">
-            <span class="text-gray-400">C</span>
-            <span
-              [ngClass]="{
-                'text-green-400': o.isUp,
-                'text-red-400': !o.isUp,
-              }"
-            >
-              {{ o.c }}
-            </span>
-          </div>
-          <div class="flex items-center gap-1">
-            <span class="text-gray-400">V</span><span>{{ o.v }}</span>
-          </div>
+      <div class="flex items-center justify-between gap-2 w-full">
+        <div class="flex items-center">
+          <span class="pi pi-chart-line" style="font-size: 0.6rem"></span>
+          <span class="text-xs ml-3 mr-1">Indicators</span>
+          @if (activeIndicatorCount() > 0) {
+            <div class="bg-blue-600 text-white text-[9px] h-3 w-3 rounded">
+              {{ activeIndicatorCount() }}
+            </div>
+          }
         </div>
-      }
-    </div>
 
-    <div class="flex">
-      <div class="flex flex-col flex-auto chart-wrapper overflow-hidden">
-        <div #chartContainer class="chart-container flex-auto min-h-0 w-full"></div>
+        <span class="pi pi-chevron-down" style="font-size: 0.6rem"></span>
+      </div>
+    </p-button>
 
-        <div
-          class="h-1 w-full bg-gray-800 cursor-row-resize hover:bg-gray-500 transition-colors z-50 flex-none select-none relative"
-          (mousedown)="startResize($event)"
-        >
+    <p-popover #indicatorsPopover>
+      <ng-template pTemplate="content">
+        <div class="flex flex-col min-w-[200px]">
           <div
-            class="absolute inset-x-0 top-1/2 -translate-y-1/2 flex justify-center pointer-events-none"
+            class="px-3 py-2 border-b border-gray-800 text-xs text-gray-400 jetbrains-medium bg-gray-900 rounded-t"
           >
-            <div class="w-8 h-[2px] bg-gray-600 rounded"></div>
+            Technical Indicators
           </div>
-        </div>
-
-        <div
-          class="relative volume-container flex-none w-full border-t border-gray-900"
-          [style.height.px]="volumeHeight()"
-        >
-          <div #volumeContainer class="w-full h-full"></div>
-        </div>
-      </div>
-
-      <div class="trades-container border-x border-gray-700">
-        <div class="text-center bg-gray-900 mb-1">
-          <span class="text-xs jetbrains-bold text-gray-300">Recent Trades</span>
-        </div>
-
-        <div class="flex text-[10px] jetbrains-medium justify-end text-gray-500 px-1">
-          <span class="flex-auto">Price</span>
-          <span class="w-[50px] text-right">Amount</span>
-          <span class="w-[60px] text-right">Time</span>
-        </div>
-
-        <p-scrollpanel class="trades-scroll-panel">
-          @if (isLoadingMaxRecentTrades()) {
-            @for (aggTrade of aggTrades(); track $index) {
+          <div class="flex flex-col py-1">
+            @for (ind of indicators(); track ind.type) {
               <div
-                class="flex jetbrains-medium justify-end py-1 border-t border-gray-900 px-1"
-                [ngClass]="{
-                  'text-green-400': aggTrade.m,
-                  'text-red-400': !aggTrade.m,
-                }"
+                class="flex items-center gap-2 p-2 cursor-pointer hover:bg-gray-800 transition-colors duration-200"
+                [ngClass]="{ 'bg-gray-800/50': ind.enabled }"
+                (click)="toggleIndicator(ind.type, $event)"
               >
-                <span class="flex-auto text-[10px]">${{ +aggTrade.p | number: '1.0-7' }}</span>
-                <span class="w-[50px] text-[10px] text-right">{{
-                  utilsService.fmtVol(+aggTrade.q * +aggTrade.p)
-                }}</span>
-                <span class="w-[60px] text-[9px] text-gray-600 text-right">{{
-                  aggTrade.T | date: 'h:mm:ss' | lowercase
-                }}</span>
+                <div
+                  class="w-4 h-4 flex items-center justify-center border rounded-sm"
+                  [ngClass]="
+                    ind.enabled ? 'bg-blue-600 border-blue-600' : 'border-gray-600 bg-gray-900'
+                  "
+                >
+                  @if (ind.enabled) {
+                    <svg
+                      class="w-3 h-3 text-white"
+                      viewBox="0 0 12 12"
+                      fill="none"
+                      xmlns="http://www.w3.org/2000/svg"
+                    >
+                      <path
+                        d="M2 6l3 3 5-5"
+                        stroke="currentColor"
+                        stroke-width="1.5"
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                      />
+                    </svg>
+                  }
+                </div>
+                <span class="w-2 h-2 rounded-full" [style.background]="ind.color"></span>
+                <span class="text-[10px] text-gray-200 jetbrains-medium">{{ ind.label }}</span>
               </div>
             }
-          } @else {
-            <p-skeleton width="100%" height="100%" borderRadius="0"></p-skeleton>
-          }
-        </p-scrollpanel>
+          </div>
+        </div>
+      </ng-template>
+    </p-popover>
+  </div>
+</div>
+
+<div class="flex flex-col relative">
+  <div
+    class="flex items-center gap-2 absolute left-0 top-0 ml-2 mt-2 z-10 border-1 border-gray-700 rounded"
+  >
+    <div class="flex items-center px-2">
+      <span class="ws-dot" [class.ws-dot--live]="wsStatus() === 'live'"></span>
+      <span class="text-sm text-blue-400">{{ wsStatusLabel() }}</span>
+    </div>
+    @if (ohlc(); as o) {
+      <div class="flex gap-2 text-xs px-2 jetbrains-light hidden min-[769px]:flex">
+        <div class="flex items-center gap-1">
+          <span class="text-gray-400">O</span><span>{{ o.o }}</span>
+        </div>
+        <div class="flex items-center gap-1">
+          <span class="text-gray-400">H</span><span class="text-green-400">{{ o.h }}</span>
+        </div>
+        <div class="flex items-center gap-1">
+          <span class="text-gray-400">L</span><span class="text-red-400">{{ o.l }}</span>
+        </div>
+        <div class="flex items-center gap-1">
+          <span class="text-gray-400">C</span>
+          <span
+            [ngClass]="{
+              'text-green-400': o.isUp,
+              'text-red-400': !o.isUp,
+            }"
+          >
+            {{ o.c }}
+          </span>
+        </div>
+        <div class="flex items-center gap-1">
+          <span class="text-gray-400">V</span><span>{{ o.v }}</span>
+        </div>
       </div>
+    }
+  </div>
+
+  <div class="flex h-full min-h-[400px]">
+    <div class="flex flex-col flex-auto chart-wrapper overflow-hidden min-w-[200px]">
+      <div #chartContainer class="chart-container flex-auto min-h-0 w-full"></div>
+
+      <div
+        class="h-1 w-full bg-gray-800 cursor-row-resize hover:bg-gray-500 transition-colors z-50 flex-none select-none relative"
+        (mousedown)="startResize($event)"
+      >
+        <div
+          class="absolute inset-x-0 top-1/2 -translate-y-1/2 flex justify-center pointer-events-none"
+        >
+          <div class="w-8 h-[2px] bg-gray-600 rounded"></div>
+        </div>
+      </div>
+
+      <div
+        class="relative volume-container flex-none w-full border-t border-gray-900"
+        [style.height.px]="volumeHeight()"
+      >
+        <div #volumeContainer class="w-full h-full"></div>
+      </div>
+    </div>
+
+    <div class="hidden min-[769px]:flex flex-col w-[280px] flex-none">
+      @if (authService.isLoggedIn()) {
+        <ng-content></ng-content>
+      } @else {
+        <div class="trades-container w-full h-full flex flex-col">
+          <div class="text-center bg-gray-900 mb-1">
+            <span class="text-xs jetbrains-bold text-gray-300">Recent Trades</span>
+          </div>
+
+          <div class="flex text-[10px] jetbrains-medium justify-end text-gray-500 px-1">
+            <span class="flex-auto">Price</span>
+            <span class="w-[50px] text-right">Amount</span>
+            <span class="w-[60px] text-right">Time</span>
+          </div>
+
+          <p-scrollpanel class="trades-scroll-panel flex-auto">
+            @if (isLoadingMaxRecentTrades()) {
+              @for (aggTrade of aggTrades(); track $index) {
+                <div
+                  class="flex jetbrains-medium justify-end py-1 border-t border-gray-900 px-1"
+                  [ngClass]="{
+                    'text-green-400': aggTrade.m,
+                    'text-red-400': !aggTrade.m,
+                  }"
+                >
+                  <span class="flex-auto text-[10px]">${{ +aggTrade.p | number: '1.0-7' }}</span>
+                  <span class="w-[50px] text-[10px] text-right">{{
+                    utilsService.fmtVol(+aggTrade.q * +aggTrade.p)
+                  }}</span>
+                  <span class="w-[60px] text-[9px] text-gray-600 text-right">{{
+                    aggTrade.T | date: 'h:mm:ss' | lowercase
+                  }}</span>
+                </div>
+              }
+            } @else {
+              <p-skeleton width="100%" height="100%" borderRadius="0"></p-skeleton>
+            }
+          </p-scrollpanel>
+        </div>
+      }
     </div>
   </div>
 </div>

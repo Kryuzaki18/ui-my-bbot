@@ -1,14 +1,5 @@
-import {
-  Component,
-  computed,
-  inject,
-  OnInit,
-  signal,
-  DestroyRef,
-  Injector,
-  AfterViewInit,
-} from '@angular/core';
-import { NgClass, DecimalPipe, CurrencyPipe, AsyncPipe } from '@angular/common';
+import { Component, computed, inject, OnInit, signal, DestroyRef, Injector } from '@angular/core';
+import { NgClass } from '@angular/common';
 import {
   FormBuilder,
   ReactiveFormsModule,
@@ -26,21 +17,16 @@ import {
   OrderSideEnum,
   OrderTypeEnum,
   PositionSideEnum,
-  TPSLOrder,
 } from '../../core/models/trades.model';
 import { MarkPriceData } from '../../core/models/chart.model';
 
-// Components
-import { TpSlDialogComponent } from '../dialogs/tp-sl-dialog/tp-sl-dialog';
-
 // Services
-import { AppSettingsService } from '../../core/services/app-settings.service';
-import { UtilsService } from '../../core/services/utils.service';
 import { ChartService } from '../../core/services/chart/chart.service';
 import { FutureTradeService } from '../../core/services/future-trade.service';
 import { BinanceWsService } from '../../core/services/binance-ws.service';
 import { UserService } from '../../core/services/user.service';
-import { UserWsService } from '../../core/services/user-ws.service';
+import { ToastMessageService } from '../../core/services/Toast-message.services';
+import { AppSettingsService } from '../../core/services/app-settings.service';
 
 // PrimeNG Modules
 import { SliderModule } from 'primeng/slider';
@@ -51,14 +37,12 @@ import { IftaLabelModule } from 'primeng/iftalabel';
 import { InputNumberModule } from 'primeng/inputnumber';
 import { DialogModule } from 'primeng/dialog';
 import { CheckboxModule } from 'primeng/checkbox';
-import { ConfirmationService } from 'primeng/api';
-import { DialogService, DynamicDialogModule, DynamicDialogRef } from 'primeng/dynamicdialog';
 import { SelectButtonModule } from 'primeng/selectbutton';
 import { InputGroupModule } from 'primeng/inputgroup';
 import { InputGroupAddonModule } from 'primeng/inputgroupaddon';
 import { MenuModule } from 'primeng/menu';
 import { TooltipModule } from 'primeng/tooltip';
-import { SkeletonModule } from 'primeng/skeleton';
+import { DynamicDialogConfig, DynamicDialogRef } from 'primeng/dynamicdialog';
 
 interface TPSLOption {
   label: string;
@@ -69,9 +53,6 @@ interface TPSLOption {
   selector: 'app-trades-terminal',
   imports: [
     NgClass,
-    DecimalPipe,
-    CurrencyPipe,
-    AsyncPipe,
     ReactiveFormsModule,
     FormsModule,
     SliderModule,
@@ -82,38 +63,33 @@ interface TPSLOption {
     InputNumberModule,
     DialogModule,
     CheckboxModule,
-    DynamicDialogModule,
     SelectButtonModule,
     InputGroupModule,
     InputGroupAddonModule,
     MenuModule,
     TooltipModule,
-    SkeletonModule,
   ],
   templateUrl: './trades-terminal.html',
   styleUrl: './trades-terminal.scss',
 })
-export class TradesTerminalComponent implements OnInit, AfterViewInit {
+export class TradesTerminalComponent implements OnInit {
   private readonly injector = inject(Injector);
-  private readonly utilsService = inject(UtilsService);
-  private readonly confirmationService = inject(ConfirmationService);
-  private readonly binanceWsService = inject(BinanceWsService);
-  private readonly userService = inject(UserService);
-  private readonly userWsService = inject(UserWsService);
-  private readonly futureTradeService = inject(FutureTradeService);
   private readonly chartService = inject(ChartService);
-  private readonly dialogService = inject(DialogService);
+  private readonly userService = inject(UserService);
+  private readonly binanceWsService = inject(BinanceWsService);
+  private readonly futureTradeService = inject(FutureTradeService);
+  private readonly toastMessageService = inject(ToastMessageService);
+  private readonly appSettingsService = inject(AppSettingsService);
   private readonly destroyRef = inject(DestroyRef);
   private readonly fb = inject(FormBuilder);
-  private dialogRef: DynamicDialogRef | null = null;
-  readonly appSettingsService = inject(AppSettingsService);
+  private dialogRef = inject(DynamicDialogRef, { optional: true });
+  readonly dynamicDialogConfig = inject(DynamicDialogConfig, { optional: true });
 
   tradeForm!: FormGroup;
   defaultLeverage = 20;
 
   readonly defaultAmount = 5;
   readonly futurePos = signal<FuturePosition[]>([]);
-  readonly tpslOrders = signal<TPSLOrder[]>([]);
   readonly leverageBracket = signal<LeverageBracket | null>(null);
   readonly markPriceData = signal<MarkPriceData | null>(null);
 
@@ -186,67 +162,6 @@ export class TradesTerminalComponent implements OnInit, AfterViewInit {
     },
   ];
 
-  readonly compFuturePos = computed(() => {
-    const sym = this.chartService.selectedSymbol();
-    const position = this.futurePos().find(
-      (pos: any) => pos.symbol.toLowerCase() === sym.toLowerCase(),
-    );
-
-    if (position) {
-      const margin = this.utilsService.calculateMargin(
-        Number(position.positionAmt),
-        Number(position.entryPrice),
-        Number(position.leverage),
-      );
-      position.margin = Math.abs(margin);
-      position.position =
-        Number(position.positionAmt) > 0 ? PositionSideEnum.LONG : PositionSideEnum.SHORT;
-
-      const orders = this.tpslOrders();
-      const tpOrder = orders?.find(
-        (order) =>
-          order.symbol.toLowerCase() === sym &&
-          order?.orderType === OrderTypeEnum.TAKE_PROFIT_MARKET,
-      );
-      const slOrder = orders?.find(
-        (order) =>
-          order.symbol.toLowerCase() === sym && order?.orderType === OrderTypeEnum.STOP_MARKET,
-      );
-
-      let formatEntryPrice = parseFloat(position.entryPrice as string);
-      let positionAmt = parseFloat(position.positionAmt as string);
-
-      if (tpOrder) {
-        position.takeProfit = tpOrder.triggerPrice;
-        const formatTriggerPrice = parseFloat(tpOrder?.triggerPrice as string) || 0;
-        const { pnlStr, pnlPercent } = this.utilsService.calculateEstimatedPnL(
-          formatEntryPrice,
-          formatTriggerPrice,
-          positionAmt,
-          position.leverage,
-        );
-
-        position.takeProfitPnl = pnlStr;
-        position.takeProfitPnlPercent = pnlPercent;
-      }
-
-      if (slOrder) {
-        position.stopLoss = slOrder.triggerPrice;
-        const formatTriggerPrice = parseFloat(slOrder?.triggerPrice as string) || 0;
-        const { pnlStr, pnlPercent } = this.utilsService.calculateEstimatedPnL(
-          formatEntryPrice,
-          formatTriggerPrice,
-          positionAmt,
-          position.leverage,
-        );
-
-        position.stopLossPnl = pnlStr;
-        position.stopLossPnlPercent = pnlPercent;
-      }
-    }
-    return position;
-  });
-
   readonly compLeverageBracket = computed(() => {
     const bracket = this.leverageBracket();
     if (!bracket) return null;
@@ -255,18 +170,10 @@ export class TradesTerminalComponent implements OnInit, AfterViewInit {
   });
 
   ngOnInit(): void {
-    this.createTradeForm();
     this.subscribeWsMarkPrice();
+    this.createTradeForm();
     this.fetchLeverageBracket();
     this.getFuturesPositions();
-    this.fetchPendingTpSl();
-
-    // this.userWsService
-    //   .getUserDataStream()
-    //   .pipe(takeUntilDestroyed(this.destroyRef))
-    //   .subscribe((data) => {
-    //     console.log('user: ', data);
-    //   });
 
     toObservable(this.markPriceData, { injector: this.injector })
       .pipe(
@@ -297,11 +204,91 @@ export class TradesTerminalComponent implements OnInit, AfterViewInit {
       });
   }
 
-  ngAfterViewInit(): void {
-    this.appSettingsService.setIsCurrentPositionLoading(false);
+  placeOrder(side: OrderSideEnum): void {
+    if (this.tradeForm.invalid) {
+      this.toastMessageService.error('Please fill all the required fields.');
+      return;
+    }
+
+    const { symbol, amount, price, leverage, orderType, stopLoss, takeProfit } =
+      this.tradeForm.value;
+    const executionPrice =
+      orderType === OrderTypeEnum.MARKET ? Number(this.markPriceData()?.markPrice) : Number(price);
+
+    if (!executionPrice) {
+      this.toastMessageService.error('Price is zero, cannot calculate quantity.');
+      return;
+    }
+
+    const quantity = Number(((amount * leverage) / executionPrice).toFixed(5));
+
+    const params = {
+      symbol,
+      side,
+      type: orderType,
+      quantity,
+      price,
+      leverage,
+    };
+
+    this.futureTradeService
+      .placeOrder(params)
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: (res) => {
+          this.appSettingsService.setIsLoadingOpenOrders(true);
+          this.appSettingsService.setIsLoadingPositions(true);
+
+          this.toastMessageService.success('Order placed successfully.');
+          this.tradeForm.reset({
+            symbol: this.chartService.selectedSymbol(),
+            leverage: this.compLeverageBracket()?.maxLeverage,
+            amount: this.defaultAmount,
+            price: null,
+            hasTPSL: true,
+            takeProfit: null,
+            stopLoss: null,
+          });
+          this.getFuturesPositions();
+        },
+        error: (err) => console.error(err),
+      });
   }
 
-  createTradeForm(): void {
+  onOrderTypeChange(): void {
+    this.tradeForm
+      .get('price')
+      ?.setValue(this.markPriceData()?.markPrice.toFixed(2), { emitEvent: false });
+  }
+
+  updateLeverage(val: number): void {
+    const currentLeverage = this.tradeForm.get('leverage')?.value;
+    if (val > 0 && currentLeverage + val > this.defaultLeverage) {
+      return;
+    }
+    if (val < 0 && currentLeverage + val < 1) {
+      return;
+    }
+    const newLeverage = currentLeverage + val;
+    this.tradeForm.get('leverage')?.setValue(newLeverage, { emitEvent: false });
+  }
+
+  close(): void {
+    this.dialogRef?.close();
+  }
+
+  private subscribeWsMarkPrice(): void {
+    this.binanceWsService.markPrice$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((d) => {
+      this.markPriceData.set({
+        markPrice: parseFloat(d.p),
+        indexPrice: parseFloat(d.i),
+        lastFundingRate: parseFloat(d.r),
+        nextFundingTime: d.T,
+      });
+    });
+  }
+
+  private createTradeForm(): void {
     const sym = this.chartService.selectedSymbol();
     this.tradeForm = this.fb.group({
       orderType: [OrderTypeEnum.LIMIT, [Validators.required]],
@@ -315,7 +302,7 @@ export class TradesTerminalComponent implements OnInit, AfterViewInit {
     });
   }
 
-  fetchLeverageBracket(): void {
+  private fetchLeverageBracket(): void {
     this.userService
       .getLeverageBracket()
       .pipe(takeUntilDestroyed(this.destroyRef))
@@ -343,243 +330,5 @@ export class TradesTerminalComponent implements OnInit, AfterViewInit {
           this.futurePos.set(newPositions);
         }
       });
-  }
-
-  private fetchPendingTpSl(): void {
-    this.futureTradeService
-      .getPendingTpSl()
-      .pipe(takeUntilDestroyed(this.destroyRef))
-      .subscribe({
-        next: (res) => {
-          this.tpslOrders.set(res || []);
-        },
-        error: (err) => console.error(err),
-      });
-  }
-
-  placeOrder(side: OrderSideEnum): void {
-    if (this.tradeForm.invalid) {
-      return;
-    }
-
-    const { symbol, amount, price, leverage, orderType, stopLoss, takeProfit } =
-      this.tradeForm.value;
-    const executionPrice = orderType === OrderTypeEnum.MARKET ? Number(this.markPriceData()?.markPrice) : Number(price);
-
-    if (!executionPrice) {
-      console.error('Price is zero, cannot calculate quantity');
-      return;
-    }
-
-    const quantity = Number(((amount * leverage) / executionPrice).toFixed(5));
-
-    const params = {
-      symbol,
-      side,
-      type: orderType,
-      quantity,
-      price,
-      leverage,
-    };
-
-    this.futureTradeService
-      .placeOrder(params)
-      .pipe(takeUntilDestroyed(this.destroyRef))
-      .subscribe({
-        next: (res) => {
-          this.tradeForm.reset({
-            symbol: this.chartService.selectedSymbol(),
-            leverage: this.compLeverageBracket()?.maxLeverage,
-            amount: this.defaultAmount,
-            price: null,
-            hasTPSL: true,
-            takeProfit: null,
-            stopLoss: null,
-          });
-          this.fetchPendingTpSl();
-          this.getFuturesPositions();
-        },
-        error: (err) => console.error(err),
-      });
-  }
-
-  closePosition(): void {
-    const pos = this.compFuturePos();
-    if (!pos) {
-      console.error('No active position to close.');
-      return;
-    }
-
-    const amt = parseFloat(pos.positionAmt) || 0;
-    if (amt === 0) {
-      console.error('No active position to close.');
-      return;
-    }
-
-    const side = amt > 0 ? OrderSideEnum.SELL : OrderSideEnum.BUY;
-    const symbol = pos.symbol;
-
-    this.confirmationService.confirm({
-      message: `Are you sure you want to close your ${side === OrderSideEnum.SELL ? PositionSideEnum.LONG : PositionSideEnum.SHORT} position of ${symbol}?`,
-      header: 'Close Position?',
-      icon: 'pi pi-info-circle',
-      rejectLabel: 'Cancel',
-      rejectButtonProps: {
-        label: 'Cancel',
-        severity: 'secondary',
-        outlined: true,
-      },
-      acceptButtonProps: {
-        label: 'Confirm',
-        severity: 'success',
-        outlined: true,
-      },
-
-      accept: () => {
-        this.futureTradeService
-          .closePosition({
-            symbol: symbol.toUpperCase(),
-            side,
-          })
-          .pipe(takeUntilDestroyed(this.destroyRef))
-          .subscribe({
-            next: (res) => {
-              this.fetchPendingTpSl();
-              this.getFuturesPositions();
-            },
-            error: (err) => console.error(err),
-          });
-      },
-      reject: () => {},
-    });
-  }
-
-  openTPSLDialog(type: OrderTypeEnum): void {
-    const pos = this.compFuturePos();
-    if (pos?.margin?.toString() === '0') {
-      return;
-    }
-
-    this.dialogRef = this.dialogService.open(TpSlDialogComponent, {
-      header: type === OrderTypeEnum.STOP_MARKET ? 'Set Stop Loss' : 'Set Take Profit',
-      data: { ...pos, type },
-      width: '500px',
-      modal: true,
-      breakpoints: {
-        '425px': '90%',
-      },
-    });
-
-    this.dialogRef?.onClose.subscribe((payload) => {
-      if (!payload) {
-        return;
-      }
-
-      if (payload.isRemove) {
-        const tpslOrder = this.tpslOrders().find(
-          (order) =>
-            order.symbol.toLowerCase() === this.chartService.selectedSymbol() &&
-            order.orderType === type,
-        );
-
-        if (!tpslOrder) {
-          return;
-        }
-
-        this.futureTradeService
-          .cancelTpSl({
-            algoId: tpslOrder?.algoId,
-            clientAlgoId: tpslOrder?.clientAlgoId,
-          })
-          .pipe(takeUntilDestroyed(this.destroyRef))
-          .subscribe({
-            next: (res) => {
-              const updateTpSlOrders = this.tpslOrders().filter(
-                (order) => order.algoId !== tpslOrder?.algoId,
-              );
-              this.tpslOrders.set(updateTpSlOrders);
-              this.getFuturesPositions();
-            },
-            error: (err) => console.error(err),
-          });
-        return;
-      }
-
-      const newPayload: any = {
-        symbol: this.chartService.selectedSymbol(),
-        triggerPrice: payload.triggerPrice,
-        closePosition: true,
-      };
-
-      if (payload?.type === OrderTypeEnum.STOP_MARKET) {
-        const side = Number(pos?.positionAmt) > 0 ? OrderSideEnum.SELL : OrderSideEnum.BUY;
-        newPayload.side = side;
-
-        this.futureTradeService
-          .stopLoss(newPayload)
-          .pipe(takeUntilDestroyed(this.destroyRef))
-          .subscribe({
-            next: (res) => {
-              this.fetchPendingTpSl();
-              this.getFuturesPositions();
-            },
-            error: (err) => console.error(err),
-          });
-      } else if (payload?.type === OrderTypeEnum.TAKE_PROFIT_MARKET) {
-        const side = Number(pos?.positionAmt) > 0 ? OrderSideEnum.BUY : OrderSideEnum.SELL;
-        newPayload.side = side;
-
-        this.futureTradeService
-          .takeProfit(newPayload)
-          .pipe(takeUntilDestroyed(this.destroyRef))
-          .subscribe({
-            next: (res) => {
-              this.fetchPendingTpSl();
-              this.getFuturesPositions();
-            },
-            error: (err) => console.error(err),
-          });
-      }
-    });
-  }
-
-  startBot(index: number): void {}
-
-  getPnL(pos: any): { pnl: string; pnlPercent: string } {
-    if (!pos) {
-      return { pnl: '', pnlPercent: '' };
-    }
-
-    const data = this.utilsService.calculatePnl(
-      Number(pos.entryPrice),
-      Number(this.markPriceData()?.markPrice),
-      Number(pos.positionAmt),
-      Number(pos.leverage),
-    );
-
-    const pnl = data.pnl.toFixed(2);
-    const pnlPercent = data.pnlPercent.toFixed(2);
-
-    return {
-      pnl: data.pnl > 0 ? '+' + pnl : pnl,
-      pnlPercent: data.pnlPercent > 0 ? '+' + pnlPercent : pnlPercent,
-    };
-  }
-
-  onOrderTypeChange(): void {
-    this.tradeForm
-      .get('price')
-      ?.setValue(this.markPriceData()?.markPrice.toFixed(2), { emitEvent: false });
-  }
-
-  private subscribeWsMarkPrice(): void {
-    this.binanceWsService.markPrice$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((d) => {
-      this.markPriceData.set({
-        markPrice: parseFloat(d.p),
-        indexPrice: parseFloat(d.i),
-        lastFundingRate: parseFloat(d.r),
-        nextFundingTime: d.T,
-      });
-    });
   }
 }
