@@ -1,12 +1,14 @@
-import { Component, inject, OnInit } from '@angular/core';
+import { Component, DestroyRef, inject, OnInit } from '@angular/core';
 import { ReactiveFormsModule, FormsModule } from '@angular/forms';
 import { NgClass } from '@angular/common';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
 // Models
 import { FuturePosition, OrderSideEnum, OrderTypeEnum } from '../../core/models/trades.model';
 
 // Services
 import { UtilsService } from '../../core/services/utils.service';
+import { BinanceRestService } from '../../core/services/binance-rest.service';
 
 // PrimeNG Modules
 import { SliderModule } from 'primeng/slider';
@@ -32,50 +34,61 @@ import { DynamicDialogConfig, DynamicDialogRef } from 'primeng/dynamicdialog';
   styleUrl: './tp-sl.component.scss',
 })
 export class TpSlComponent implements OnInit {
-  private readonly utilsService = inject(UtilsService);
   private config = inject(DynamicDialogConfig);
   private dialogRef = inject(DynamicDialogRef);
+  private readonly utilsService = inject(UtilsService);
+  private readonly binanceRestService = inject(BinanceRestService);
+  private readonly destroyRef = inject(DestroyRef);
 
   private readonly defaultPntStr: string = '$0.00';
   private tpslData!: FuturePosition;
 
+  tickSize!: number;
   riskDialogSymbol = '';
   riskDialogPrice!: number;
   riskDialogType: OrderTypeEnum = OrderTypeEnum.STOP_MARKET;
   riskDialogSide: OrderSideEnum = OrderSideEnum.BUY;
-  riskDialogPercent!: number;
+  riskDialogPercent: number = 50;
   riskDialogEntryPrice: number = 0;
   riskDialogPositionAmt: number = 0;
   riskDialogLeverage: number = 1;
   riskDialogEstimatedPnLStr: string = this.defaultPntStr;
 
   ngOnInit(): void {
+
     this.tpslData = this.config.data;
     this.riskDialogSymbol = this.tpslData?.symbol;
     this.riskDialogType = this.config.data?.type;
     this.riskDialogEntryPrice = parseFloat(this.tpslData?.entryPrice);
     this.riskDialogPositionAmt = parseFloat(this.tpslData?.positionAmt);
     this.riskDialogLeverage = this.tpslData?.leverage;
-    this.riskDialogSide =
-      this.config.data?.type === OrderTypeEnum.STOP_MARKET ? OrderSideEnum.SELL : OrderSideEnum.BUY;
+    this.riskDialogSide = this.config.data?.notional > 0 ? OrderSideEnum.BUY : OrderSideEnum.SELL;
 
     if (this.isStopLoss()) {
       if (this.tpslData?.stopLoss?.pnlPercent !== null) {
         this.riskDialogPrice = parseFloat(this.tpslData?.stopLoss?.triggerPrice as string);
         this.riskDialogPercent = Math.round(Math.abs(this.tpslData?.stopLoss?.pnlPercent ?? 0));
-      } else {
-        this.riskDialogPercent = 50;
       }
     } else {
       if (this.tpslData?.takeProfit?.pnlPercent !== null) {
         this.riskDialogPrice = parseFloat(this.tpslData?.takeProfit?.triggerPrice as string);
         this.riskDialogPercent = Math.round(Math.abs(this.tpslData?.takeProfit?.pnlPercent ?? 0));
-      } else {
-        this.riskDialogPercent = 50;
-      }
+      } 
     }
 
-    this.updatePriceFromPercent();
+    this.getSymbolTickSize();
+    this.updateFromPrice();
+    console.log(1);
+  }
+
+  getSymbolTickSize(): void {
+    this.binanceRestService
+      .getExchangeInfo()
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe((res) => {
+        const exchangeSymbol = res.symbols.find((s) => s.symbol === this.tpslData.symbol);
+        this.tickSize = this.utilsService.getTickSize(exchangeSymbol?.filters);
+      });
   }
 
   updatePriceFromPercent(): void {
@@ -83,15 +96,15 @@ export class TpSlComponent implements OnInit {
     const leverage = this.riskDialogLeverage;
     const amount = this.riskDialogPositionAmt;
 
-    const roePercent = this.isStopLoss()
-      ? -Math.abs(this.riskDialogPercent)
-      : Math.abs(this.riskDialogPercent);
+    console.log(this.tickSize);
 
     const targetPrice = this.utilsService.calculateTargetPrice(
       entryPrice,
       leverage,
-      roePercent,
+      this.riskDialogPercent,
       amount > 0,
+      this.isStopLoss() ? false : true,
+      this.tickSize,
     );
 
     this.riskDialogPrice = Math.max(Number(targetPrice.toFixed(2)), 0);
@@ -135,27 +148,27 @@ export class TpSlComponent implements OnInit {
   }
 
   isValidTriggerPrice(): boolean {
-    if (!this.riskDialogPrice) return false;
+    if (!this.riskDialogPrice) return true;
 
     if (this.isStopLoss()) {
-      if (this.isOrderSell() && this.riskDialogEntryPrice <= Number(this.riskDialogPrice)) {
-        return false;
+      if (this.isOrderLong() && this.riskDialogEntryPrice > Number(this.riskDialogPrice)) {
+        return true;
       }
 
-      if (!this.isOrderSell() && this.riskDialogEntryPrice >= Number(this.riskDialogPrice)) {
-        return false;
+      if (!this.isOrderLong() && this.riskDialogEntryPrice < Number(this.riskDialogPrice)) {
+        return true;
       }
     } else {
-      if (this.isOrderSell() && this.riskDialogEntryPrice <= Number(this.riskDialogPrice)) {
-        return false;
+      if (this.isOrderLong() && this.riskDialogEntryPrice < Number(this.riskDialogPrice)) {
+        return true;
       }
 
-      if (!this.isOrderSell() && this.riskDialogEntryPrice >= Number(this.riskDialogPrice)) {
-        return false;
+      if (!this.isOrderLong() && this.riskDialogEntryPrice > Number(this.riskDialogPrice)) {
+        return true;
       }
     }
 
-    return true;
+    return false;
   }
 
   confirmOrder(): void {
@@ -177,8 +190,8 @@ export class TpSlComponent implements OnInit {
     });
   }
 
-  isOrderSell(): boolean {
-    return this.riskDialogSide === OrderSideEnum.SELL;
+  isOrderLong(): boolean {
+    return this.config.data?.notional > 0;
   }
 
   isStopLoss(): boolean {

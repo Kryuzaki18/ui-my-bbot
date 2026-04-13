@@ -83,8 +83,14 @@
             {{ order.side }}
           </span>
         </td>
-        <td>{{ order.type }}</td>
-        <td>{{ order.price | number: '1.0-7' }}</td>
+        <td>
+          @if (order.orderType === OrderTypeEnum.STOP_MARKET) {
+            <span class="text-red-500">Stop Loss</span>
+          } @else {
+            <span class="text-green-500">Take Profit</span>
+          }
+        </td>
+        <td>{{ order.triggerPrice | number: '1.0-7' }}</td>
         <td>{{ order.origQty }}</td>
         <td>
           @if (order.executedQty && order.executedQty > 0) {

@@ -1,5 +1,5 @@
 <div
-  class="symbol-info-container flex items-center gap-2 overflow-x-auto flex-nowrap whitespace-nowrap"
+  class="symbol-info-container flex items-center gap-1 overflow-x-auto flex-nowrap whitespace-nowrap"
 >
   <div
     class="flex items-center sticky left-0 bg-gray-950 px-2 cursor-pointer"
@@ -63,7 +63,7 @@
       </span>
     </div>
 
-    <div class="flex flex-col px-2 w-[120px]">
+    <div class="flex flex-col px-2 w-[100px]">
       <span class="text-[10px] text-gray-500">Mark Price</span>
       <span class="text-[10px]">
         @if (!markPriceData()) {
@@ -74,18 +74,18 @@
       </span>
     </div>
 
-    <div class="flex flex-col px-2 w-[120px]">
+    <div class="flex flex-col px-2 w-[100px]">
       <span class="text-[10px] text-gray-500">Index Price</span>
       <span class="text-[10px]">
         @if (!markPriceData()) {
-          <p-skeleton width="65px"></p-skeleton>
+          <p-skeleton></p-skeleton>
         } @else {
           ${{ markPriceData()!.indexPrice | number: '1.0-7' }}
         }
       </span>
     </div>
 
-    <div class="flex flex-col px-2 w-[120px]">
+    <div class="flex flex-col px-2 w-[100px]">
       <span class="text-[10px] text-gray-500">24h High</span>
       <span class="text-[10px] text-green-600">
         @if (!ticker24hr()) {
@@ -96,7 +96,7 @@
       </span>
     </div>
 
-    <div class="flex flex-col px-2 w-[120px]">
+    <div class="flex flex-col px-2 w-[100px]">
       <span class="text-[10px] text-gray-500">24h Low</span>
       <span class="text-[10px] text-red-600">
         @if (!ticker24hr()) {
@@ -107,7 +107,7 @@
       </span>
     </div>
 
-    <div class="flex flex-col px-2 w-[120px]">
+    <div class="flex flex-col px-2 w-[110px]">
       <span class="text-[10px] text-gray-500">24h Vol</span>
       <span class="text-[10px] text-gray-400">
         @if (!ticker24hr()) {
@@ -118,7 +118,7 @@
       </span>
     </div>
 
-    <div class="flex flex-col px-2 w-[120px]">
+    <div class="flex flex-col px-2 w-[110px]">
       <span class="text-[10px] text-gray-500">24h Vol(USDT)</span>
       <span class="text-[10px] text-gray-400">
         @if (!ticker24hr()) {
@@ -129,7 +129,7 @@
       </span>
     </div>
 
-    <div class="flex flex-col px-2 w-[120px]">
+    <div class="flex flex-col px-2 w-[110px]">
       <span class="text-[10px] text-gray-500">Open Interest</span>
       <span class="text-[10px] text-gray-400">
         @if (!openInterest()) {

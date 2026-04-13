@@ -34,7 +34,12 @@ export class UtilsService {
     return { pnl, pnlStr, pnlPercent };
   }
 
-  calculatePnl(entryPrice: number, targetPrice: number, positionAmt: number, leverage: number): {
+  calculatePnl(
+    entryPrice: number,
+    targetPrice: number,
+    positionAmt: number,
+    leverage: number,
+  ): {
     pnl: number;
     pnlPercent: number;
   } {
@@ -57,11 +62,24 @@ export class UtilsService {
     leverage: number,
     roePercentage: number,
     isLong: boolean,
+    isWin: boolean, // True for Take Profit, False for Stop Loss
+    tickSize: number, // Now passed from your extraction logic
   ): number {
     const roeFraction = roePercentage / 100;
-    const sideSign = isLong ? 1 : -1;
-    const targetPrice = entryPrice + roeFraction * (entryPrice / leverage) * sideSign;
-    return targetPrice;
+
+    // Logic:
+    // Long Win/Short Loss = Price Up (+)
+    // Long Loss/Short Win = Price Down (-)
+    const direction = isLong ? (isWin ? 1 : -1) : isWin ? -1 : 1;
+
+    // Use the formula
+    const priceChange = roeFraction * (entryPrice / leverage);
+    const rawTargetPrice = entryPrice + priceChange * direction;
+
+    // CRITICAL: Round to the correct Tick Size
+    // This prevents "APIError(code=-1111): Precision is over the maximum defined"
+    const precision = Math.abs(Math.log10(tickSize));
+    return parseFloat(rawTargetPrice.toFixed(precision));
   }
 
   calculateMargin(amt: number, price: number, lev: number): number {
@@ -72,5 +90,15 @@ export class UtilsService {
     if (!leverage || leverage === 0) return 0;
 
     return (quantity * entry) / leverage;
+  }
+
+  getTickSize(filters: any): number {
+    const priceFilter = filters.find((f: any) => f.filterType === 'PRICE_FILTER');
+
+    if (!priceFilter || !priceFilter.tickSize) {
+      throw new Error(`Could not find PRICE_FILTER`);
+    }
+
+    return parseFloat(priceFilter.tickSize);
   }
 }

@@ -63,9 +63,7 @@
             </div>
 
             @if (errorMessage()) {
-              <p-message severity="error" styleClass="w-full mb-4 block">{{
-                errorMessage()
-              }}</p-message>
+              <p-message severity="error" styleClass="w-full block">{{ errorMessage() }}</p-message>
             }
 
             <p-button

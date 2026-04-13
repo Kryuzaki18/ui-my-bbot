@@ -25,6 +25,8 @@ export class OpenOrdersComponent implements OnChanges {
   readonly onCancelOrder = output<any>();
   readonly onSelectSymbol = output<string>();
 
+  readonly OrderTypeEnum = OrderTypeEnum;
+
   orderTypeOptions = [
     { label: 'Basic', value: 'basic' },
     { label: 'Conditional', value: 'conditional' },

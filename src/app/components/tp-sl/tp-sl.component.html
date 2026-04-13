@@ -159,12 +159,12 @@
   <div
     class="text-xs font-semibold"
     [ngClass]="{
-      'text-red-500': isOrderSell(),
-      'text-green-500': !isOrderSell(),
+      'text-red-500': isStopLoss(),
+      'text-green-500': !isStopLoss(),
     }"
   >
     Estimated
-    {{ (isOrderSell() ? 'Loss: -' : 'Profit: +') + riskDialogEstimatedPnLStr }}
+    {{ (isStopLoss() ? 'Loss: -' : 'Profit: +') + riskDialogEstimatedPnLStr }}
   </div>
 </div>
 
@@ -200,7 +200,7 @@
       type="button"
       class="cursor-pointer bg-green-400/50 py-1 px-3 rounded hover:bg-green-400/70 disabled:bg-gray-950"
       (click)="confirmOrder()"
-      [disabled]="isValidTriggerPrice()"
+      [disabled]="!isValidTriggerPrice()"
     >
       <span class="text-xs text-gray-100 jetbrains-medium">Confirm</span>
     </button>

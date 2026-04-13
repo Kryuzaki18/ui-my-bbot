@@ -35,7 +35,7 @@ export class BinanceRestService {
 
   getAllSymbolsWithVolume(): Observable<ExchangeSymbolsWithVolume[]> {
     return forkJoin({
-      info: this.http.get<ExchangeInfo>(`${this.base}${BINANCE_PUBLIC_API_ROUTES.exchangeInfo}`),
+      info: this.getExchangeInfo(),
       stats: this.http.get<Ticker24hrData[]>(
         `${this.base}${BINANCE_PUBLIC_API_ROUTES.chart.ticker}`,
       ),
