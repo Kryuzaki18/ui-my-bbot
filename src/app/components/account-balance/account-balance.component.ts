@@ -14,12 +14,13 @@ import { Skeleton } from 'primeng/skeleton';
 import { DynamicDialogConfig, DynamicDialogRef } from 'primeng/dynamicdialog';
 
 @Component({
-  selector: 'app-mini-info',
+  selector: 'app-account-balance',
   imports: [CurrencyPipe, Skeleton],
-  templateUrl: './mini-info.html',
-  styleUrl: './mini-info.scss',
+  templateUrl: './account-balance.component.html',
+  styleUrl: './account-balance.component.scss',
+  standalone: true,
 })
-export class MiniInfoComponent implements OnInit {
+export class AccountBalanceComponent implements OnInit {
   private destroyRef = inject(DestroyRef);
   private userWsService = inject(UserWsService);
   private userService = inject(UserService);

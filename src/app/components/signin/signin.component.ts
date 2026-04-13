@@ -40,8 +40,8 @@ import { PasswordModule } from 'primeng/password';
     DividerModule,
     PasswordModule,
   ],
-  templateUrl: './signin.html',
-  styleUrls: ['./signin.scss'],
+  templateUrl: './signin.component.html',
+  styleUrl: './signin.component.scss',
 })
 export class SigninComponent implements OnInit {
   private readonly authService = inject(AuthService);

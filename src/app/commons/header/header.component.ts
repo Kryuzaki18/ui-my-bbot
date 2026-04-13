@@ -3,9 +3,9 @@ import { Router } from '@angular/router';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
 // Components
-import { SigninComponent } from '../../pages/signin/signin';
-import { MiniInfoComponent } from '../../components/mini-info/mini-info';
-import { TradesTerminalComponent } from '../../components/trades-terminal/trades-terminal';
+import { SigninComponent } from '../../components/signin/signin.component';
+import { AccountBalanceComponent } from '../../components/account-balance/account-balance.component';
+import { TradeFormComponent } from '../../components/trade-form/trades-form.component';
 
 //PrimeNG Modules
 import { ButtonModule } from 'primeng/button';
@@ -31,16 +31,6 @@ export class HeaderComponent implements OnInit {
   items: MenuItem[] | undefined;
 
   ngOnInit(): void {
-    this.authService
-      .checkAuth()
-      .pipe(takeUntilDestroyed(this.destroyRef))
-      .subscribe({
-        next: () => {},
-        error: (err) => {
-          this.router.navigate(['/home']);
-        },
-      });
-
     this.setItems();
   }
 
@@ -99,7 +89,7 @@ export class HeaderComponent implements OnInit {
       return;
     }
 
-    this.dialogService.open(MiniInfoComponent, {
+    this.dialogService.open(AccountBalanceComponent, {
       showHeader: false,
       width: '300px',
       modal: true,
@@ -115,7 +105,7 @@ export class HeaderComponent implements OnInit {
       return;
     }
 
-    this.dialogService.open(TradesTerminalComponent, {
+    this.dialogService.open(TradeFormComponent, {
       showHeader: false,
       width: '320px',
       modal: true,

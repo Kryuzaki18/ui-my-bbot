@@ -69,10 +69,10 @@ interface TPSLOption {
     MenuModule,
     TooltipModule,
   ],
-  templateUrl: './trades-terminal.html',
-  styleUrl: './trades-terminal.scss',
+  templateUrl: './trade-form.component.html',
+  styleUrl: './trade-form.component.scss',
 })
-export class TradesTerminalComponent implements OnInit {
+export class TradeFormComponent implements OnInit {
   private readonly injector = inject(Injector);
   private readonly chartService = inject(ChartService);
   private readonly userService = inject(UserService);

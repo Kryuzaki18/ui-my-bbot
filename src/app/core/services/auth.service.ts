@@ -1,9 +1,11 @@
 import { HttpClient } from '@angular/common/http';
 import { computed, inject, Injectable, signal } from '@angular/core';
-import { catchError, Observable, of, tap, throwError } from 'rxjs';
+import { catchError, Observable, of, shareReplay, tap, throwError } from 'rxjs';
 
 // Environment
 import { API_ROUTES, environment } from '../../../environments/environment';
+
+// Services
 import { UserWsService } from './user-ws.service';
 
 interface IAuth {
@@ -17,21 +19,43 @@ export class AuthService {
   private readonly http = inject(HttpClient);
   private readonly userWsService = inject(UserWsService);
   private readonly session = signal<boolean>(false);
+  private checkAuth$?: Observable<boolean>;
+  private hasChecked = false;
 
   isLoggedIn = computed(() => !!this.session());
 
   clearSession(): void {
     this.session.set(false);
+    this.hasChecked = false;
   }
 
   checkAuth(): Observable<boolean> {
-    return this.http.get<boolean>(`${environment.apiTradingBotUrl}${API_ROUTES.auth.me}`).pipe(
-      tap((isAuth: boolean) => this.session.set(isAuth)),
-      catchError(() => {
-        this.session.set(false);
-        return of(false);
-      }),
-    );
+    if (this.session()) return of(true);
+
+    if (this.hasChecked) {
+      return of(this.session());
+    }
+
+    if (this.checkAuth$) return this.checkAuth$;
+
+    this.checkAuth$ = this.http
+      .get<boolean>(`${environment.apiTradingBotUrl}${API_ROUTES.auth.me}`)
+      .pipe(
+        tap((isAuth: boolean) => {
+          this.session.set(isAuth);
+          this.hasChecked = true;
+          this.checkAuth$ = undefined;
+        }),
+        catchError(() => {
+          this.session.set(false);
+          this.hasChecked = true;
+          this.checkAuth$ = undefined;
+          return of(false);
+        }),
+        shareReplay(1),
+      );
+
+    return this.checkAuth$;
   }
 
   signIn(apiKey: string, apiSecret: string, useTestnet: boolean): Observable<IAuth> {
@@ -74,7 +98,7 @@ export class AuthService {
         catchError((err) => {
           this.clearSession();
           return throwError(() => err);
-        })
+        }),
       );
   }
 }

@@ -24,7 +24,7 @@ import { ProgressBarModule } from 'primeng/progressbar';
 import { TabsModule } from 'primeng/tabs';
 import { ConfirmationService } from 'primeng/api';
 import { DialogService, DynamicDialogRef } from 'primeng/dynamicdialog';
-import { TpSlDialogComponent } from '../dialogs/tp-sl-dialog/tp-sl-dialog';
+import { TpSlComponent } from '../tp-sl/tp-sl.component';
 
 @Component({
   selector: 'app-positions-and-orders',
@@ -393,7 +393,7 @@ export class PositionsAndOrdersComponent implements OnInit {
   }
 
   openTPSLDialog({ pos, isTakeProfit }: { pos: any; isTakeProfit: boolean }): void {
-    this.dialogRef = this.dialogService.open(TpSlDialogComponent, {
+    this.dialogRef = this.dialogService.open(TpSlComponent, {
       header: isTakeProfit ? 'Set Take Profit' : 'Set Stop Loss',
       data: { ...pos, type: pos.orderType },
       width: '500px',

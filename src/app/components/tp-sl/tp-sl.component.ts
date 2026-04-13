@@ -3,10 +3,10 @@ import { ReactiveFormsModule, FormsModule } from '@angular/forms';
 import { NgClass } from '@angular/common';
 
 // Models
-import { FuturePosition, OrderSideEnum, OrderTypeEnum } from '../../../core/models/trades.model';
+import { FuturePosition, OrderSideEnum, OrderTypeEnum } from '../../core/models/trades.model';
 
 // Services
-import { UtilsService } from '../../../core/services/utils.service';
+import { UtilsService } from '../../core/services/utils.service';
 
 // PrimeNG Modules
 import { SliderModule } from 'primeng/slider';
@@ -28,10 +28,10 @@ import { DynamicDialogConfig, DynamicDialogRef } from 'primeng/dynamicdialog';
     RadioButtonModule,
     ButtonModule,
   ],
-  templateUrl: './tp-sl-dialog.html',
-  styleUrl: './tp-sl-dialog.scss',
+  templateUrl: './tp-sl.component.html',
+  styleUrl: './tp-sl.component.scss',
 })
-export class TpSlDialogComponent implements OnInit {
+export class TpSlComponent implements OnInit {
   private readonly utilsService = inject(UtilsService);
   private config = inject(DynamicDialogConfig);
   private dialogRef = inject(DynamicDialogRef);

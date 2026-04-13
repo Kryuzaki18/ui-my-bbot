@@ -4,42 +4,42 @@
   >
     <div class="pl-3 flex items-center gap-2">
       <img src="/binance_logo.svg" alt="binance" width="20px" />
-      <h1 class="text-emerald-500 text-md font-bold">Simple Binance Bot v1</h1>
+      <h1 class="text-emerald-500 text-md font-bold">BBot.v1</h1>
     </div>
 
-    <div class="hidden min-[769px]:flex items-center">
-      @if (authService.isLoggedIn()) {
+    @if (authService.isLoggedIn()) {
+      <div class="hidden min-[769px]:flex items-center">
+        <p-button variant="text" size="small" (onClick)="signout()" class="bg-green-900/20 rounded">
+          <div class="flex items-center gap-1">
+            <span class="pi pi-sign-out" style="font-size: 0.7rem"></span>
+            <span class="text-[10px]">Signout</span>
+          </div>
+        </p-button>
+      </div>
+    } @else {
+      <div class="flex items-center">
+        <p-button variant="text" size="small" (onClick)="signin()" class="bg-green-900/20 rounded">
+          <div class="flex items-center gap-1">
+            <span class="text-[10px]">Signin</span>
+            <span class="pi pi-sign-in" style="font-size: 0.7rem"></span>
+          </div>
+        </p-button>
+      </div>
+    }
+
+    @if (authService.isLoggedIn()) {
+      <div class="block min-[769px]:hidden">
         <p-button
-          label="Signout"
+          icon="pi pi-user"
+          [rounded]="true"
           variant="outlined"
           size="small"
-          icon="pi pi-sign-out"
-          iconPos="right"
-          (onClick)="signout()"
-        />
-      } @else {
-        <p-button
-          label="Signin"
-          variant="outlined"
-          size="small"
-          icon="pi pi-sign-in"
-          iconPos="right"
-          (onClick)="signin()"
-        />
-      }
-    </div>
+          (onClick)="menuProfile.toggle($event)"
+          class="mr-3"
+        ></p-button>
 
-    <div class="block min-[769px]:hidden">
-      <p-button
-        icon="pi pi-user"
-        [rounded]="true"
-        variant="outlined"
-        size="small"
-        (onClick)="menuProfile.toggle($event)"
-        class="mr-3"
-      ></p-button>
-
-      <p-menu #menuProfile [model]="items" [popup]="true" />
-    </div>
+        <p-menu #menuProfile [model]="items" [popup]="true" styleClass="text-xs" />
+      </div>
+    }
   </div>
 </header>

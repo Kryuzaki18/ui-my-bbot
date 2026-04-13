@@ -43,7 +43,7 @@ import { Table } from 'primeng/table';
     InputIconModule,
   ],
   templateUrl: './trading-symbols-popover.component.html',
-  styleUrls: ['./trading-symbols-popover.component.scss'],
+  styleUrl: './trading-symbols-popover.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class TradingSymbolsPopoverComponent implements OnInit {

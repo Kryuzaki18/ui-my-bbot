@@ -50,6 +50,8 @@ import {
   IndicatorConfig,
   Ticker24hrData,
 } from '../../core/models/chart.model';
+
+// Components
 import { TradingSymbolsPopoverComponent } from './trading-symbols-popover/trading-symbols-popover.component';
 
 // Services
@@ -70,7 +72,7 @@ import { SkeletonModule } from 'primeng/skeleton';
 import { ScrollPanelModule } from 'primeng/scrollpanel';
 import { PopoverModule } from 'primeng/popover';
 import { DividerModule } from 'primeng/divider';
-import { Router } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 
 @Component({
   selector: 'app-trading-chart',
@@ -85,8 +87,8 @@ import { Router } from '@angular/router';
     DividerModule,
     TradingSymbolsPopoverComponent,
   ],
-  templateUrl: './trading-chart.html',
-  styleUrls: ['./trading-chart.scss'],
+  templateUrl: './trading-chart.component.html',
+  styleUrl: './trading-chart.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class TradingChartComponent implements OnInit, AfterViewInit, OnDestroy {
@@ -107,6 +109,7 @@ export class TradingChartComponent implements OnInit, AfterViewInit, OnDestroy {
   private readonly router = inject(Router);
   readonly utilsService = inject(UtilsService);
   readonly authService = inject(AuthService);
+  readonly activatedRoute = inject(ActivatedRoute);
 
   private chart!: IChartApi;
   private volumeChart!: IChartApi;
@@ -195,16 +198,6 @@ export class TradingChartComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   ngOnInit(): void {
-     this.authService
-      .checkAuth()
-      .pipe(takeUntilDestroyed(this.destroyRef))
-      .subscribe({
-        next: () => {},
-        error: (err) => {
-          this.router.navigate(['/home']);
-        },
-      });
-
     this.initAllWs();
   }
 
