@@ -25,7 +25,7 @@ import { ChartService } from '../../core/services/chart/chart.service';
 import { FutureTradeService } from '../../core/services/future-trade.service';
 import { BinanceWsService } from '../../core/services/binance-ws.service';
 import { UserService } from '../../core/services/user.service';
-import { ToastMessageService } from '../../core/services/Toast-message.services';
+import { ToastMessageService } from '../../core/services/toast-message.service';
 import { AppSettingsService } from '../../core/services/app-settings.service';
 
 // PrimeNG Modules

@@ -15,37 +15,46 @@
           pSortableColumn="symbol"
           pFrozenColumn
           alignFrozen="left"
-          class="bg-gray-900 z-30 shadow-[4px_0_12px_-4px_rgba(0,0,0,0.5)]"
+          class="!bg-gray-900 shadow-[4px_0_12px_-4px_rgba(0,0,0,0.5)]"
         >
           <span class="flex items-center gap-1">
             <span>Symbol</span>
             <p-sortIcon field="symbol"></p-sortIcon>
           </span>
         </th>
-        <th>Side</th>
-        <th>Margin/Size</th>
-        <th>Entry Price</th>
-        <th>Mark Price</th>
-        <th>Break Even Price</th>
-        <th pSortableColumn="unRealizedProfit">
+        <th class="!bg-gray-900">Side</th>
+
+        <th pSortableColumn="margin" class="!bg-gray-900">
           <span class="flex items-center gap-1">
-            <span>Unrealized PnL</span>
-            <p-sortIcon field="unRealizedProfit"></p-sortIcon>
+            <span>Margin/Size</span>
+            <p-sortIcon field="margin"></p-sortIcon>
           </span>
         </th>
-        <th>Liq. Price</th>
-        <th>Take Profit</th>
-        <th>Stop Loss</th>
-        <th class="w-32">Action</th>
+
+        <th class="!bg-gray-900">Entry Price</th>
+        <th class="!bg-gray-900">Mark Price</th>
+        <th class="!bg-gray-900">Break Even Price</th>
+        <th pSortableColumn="livePnl" class="!bg-gray-900">
+          <span class="flex items-center gap-1">
+            <span>PNL(ROI%)</span>
+            <p-sortIcon field="livePnl"></p-sortIcon>
+          </span>
+        </th>
+        <th class="!bg-gray-900">Liq. Price</th>
+        <th class="!bg-gray-900">Take Profit</th>
+        <th class="!bg-gray-900">Stop Loss</th>
+        <th class="w-32 !bg-gray-900">Action</th>
       </tr>
     </ng-template>
+
     <ng-template pTemplate="body" let-pos>
-      <tr class="border-b border-gray-800 hover:bg-gray-800 transition-colors">
-        <td
-          pFrozenColumn
-          alignFrozen="left"
-          class="bg-gray-900 shadow-[4px_0_12px_-4px_rgba(0,0,0,0.5)] z-20"
-        >
+      <tr
+        [ngClass]="{
+          'selected-symbol !bg-gray-950':
+            chartService.selectedSymbol().toLowerCase() === pos.symbol.toLowerCase(),
+        }"
+      >
+        <td pFrozenColumn alignFrozen="left">
           <div class="flex flex-col gap-2 text-gray-400">
             <span>
               <span
@@ -124,27 +133,39 @@
               <div class="flex gap-1">
                 <p-button
                   size="small"
-                  severity="secondary"
+                  severity="info"
                   variant="outlined"
-                  (click)="openTPSLDialog(pos, true)"
+                  (onClick)="openTPSLDialog(pos, true)"
+                  class="w-8"
                 >
                   <span class="pi pi-pencil" style="font-size: 10px"></span>
                 </p-button>
 
                 <p-button
                   size="small"
-                  severity="secondary"
+                  severity="danger"
                   variant="outlined"
-                  (click)="removeTPSL(pos)"
+                  (onClick)="removeTPSL(pos)"
+                  class="w-8"
                 >
                   <span class="pi pi-trash" style="font-size: 10px"></span>
                 </p-button>
               </div>
             </div>
           } @else {
-            <p-button size="small" severity="secondary" variant="outlined" styleClass="mt-2">
-              <span class="pi pi-plus" style="font-size: 10px"></span>
-            </p-button>
+            <div class="flex flex-col gap-2">
+              <span class="text-gray-500">- / -</span>
+              <p-button
+                type="button"
+                size="small"
+                severity="secondary"
+                variant="outlined"
+                (onClick)="openTPSLDialog(pos, true)"
+                class="w-8"
+              >
+                <span class="pi pi-plus" style="font-size: 10px"></span>
+              </p-button>
+            </div>
           }
         </td>
 
@@ -160,27 +181,39 @@
               <div class="flex gap-1">
                 <p-button
                   size="small"
-                  severity="secondary"
+                  severity="info"
                   variant="outlined"
-                  (click)="openTPSLDialog(pos, false)"
+                  (onClick)="openTPSLDialog(pos, false)"
+                  class="w-8"
                 >
                   <span class="pi pi-pencil" style="font-size: 10px"></span>
                 </p-button>
 
                 <p-button
                   size="small"
-                  severity="secondary"
+                  severity="danger"
                   variant="outlined"
-                  (click)="removeTPSL(pos)"
+                  (onClick)="removeTPSL(pos)"
+                  class="w-8"
                 >
                   <span class="pi pi-trash" style="font-size: 10px"></span>
                 </p-button>
               </div>
             </div>
           } @else {
-            <p-button size="small" severity="secondary" variant="outlined" styleClass="mt-2">
-              <span class="pi pi-plus" style="font-size: 9px"></span>
-            </p-button>
+            <div class="flex flex-col gap-2">
+              <span class="text-gray-500">- / -</span>
+              <p-button
+                type="button"
+                size="small"
+                severity="secondary"
+                variant="outlined"
+                (click)="openTPSLDialog(pos, false)"
+                class="w-8"
+              >
+                <span class="pi pi-plus" style="font-size: 9px"></span>
+              </p-button>
+            </div>
           }
         </td>
 

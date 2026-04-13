@@ -1,41 +1,48 @@
-<span class="p-text-secondary block mb-5 text-gray-400">
-  Enter the trigger price to exactly close out your {{ riskDialogSymbol }}
-  {{ isOrderSell() ? 'short' : 'long' }} position.
-</span>
+<div class="text-xs text-wrap mb-3 text-gray-400">
+  <span>Enter the trigger price to close out your</span>
+  <span
+    class="uppercase mx-1 font-bold text-lg"
+    [ngClass]="{
+      'text-red-500': isStopLoss(),
+      'text-green-500': !isStopLoss(),
+    }"
+    >{{ riskDialogSymbol }}</span
+  >
+  <span>position.</span>
+</div>
 
-<div class="flex flex-col gap-3 bg-gray-900/90 p-2 mb-2 rounded">
+<div class="flex flex-col gap-4 bg-gray-900/90 p-2 mb-2 rounded">
   <label class="font-semibold text-gray-400 text-center">Target</label>
 
-  <div class="flex items-center gap-3">
-    <div class="flex-auto flex items-center gap-4">
-      <p-slider
-        class="w-full flex-auto"
-        [(ngModel)]="riskDialogPercent"
-        (ngModelChange)="updatePriceFromPercent()"
-        [min]="1"
-        [max]="500"
-      ></p-slider>
+  <div class="flex items-center gap-4">
+    <p-button
+      size="small"
+      variant="outlined"
+      class="w-7"
+      type="button"
+      (onClick)="updatePercentage(false)"
+      ><span class="text-xs">-</span></p-button
+    >
+    <p-slider
+      class="w-full flex-auto"
+      [(ngModel)]="riskDialogPercent"
+      (ngModelChange)="updatePriceFromPercent()"
+      [min]="1"
+      [max]="500"
+    ></p-slider>
 
-      <p-floatlabel variant="on" styleClass="w-20">
-        <p-inputnumber
-          [(ngModel)]="riskDialogPercent"
-          (ngModelChange)="updatePriceFromPercent()"
-          inputId="targetPercent"
-          [min]="1"
-          [max]="500"
-          [minlength]="1"
-          [maxlength]="3"
-          [inputSize]="8"
-          suffix="%"
-          size="small"
-        />
-        <label for="targetPercent">Input %</label>
-      </p-floatlabel>
-    </div>
+    <p-button
+      size="small"
+      variant="outlined"
+      class="w-7"
+      type="button"
+      (onClick)="updatePercentage(true)"
+      ><span class="text-xs">+</span></p-button
+    >
   </div>
 
   <div class="flex flex-col">
-    <div class="flex flex-wrap gap-4">
+    <div class="flex gap-3">
       <div class="flex items-center gap-1">
         <p-radiobutton
           value="10"
@@ -44,8 +51,9 @@
           size="small"
           (ngModelChange)="updatePriceFromPercent()"
         />
-        <label for="tenPercent" class="text-xs cursor-pointer">10%</label>
+        <label for="tenPercent" class="text-[10px] cursor-pointer">10%</label>
       </div>
+
       <div class="flex items-center gap-1">
         <p-radiobutton
           value="25"
@@ -54,8 +62,9 @@
           size="small"
           (ngModelChange)="updatePriceFromPercent()"
         />
-        <label for="twentyfivePercent" class="text-xs cursor-pointer">25%</label>
+        <label for="twentyfivePercent" class="text-[10px] cursor-pointer">25%</label>
       </div>
+
       <div class="flex items-center gap-1">
         <p-radiobutton
           value="50"
@@ -64,7 +73,7 @@
           size="small"
           (ngModelChange)="updatePriceFromPercent()"
         />
-        <label for="fiftyPercent" class="text-xs cursor-pointer">50%</label>
+        <label for="fiftyPercent" class="text-[10px] cursor-pointer">50%</label>
       </div>
 
       <div class="flex items-center gap-1">
@@ -75,7 +84,7 @@
           size="small"
           (ngModelChange)="updatePriceFromPercent()"
         />
-        <label for="seventyfivePercent" class="text-xs cursor-pointer">75%</label>
+        <label for="seventyfivePercent" class="text-[10px] cursor-pointer">75%</label>
       </div>
 
       <div class="flex items-center gap-1">
@@ -86,8 +95,9 @@
           size="small"
           (ngModelChange)="updatePriceFromPercent()"
         />
-        <label for="hundredPercent" class="text-xs cursor-pointer">100%</label>
+        <label for="hundredPercent" class="text-[10px] cursor-pointer">100%</label>
       </div>
+
       <div class="flex items-center gap-1">
         <p-radiobutton
           value="200"
@@ -96,8 +106,9 @@
           size="small"
           (ngModelChange)="updatePriceFromPercent()"
         />
-        <label for="twohundredPercent" class="text-xs cursor-pointer">200%</label>
+        <label for="twohundredPercent" class="text-[10px] cursor-pointer">200%</label>
       </div>
+
       <div class="flex items-center gap-1">
         <p-radiobutton
           value="500"
@@ -106,14 +117,27 @@
           size="small"
           (ngModelChange)="updatePriceFromPercent()"
         />
-        <label for="fivehundredPercent" class="text-xs cursor-pointer">500%</label>
+        <label for="fivehundredPercent" class="text-[10px] cursor-pointer">500%</label>
       </div>
+
+      <p-floatlabel variant="on" styleClass="w-20">
+        <p-inputnumber
+          [(ngModel)]="riskDialogPercent"
+          (ngModelChange)="updatePriceFromPercent()"
+          inputId="targetPercent"
+          [minlength]="1"
+          [maxlength]="3"
+          [inputSize]="8"
+          size="small"
+        />
+        <label for="targetPercent">Input %</label>
+      </p-floatlabel>
     </div>
   </div>
 </div>
 
 <div class="flex items-center gap-3 mb-1">
-  <label for="triggerPrice" class="font-semibold w-40 text-gray-400"
+  <label for="triggerPrice" class="w-50 text-gray-400"
     >Trigger Price
     <span class="pi pi-arrow-right" style="font-size: 0.75rem"></span>
   </label>
@@ -124,7 +148,7 @@
     [ngModelOptions]="{ standalone: true }"
     mode="decimal"
     [minFractionDigits]="0"
-    [maxFractionDigits]="2"
+    [maxFractionDigits]="7"
     class="flex-auto w-full"
     autocomplete="off"
   />
@@ -152,25 +176,33 @@
   }"
 >
   @if (hasTpSl()) {
-    <p-button severity="warn" size="small" (click)="removeOrder()">
-      <span class="text-[10px] text-gray-900 jetbrains-bold">{{
+    <button
+      type="button"
+      class="cursor-pointer bg-orange-400/50 py-1 px-3 rounded hover:bg-orange-400/70"
+      (click)="removeOrder()"
+    >
+      <span class="text-xs text-gray-100 jetbrains-medium">{{
         'Remove ' + (isStopLoss() ? 'Stop Loss' : 'Take Profit')
       }}</span>
-    </p-button>
+    </button>
   }
 
   <div class="flex gap-2">
-    <p-button severity="contrast" size="small" (click)="closeDialog()">
-      <span class="text-[10px] text-gray-900 jetbrains-bold">Close</span>
-    </p-button>
-
-    <p-button
-      severity="success"
-      size="small"
-      (click)="confirmOrder()"
-      [disabled]="!riskDialogPrice || riskDialogPrice <= 0"
+    <button
+      type="button"
+      class="cursor-pointer bg-gray-400/50 py-1 px-3 rounded hover:bg-gray-400/70"
+      (click)="closeDialog()"
     >
-      <span class="text-[10px] text-gray-900 jetbrains-bold">Confirm</span>
-    </p-button>
+      <span class="text-xs text-gray-100 jetbrains-medium">Close</span>
+    </button>
+
+    <button
+      type="button"
+      class="cursor-pointer bg-green-400/50 py-1 px-3 rounded hover:bg-green-400/70 disabled:bg-gray-950"
+      (click)="confirmOrder()"
+      [disabled]="isValidTriggerPrice()"
+    >
+      <span class="text-xs text-gray-100 jetbrains-medium">Confirm</span>
+    </button>
   </div>
 </div>

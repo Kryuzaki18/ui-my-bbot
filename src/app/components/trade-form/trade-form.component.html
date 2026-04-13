@@ -5,7 +5,7 @@
 }
 
 <form [formGroup]="tradeForm" class="flex justify-center mt-3">
-  <div class="flex flex-col gap-2">
+  <div class="flex flex-col gap-2 px-2">
     <p-selectbutton
       [allowEmpty]="false"
       [options]="orderTypes"
@@ -59,7 +59,7 @@
         currency="USD"
         locale="en-US"
         [showButtons]="true"
-        [inputSize]="21"
+        [inputSize]="17"
         [min]="5"
       />
       <label for="amount">Amount</label>
@@ -74,9 +74,8 @@
         [minFractionDigits]="0"
         [maxFractionDigits]="7"
         [showButtons]="true"
-        [inputSize]="21"
+        [inputSize]="17"
       />
-
       <label for="price">Price</label>
     </p-iftalabel>
 
@@ -95,7 +94,7 @@
                 formControlName="takeProfit"
                 autocomplete="off"
                 mode="decimal"
-                [inputSize]="21"
+                [inputSize]="17"
                 [placeholder]="selectedTpType().label"
               />
               <label for="takeProfit">Take Profit</label>
@@ -126,7 +125,7 @@
                 formControlName="stopLoss"
                 autocomplete="off"
                 mode="decimal"
-                [inputSize]="21"
+                [inputSize]="17"
                 [placeholder]="selectedSlType().label"
               />
               <label for="stopLoss">Stop loss</label>

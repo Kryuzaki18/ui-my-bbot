@@ -1,5 +1,8 @@
-import { Component, input, output } from '@angular/core';
+import { Component, inject, input, output } from '@angular/core';
 import { CommonModule } from '@angular/common';
+
+// Services
+import { ChartService } from '../../../core/services/chart/chart.service';
 
 // PrimeNG Modules
 import { TableModule } from 'primeng/table';
@@ -10,8 +13,10 @@ import { ButtonModule } from 'primeng/button';
   standalone: true,
   imports: [CommonModule, TableModule, ButtonModule],
   templateUrl: './positions.component.html',
+  styleUrl: './positions.component.scss',
 })
 export class PositionsComponent {
+  readonly chartService = inject(ChartService);
   readonly positions = input.required<any[]>();
   readonly onClosePosition = output<any>();
   readonly onSelectSymbol = output<string>();

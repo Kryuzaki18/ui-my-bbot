@@ -107,7 +107,7 @@ export class HeaderComponent implements OnInit {
 
     this.dialogService.open(TradeFormComponent, {
       showHeader: false,
-      width: '320px',
+      width: '280px',
       modal: true,
       styleClass: 'p-0',
       data: {

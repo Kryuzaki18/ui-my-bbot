@@ -13,7 +13,7 @@ import { BinanceWsService } from '../../core/services/binance-ws.service';
 
 // Models
 import { OrderSideEnum, OrderTypeEnum, PositionSideEnum } from '../../core/models/trades.model';
-import { STORAGE } from '../../core/constants/binance.constant';
+import { DEFAULT_SYMBOL, STORAGE } from '../../core/constants/binance.constant';
 
 // Components
 import { PositionsComponent } from './positions/positions.component';
@@ -49,6 +49,11 @@ export class PositionsAndOrdersComponent implements OnInit {
   readonly positions = signal<any[]>([]);
   readonly livePrices = signal<Record<string, number>>({});
 
+  readonly currentSymbol = this.localStorageService.getLocalStorageSignal(
+    STORAGE.SYMBOL,
+    DEFAULT_SYMBOL,
+  );
+
   readonly orderTypeFilter = signal('basic');
 
   readonly basicOrders = computed(() => {
@@ -83,56 +88,65 @@ export class PositionsAndOrdersComponent implements OnInit {
     const list = this.positions();
     const condOrders = this.conditionalOrders();
 
-    return list.map((pos) => {
-      const tpOrder = condOrders.find(
-        (o) =>
-          o.symbol.toLowerCase() === pos.symbol.toLowerCase() &&
-          o.orderType === OrderTypeEnum.TAKE_PROFIT_MARKET,
-      );
-      const slOrder = condOrders.find(
-        (o) =>
-          o.symbol.toLowerCase() === pos.symbol.toLowerCase() &&
-          o.orderType === OrderTypeEnum.STOP_MARKET,
-      );
+    const mapList = list
+      .map((pos) => {
+        const tpOrder = condOrders.find(
+          (o) =>
+            o.symbol.toLowerCase() === pos.symbol.toLowerCase() &&
+            o.orderType === OrderTypeEnum.TAKE_PROFIT_MARKET,
+        );
+        const slOrder = condOrders.find(
+          (o) =>
+            o.symbol.toLowerCase() === pos.symbol.toLowerCase() &&
+            o.orderType === OrderTypeEnum.STOP_MARKET,
+        );
 
-      const entryPrice = parseFloat(pos.entryPrice);
-      const leverage = parseFloat(pos.leverage || '20');
-      const sign = pos.positionAmt > 0 ? 1 : -1;
+        const entryPrice = parseFloat(pos.entryPrice);
+        const leverage = parseFloat(pos.leverage || '20');
+        const sign = pos.positionAmt > 0 ? 1 : -1;
 
-      const currentPrice =
-        this.livePrices()[pos.symbol] || parseFloat(pos.markPrice || pos.entryPrice);
-      const positionAmt = parseFloat(pos.positionAmt);
-      const livePnl = (currentPrice - entryPrice) * positionAmt;
-      const initialMargin = (Math.abs(positionAmt) * entryPrice) / leverage;
-      const roi = initialMargin > 0 ? (livePnl / initialMargin) * 100 : 0;
+        const currentPrice =
+          this.livePrices()[pos.symbol] || parseFloat(pos.markPrice || pos.entryPrice);
+        const positionAmt = parseFloat(pos.positionAmt);
+        const livePnl = (currentPrice - entryPrice) * positionAmt;
+        const initialMargin = (Math.abs(positionAmt) * entryPrice) / leverage;
+        const roi = initialMargin > 0 ? (livePnl / initialMargin) * 100 : 0;
 
-      let takeProfitPnlPercent = null;
-      let stopLossPnlPercent = null;
+        let takeProfitPnlPercent = null;
+        let stopLossPnlPercent = null;
 
-      if (tpOrder && entryPrice > 0 && tpOrder.triggerPrice) {
-        takeProfitPnlPercent =
-          ((tpOrder.triggerPrice - entryPrice) / entryPrice) * leverage * sign * 100;
-      }
-      if (slOrder && entryPrice > 0 && slOrder.triggerPrice) {
-        stopLossPnlPercent =
-          ((slOrder.triggerPrice - entryPrice) / entryPrice) * leverage * sign * 100;
-      }
+        if (tpOrder && entryPrice > 0 && tpOrder.triggerPrice) {
+          takeProfitPnlPercent =
+            ((tpOrder.triggerPrice - entryPrice) / entryPrice) * leverage * sign * 100;
+        }
+        if (slOrder && entryPrice > 0 && slOrder.triggerPrice) {
+          stopLossPnlPercent =
+            ((slOrder.triggerPrice - entryPrice) / entryPrice) * leverage * sign * 100;
+        }
 
-      return {
-        ...pos,
-        livePnl,
-        roi,
-        takeProfit: {
-          ...tpOrder,
-          pnlPercent: takeProfitPnlPercent,
-        },
-        stopLoss: {
-          ...slOrder,
-          pnlPercent: stopLossPnlPercent,
-        },
-        margin: this.utilsService.calculateMargin(pos.positionAmt, pos.markPrice, pos.leverage),
-      };
-    });
+        return {
+          ...pos,
+          livePnl,
+          roi,
+          takeProfit: {
+            ...tpOrder,
+            pnlPercent: takeProfitPnlPercent,
+          },
+          stopLoss: {
+            ...slOrder,
+            pnlPercent: stopLossPnlPercent,
+          },
+          margin: this.utilsService.calculateMargin(pos.positionAmt, pos.markPrice, pos.leverage),
+        };
+      })
+      .sort((a, b,) => {
+        if (a.symbol.toLowerCase() === this.currentSymbol().toLowerCase()) return -1;
+        if (b.symbol.toLowerCase() === this.currentSymbol().toLowerCase()) return 1;
+
+        return 0;
+      });
+
+    return mapList;
   });
 
   ngOnInit(): void {
@@ -377,11 +391,7 @@ export class PositionsAndOrdersComponent implements OnInit {
   }
 
   selectSymbol(symbol: string): void {
-    const getSymbol = this.localStorageService.getLocalStorageSignal(
-      STORAGE.SYMBOL,
-      symbol.toLowerCase(),
-    );
-    if (symbol.toLowerCase() === getSymbol().toLowerCase()) {
+    if (symbol.toLowerCase() === this.currentSymbol().toLowerCase()) {
       return;
     }
 
@@ -389,13 +399,15 @@ export class PositionsAndOrdersComponent implements OnInit {
     window.location.reload();
   }
 
-  removeTPSL(pos: any): void {
-  }
+  removeTPSL(pos: any): void {}
 
   openTPSLDialog({ pos, isTakeProfit }: { pos: any; isTakeProfit: boolean }): void {
     this.dialogRef = this.dialogService.open(TpSlComponent, {
       header: isTakeProfit ? 'Set Take Profit' : 'Set Stop Loss',
-      data: { ...pos, type: pos.orderType },
+      data: {
+        ...pos,
+        type: isTakeProfit ? OrderTypeEnum.TAKE_PROFIT_MARKET : OrderTypeEnum.STOP_MARKET,
+      },
       width: '500px',
       modal: true,
       breakpoints: {
