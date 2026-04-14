@@ -1,10 +1,21 @@
 <p-confirmDialog />
 
-<p-toast [breakpoints]="{ '425px': { width: '95%', right: 'auto' } }" key="toaster">
+<p-toast
+  position="top-center"
+  [breakpoints]="{ '425px': { width: '95%', right: 'auto' } }"
+  key="toaster"
+>
   <ng-template let-message #message>
-    <div class="flex justify-center items-center gap-1 flex-auto">
-      <span class="font-medium text-xs">{{ message.summary }}</span>
-      <span class="text-xs">{{ message.detail }}</span>
+    <div class="flex justify-center items-center gap-2 flex-auto">
+      @if (message.summary) {
+        <span class="font-medium text-xs"
+          >{{ message.summary }} {{ message.detail ? ':' : '' }}</span
+        >
+      }
+
+      @if (message.detail) {
+        <span class="text-xs">{{ message.detail }}</span>
+      }
     </div>
   </ng-template>
 </p-toast>

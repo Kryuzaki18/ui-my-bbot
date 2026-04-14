@@ -8,27 +8,27 @@ export class ToastMessageService {
   constructor(private messageService: MessageService) {}
 
   success(summary: string = 'Success', detail?: string): void {
-    this.messageService.add({ key: 'toaster', severity: 'success', summary, detail });
+    this.messageService.add({ key: 'toaster', severity: 'success', summary, detail, life: 2000 });
   }
 
   error(summary: string = 'Error', detail?: string): void {
-    this.messageService.add({ key: 'toaster', severity: 'error', summary, detail });
+    this.messageService.add({ key: 'toaster', severity: 'error', summary, detail, life: 2000 });
   }
 
   info(summary: string = 'Info', detail?: string): void {
-    this.messageService.add({ key: 'toaster', severity: 'info', summary, detail });
+    this.messageService.add({ key: 'toaster', severity: 'info', summary, detail, life: 2000 });
   }
 
   warn(summary: string = 'Warning', detail?: string): void {
-    this.messageService.add({ key: 'toaster', severity: 'warn', summary, detail });
+    this.messageService.add({ key: 'toaster', severity: 'warn', summary, detail, life: 2000 });
   }
 
   contrast(summary: string = 'Info', detail?: string): void {
-    this.messageService.add({ key: 'toaster', severity: 'contrast', summary, detail });
+    this.messageService.add({ key: 'toaster', severity: 'contrast', summary, detail, life: 2000 });
   }
 
   secondary(summary: string = 'Warning', detail?: string): void {
-    this.messageService.add({ key: 'toaster', severity: 'secondary', summary, detail });
+    this.messageService.add({ key: 'toaster', severity: 'secondary', summary, detail, life: 2000 });
   }
 
   clear(): void {

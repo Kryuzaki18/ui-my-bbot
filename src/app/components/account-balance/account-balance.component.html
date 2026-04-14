@@ -3,13 +3,14 @@
     ❌
   </button>
 }
-<div class="flex flex-col py-1 pb-3 px-3 border-b border-gray-700 border-dashed">
-  <div
-    class="text-center text-xs jetbrains-medium"
-    [class.py-3]="dynamicDialogConfig?.data?.isDialog"
-  >
-    Account
-  </div>
+<div
+  class="flex flex-col py-2 px-3 mt-2 border-gray-700 border-dashed"
+  [ngClass]="{
+    'border-y ': !dynamicDialogConfig?.data?.isDialog,
+    'border-b': dynamicDialogConfig?.data?.isDialog,
+  }"
+>
+  <div class="text-center text-xs jetbrains-medium">Account</div>
   <div class="flex justify-between">
     <div class="flex flex-col gap-2">
       <div class="flex flex-col jetbrains-thin">

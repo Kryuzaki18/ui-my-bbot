@@ -1,6 +1,6 @@
 import { Component, OnInit, inject, DestroyRef, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { CurrencyPipe } from '@angular/common';
+import { CurrencyPipe, NgClass } from '@angular/common';
 
 // Services
 import { UserWsService } from '../../core/services/user-ws.service';
@@ -15,7 +15,7 @@ import { DynamicDialogConfig, DynamicDialogRef } from 'primeng/dynamicdialog';
 
 @Component({
   selector: 'app-account-balance',
-  imports: [CurrencyPipe, Skeleton],
+  imports: [CurrencyPipe, Skeleton, NgClass],
   templateUrl: './account-balance.component.html',
   styleUrl: './account-balance.component.scss',
   standalone: true,

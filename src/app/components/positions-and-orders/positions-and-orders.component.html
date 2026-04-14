@@ -1,12 +1,12 @@
 <div class="w-full text-white">
-  <div class="h-2 mt-1">
-    @if (
-      (appSettingsService.isLoadingOpenOrders$ | async) ||
-      (appSettingsService.isLoadingPositions$ | async)
-    ) {
+  @if (
+    (appSettingsService.isLoadingOpenOrders$ | async) ||
+    (appSettingsService.isLoadingPositions$ | async)
+  ) {
+    <div class="h-2 mt-1">
       <p-progressbar mode="indeterminate" [style]="{ height: '6px' }" color="bg-gray-600" />
-    }
-  </div>
+    </div>
+  }
 
   <p-tabs value="0">
     <p-tablist>

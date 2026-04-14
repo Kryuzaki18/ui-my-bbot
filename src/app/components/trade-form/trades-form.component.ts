@@ -50,7 +50,7 @@ interface TPSLOption {
 }
 
 @Component({
-  selector: 'app-trades-terminal',
+  selector: 'app-trade-form',
   imports: [
     NgClass,
     ReactiveFormsModule,

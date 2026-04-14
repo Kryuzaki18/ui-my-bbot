@@ -10,6 +10,7 @@ import { FutureTradeService } from '../../core/services/future-trade.service';
 import { LocalStorageService } from '../../core/services/local-storage.service';
 import { UserWsService } from '../../core/services/user-ws.service';
 import { BinanceWsService } from '../../core/services/binance-ws.service';
+import { ToastMessageService } from '../../core/services/toast-message.service';
 
 // Models
 import { OrderSideEnum, OrderTypeEnum, PositionSideEnum } from '../../core/models/trades.model';
@@ -18,13 +19,13 @@ import { DEFAULT_SYMBOL, STORAGE } from '../../core/constants/binance.constant';
 // Components
 import { PositionsComponent } from './positions/positions.component';
 import { OpenOrdersComponent } from './open-orders/open-orders.component';
+import { TpSlComponent } from '../tp-sl/tp-sl.component';
 
 // PrimeNG Modules
 import { ProgressBarModule } from 'primeng/progressbar';
 import { TabsModule } from 'primeng/tabs';
 import { ConfirmationService } from 'primeng/api';
 import { DialogService, DynamicDialogRef } from 'primeng/dynamicdialog';
-import { TpSlComponent } from '../tp-sl/tp-sl.component';
 
 @Component({
   selector: 'app-positions-and-orders',
@@ -40,6 +41,7 @@ export class PositionsAndOrdersComponent implements OnInit {
   private readonly localStorageService = inject(LocalStorageService);
   private readonly futureTradeService = inject(FutureTradeService);
   private readonly dialogService = inject(DialogService);
+  private readonly toastMessageService = inject(ToastMessageService);
   readonly confirmationService = inject(ConfirmationService);
   readonly appSettingsService = inject(AppSettingsService);
 
@@ -139,7 +141,7 @@ export class PositionsAndOrdersComponent implements OnInit {
           margin: this.utilsService.calculateMargin(pos.positionAmt, pos.markPrice, pos.leverage),
         };
       })
-      .sort((a, b,) => {
+      .sort((a, b) => {
         if (a.symbol.toLowerCase() === this.currentSymbol().toLowerCase()) return -1;
         if (b.symbol.toLowerCase() === this.currentSymbol().toLowerCase()) return 1;
 
@@ -403,7 +405,7 @@ export class PositionsAndOrdersComponent implements OnInit {
 
   openTPSLDialog({ pos, isTakeProfit }: { pos: any; isTakeProfit: boolean }): void {
     this.dialogRef = this.dialogService.open(TpSlComponent, {
-      header: isTakeProfit ? 'Set Take Profit' : 'Set Stop Loss',
+      showHeader: false,
       data: {
         ...pos,
         type: isTakeProfit ? OrderTypeEnum.TAKE_PROFIT_MARKET : OrderTypeEnum.STOP_MARKET,
@@ -431,13 +433,18 @@ export class PositionsAndOrdersComponent implements OnInit {
           .pipe(takeUntilDestroyed(this.destroyRef))
           .subscribe({
             next: (res) => {
+              this.toastMessageService.success(
+                isTakeProfit ? 'Take profit removed.' : 'Stop loss removed.',
+              );
               this.appSettingsService.setIsLoadingOpenOrders(true);
               this.appSettingsService.setIsLoadingPositions(true);
             },
             error: (err) => {
+              const { error, details } = err.error;
+              this.toastMessageService.error(error, details.msg);
+
               this.appSettingsService.setIsLoadingOpenOrders(false);
               this.appSettingsService.setIsLoadingPositions(false);
-              console.error(err);
             },
           });
         return;
@@ -458,13 +465,16 @@ export class PositionsAndOrdersComponent implements OnInit {
           .pipe(takeUntilDestroyed(this.destroyRef))
           .subscribe({
             next: (res) => {
+              this.toastMessageService.success('Stop loss set successfully.');
               this.appSettingsService.setIsLoadingOpenOrders(true);
               this.appSettingsService.setIsLoadingPositions(true);
             },
             error: (err) => {
+              const { error, details } = err.error;
+              this.toastMessageService.error(error, details.msg);
+
               this.appSettingsService.setIsLoadingOpenOrders(false);
               this.appSettingsService.setIsLoadingPositions(false);
-              console.error(err);
             },
           });
       } else if (payload?.type === OrderTypeEnum.TAKE_PROFIT_MARKET) {
@@ -476,13 +486,16 @@ export class PositionsAndOrdersComponent implements OnInit {
           .pipe(takeUntilDestroyed(this.destroyRef))
           .subscribe({
             next: (res) => {
+              this.toastMessageService.success('Take profit set successfully.');
               this.appSettingsService.setIsLoadingOpenOrders(true);
               this.appSettingsService.setIsLoadingPositions(true);
             },
             error: (err) => {
+              const { error, details } = err.error;
+              this.toastMessageService.error(error, details.msg);
+
               this.appSettingsService.setIsLoadingOpenOrders(false);
               this.appSettingsService.setIsLoadingPositions(false);
-              console.error(err);
             },
           });
       }
