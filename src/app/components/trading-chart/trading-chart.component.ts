@@ -51,6 +51,7 @@ import {
   IndicatorConfig,
   Ticker24hrData,
   PositionChartData,
+  OpenOrderChartLine,
 } from '../../core/models/chart.model';
 
 // Components
@@ -134,6 +135,9 @@ export class TradingChartComponent implements OnInit, AfterViewInit, OnDestroy {
   private entryPriceLine: IPriceLine | null = null;
   private takeProfitLine: IPriceLine | null = null;
   private stopLossLine: IPriceLine | null = null;
+
+  // Open order price lines
+  private openOrderLines: IPriceLine[] = [];
 
   private readonly initCandles = signal<CandleData[]>([]);
   readonly aggTrades = signal<AggTradeWsMessage[]>([]);
@@ -420,6 +424,11 @@ export class TradingChartComponent implements OnInit, AfterViewInit, OnDestroy {
     this.chartService.positionChartData$
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe((data) => this.updatePositionLines(data));
+
+    // Subscribe to basic open orders for current symbol
+    this.chartService.openOrdersChartData$
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe((orders) => this.updateOpenOrderLines(orders));
   }
 
   private applyTheme(t: any): void {
@@ -489,6 +498,30 @@ export class TradingChartComponent implements OnInit, AfterViewInit, OnDestroy {
         axisLabelVisible: true,
         title: 'SL',
       });
+    }
+  }
+
+  private updateOpenOrderLines(orders: OpenOrderChartLine[]): void {
+    if (!this.candleSeries) return;
+
+    // Remove all previous open order lines
+    for (const line of this.openOrderLines) {
+      this.candleSeries.removePriceLine(line);
+    }
+    this.openOrderLines = [];
+
+    for (const order of orders) {
+      const isBuy = order.side === 'BUY';
+      const label = `${order.type} ${isBuy ? 'BUY' : 'SELL'} ${order.qty}`;
+      const line = this.candleSeries.createPriceLine({
+        price: order.price,
+        color: isBuy ? '#3fb950' : '#f85149',
+        lineWidth: 1,
+        lineStyle: 2, // Dashed
+        axisLabelVisible: true,
+        title: label,
+      });
+      this.openOrderLines.push(line);
     }
   }
 

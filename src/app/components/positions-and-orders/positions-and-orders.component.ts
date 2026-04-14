@@ -188,6 +188,21 @@ export class PositionsAndOrdersComponent implements OnInit {
     });
   });
 
+  private readonly syncOpenOrdersToChart = effect(() => {
+    const sym = this.currentSymbol().toLowerCase();
+    const lines = this.basicOrders()
+      .filter((o: any) => o.symbol?.toLowerCase() === sym && parseFloat(o.price) > 0)
+      .map((o: any) => ({
+        price: parseFloat(o.price),
+        side: o.side,
+        type: o.type ?? 'LIMIT',
+        qty: parseFloat(o.origQty ?? o.qty ?? 0),
+        orderId: o.orderId ?? o.clientOrderId ?? Math.random(),
+      }));
+
+    this.chartService.setOpenOrdersChartData(lines);
+  });
+
   ngOnInit(): void {
     this.fetchOpenOrders();
     this.fetchPendingTpSl();

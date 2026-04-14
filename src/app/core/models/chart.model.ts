@@ -192,3 +192,11 @@ export interface PositionChartData {
   stopLoss: number | null;
   positionSide: 'LONG' | 'SHORT' | string;
 }
+
+export interface OpenOrderChartLine {
+  price: number;
+  side: 'BUY' | 'SELL' | string;
+  type: string;
+  qty: number;
+  orderId: number | string;
+}
