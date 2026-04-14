@@ -1,12 +1,12 @@
 <div class="w-full min-h-[500px]">
-  @if (
-    (appSettingsService.isLoadingPendingTpSl$ | async) ||
-    (appSettingsService.isLoadingPositions$ | async)
-  ) {
-    <div class="h-2 mt-1">
+  <div class="h-2 mt-1">
+    @if (
+      (appSettingsService.isLoadingPendingTpSl$ | async) ||
+      (appSettingsService.isLoadingPositions$ | async)
+    ) {
       <p-progressbar mode="indeterminate" [style]="{ height: '6px' }" color="bg-gray-600" />
-    </div>
-  }
+    }
+  </div>
 
   <p-tabs value="0">
     <p-tablist>
@@ -56,15 +56,15 @@
 
         @if (this.orderTypeFilter() === 'basic') {
           <app-open-orders
+            (onSelectSymbol)="selectSymbol($event)"
             [basicOrders]="basicOrders()"
             (onCancelOrder)="cancelOrder($event)"
-            (onSelectSymbol)="selectSymbol($event)"
           ></app-open-orders>
         } @else {
           <app-conditional-orders
-            [conditionalOrders]="conditionalOrders()"
-            (onCancelOrder)="cancelOrder($event)"
             (onSelectSymbol)="selectSymbol($event)"
+            [conditionalOrders]="conditionalOrders()"
+            (onRemoveTPSL)="removeTPSL($event)"
           ></app-conditional-orders>
         }
       </p-tabpanel>

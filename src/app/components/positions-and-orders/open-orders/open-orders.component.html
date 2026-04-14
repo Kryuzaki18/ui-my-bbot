@@ -89,14 +89,13 @@
 
         <td>
           <p-button
-            (click)="cancelOrder(order)"
-            icon="pi pi-times"
-            [text]="true"
+            (onClick)="cancelOrder(order)"
+            icon="pi pi-trash"
+            size="small"
+            severity="secondary"
             [rounded]="true"
-            [outlined]="true"
-            severity="danger"
-          >
-          </p-button>
+            [disabled]="isLoadingOpenOrders"
+          />
         </td>
       </tr>
     </ng-template>

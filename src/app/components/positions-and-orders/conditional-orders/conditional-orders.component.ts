@@ -1,8 +1,10 @@
-import { Component, input, output } from '@angular/core';
+import { Component, DestroyRef, inject, input, output } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
 // Models
 import { OrderTypeEnum } from '../../../core/models/trades.model';
+import { AppSettingsService } from '../../../core/services/app-settings.service';
 
 // PrimeNG Modules
 import { TableModule } from 'primeng/table';
@@ -15,14 +17,27 @@ import { ButtonModule } from 'primeng/button';
   templateUrl: './conditional-orders.component.html',
 })
 export class ConditionalOrdersComponent {
+  private readonly destroyRef = inject(DestroyRef);
+  private readonly appSettingsService = inject(AppSettingsService);
   readonly conditionalOrders = input.required<any[]>();
-  readonly onCancelOrder = output<any>();
   readonly onSelectSymbol = output<string>();
-  
-  readonly OrderTypeEnum = OrderTypeEnum;
+  readonly onRemoveTPSL = output<any>();
 
-  cancelOrder(order: any): void {
-    this.onCancelOrder.emit(order);
+  readonly orderTypeEnum = OrderTypeEnum;
+
+  isLoadingPendingTpSl: boolean = false;
+
+  ngOnInit(): void {
+    this.appSettingsService.isLoadingPendingTpSl$
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe((value) => {
+        this.isLoadingPendingTpSl = value;
+      });
+  }
+
+  removeTPSL(tpsl: any): void {
+    tpsl.isTakeProfit = tpsl.orderType === this.orderTypeEnum.TAKE_PROFIT_MARKET;
+    this.onRemoveTPSL.emit(tpsl);
   }
 
   selectSymbol(symbol: string): void {

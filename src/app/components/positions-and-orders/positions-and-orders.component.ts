@@ -163,9 +163,7 @@ export class PositionsAndOrdersComponent implements OnInit {
 
   private readonly syncPositionToChart = effect(() => {
     const sym = this.currentSymbol().toLowerCase();
-    const pos = this.enrichedPositions().find(
-      (p) => p.symbol.toLowerCase() === sym,
-    );
+    const pos = this.enrichedPositions().find((p) => p.symbol.toLowerCase() === sym);
 
     if (!pos) {
       this.chartService.setPositionChartData(null);
@@ -173,12 +171,8 @@ export class PositionsAndOrdersComponent implements OnInit {
     }
 
     const entryPrice = parseFloat(pos.entryPrice);
-    const tpPrice = pos.takeProfit?.triggerPrice
-      ? parseFloat(pos.takeProfit.triggerPrice)
-      : null;
-    const slPrice = pos.stopLoss?.triggerPrice
-      ? parseFloat(pos.stopLoss.triggerPrice)
-      : null;
+    const tpPrice = pos.takeProfit?.triggerPrice ? parseFloat(pos.takeProfit.triggerPrice) : null;
+    const slPrice = pos.stopLoss?.triggerPrice ? parseFloat(pos.stopLoss.triggerPrice) : null;
 
     this.chartService.setPositionChartData({
       entryPrice: isNaN(entryPrice) ? null : entryPrice,
@@ -484,14 +478,45 @@ export class PositionsAndOrdersComponent implements OnInit {
     window.location.reload();
   }
 
-  removeTPSL(pos: any): void {}
+  removeTPSL(pos: any): void {
+    console.log(pos);
 
-  openTPSLDialog({ pos, isTakeProfit }: { pos: any; isTakeProfit: boolean }): void {
+    this.futureTradeService
+      .cancelTpSl({
+        algoId: pos.isTakeProfit
+          ? pos?.algoId || pos?.takeProfit?.algoId
+          : pos?.algoId || pos?.stopLoss?.algoId,
+        clientAlgoId: pos.isTakeProfit
+          ? pos?.clientAlgoId || pos?.takeProfit?.clientAlgoId
+          : pos?.clientAlgoId || pos?.stopLoss?.clientAlgoId,
+      })
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: (res) => {
+          this.toastMessageService.success(
+            pos.isTakeProfit ? 'Take profit removed.' : 'Stop loss removed.',
+          );
+          this.appSettingsService.setIsLoadingPositions(true);
+          this.appSettingsService.setIsLoadingOpenOrders(true);
+          this.appSettingsService.setIsLoadingPendingTpSl(true);
+        },
+        error: (err) => {
+          const { error, details } = err.error;
+          this.toastMessageService.error(error, details.msg);
+
+          this.appSettingsService.setIsLoadingPositions(false);
+          this.appSettingsService.setIsLoadingOpenOrders(false);
+          this.appSettingsService.setIsLoadingPendingTpSl(false);
+        },
+      });
+  }
+
+  openTPSLDialog(pos: any): void {
     this.dialogRef = this.dialogService.open(TpSlComponent, {
       showHeader: false,
       data: {
         ...pos,
-        type: isTakeProfit ? OrderTypeEnum.TAKE_PROFIT_MARKET : OrderTypeEnum.STOP_MARKET,
+        type: pos.isTakeProfit ? OrderTypeEnum.TAKE_PROFIT_MARKET : OrderTypeEnum.STOP_MARKET,
       },
       width: '500px',
       modal: true,
@@ -506,32 +531,7 @@ export class PositionsAndOrdersComponent implements OnInit {
       }
 
       if (payload.isRemove) {
-        this.futureTradeService
-          .cancelTpSl({
-            algoId: isTakeProfit ? pos?.takeProfit?.algoId : pos?.stopLoss?.algoId,
-            clientAlgoId: isTakeProfit
-              ? pos?.takeProfit?.clientAlgoId
-              : pos?.stopLoss?.clientAlgoId,
-          })
-          .pipe(takeUntilDestroyed(this.destroyRef))
-          .subscribe({
-            next: (res) => {
-              this.toastMessageService.success(
-                isTakeProfit ? 'Take profit removed.' : 'Stop loss removed.',
-              );
-              this.appSettingsService.setIsLoadingPositions(true);
-              this.appSettingsService.setIsLoadingOpenOrders(true);
-              this.appSettingsService.setIsLoadingPendingTpSl(true);
-            },
-            error: (err) => {
-              const { error, details } = err.error;
-              this.toastMessageService.error(error, details.msg);
-
-              this.appSettingsService.setIsLoadingPositions(false);
-              this.appSettingsService.setIsLoadingOpenOrders(false);
-              this.appSettingsService.setIsLoadingPendingTpSl(false);
-            },
-          });
+        this.removeTPSL(pos);
         return;
       }
 

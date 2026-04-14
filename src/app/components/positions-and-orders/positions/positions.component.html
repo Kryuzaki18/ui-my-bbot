@@ -145,6 +145,7 @@
                   severity="secondary"
                   [rounded]="true"
                   (onClick)="openTPSLDialog(pos, true)"
+                  [disabled]="isLoadingPositions"
                   icon="pi pi-pen-to-square"
                 >
                 </p-button>
@@ -153,7 +154,8 @@
                   size="small"
                   severity="secondary"
                   [rounded]="true"
-                  (onClick)="removeTPSL(pos)"
+                  (onClick)="removeTPSL(pos, true)"
+                  [disabled]="isLoadingPositions"
                   icon="pi pi-trash"
                 >
                 </p-button>
@@ -167,6 +169,7 @@
                 severity="secondary"
                 [rounded]="true"
                 (onClick)="openTPSLDialog(pos, true)"
+                [disabled]="isLoadingPositions"
                 icon="pi pi-plus"
               >
               </p-button>
@@ -191,6 +194,7 @@
                   severity="secondary"
                   [rounded]="true"
                   (onClick)="openTPSLDialog(pos, false)"
+                  [disabled]="isLoadingPositions"
                   icon="pi pi-pen-to-square"
                 >
                 </p-button>
@@ -199,7 +203,8 @@
                   size="small"
                   severity="secondary"
                   [rounded]="true"
-                  (onClick)="removeTPSL(pos)"
+                  (onClick)="removeTPSL(pos, false)"
+                  [disabled]="isLoadingPositions"
                   icon="pi pi-trash"
                 >
                 </p-button>
@@ -213,6 +218,7 @@
                 severity="secondary"
                 [rounded]="true"
                 (onClick)="openTPSLDialog(pos, false)"
+                [disabled]="isLoadingPositions"
                 icon="pi pi-plus"
               >
               </p-button>
@@ -222,8 +228,9 @@
 
         <td>
           <button
-            class="bg-red-950 text-gray-200 px-2 py-1 rounded text-[10px] cursor-pointer jetbrains-bold border border-red-900 hover:bg-red-900/70"
+            class="bg-red-950 text-gray-200 px-2 py-1 rounded text-[10px] cursor-pointer jetbrains-bold border border-red-900 hover:bg-red-900/70 disabled:opacity-50 disabled:cursor-not-allowed"
             (click)="closePosition(pos)"
+            [disabled]="isLoadingPositions"
           >
             Close Position
           </button>

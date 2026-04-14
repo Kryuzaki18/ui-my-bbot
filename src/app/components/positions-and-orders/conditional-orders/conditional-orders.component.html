@@ -33,22 +33,22 @@
       </tr>
     </ng-template>
 
-    <ng-template #body let-order let-index="rowIndex">
+    <ng-template #body let-tpsl let-index="rowIndex">
       <tr>
         <td pFrozenColumn alignFrozen="left" class="shadow-[4px_0_12px_-4px_rgba(0,0,0,0.5)]">
           <div class="flex flex-col gap-2">
             <div>
               <span
                 class="jetbrains-bold text-yellow-500 hover:text-yellow-200 cursor-pointer text-xs bg-yellow-200/10 px-2 py-1 rounded"
-                (click)="selectSymbol(order.symbol)"
+                (click)="selectSymbol(tpsl.symbol)"
               >
-                {{ order.symbol }}
+                {{ tpsl.symbol }}
               </span>
             </div>
 
             <div>
               <span class="text-gray-400 text-[9px]">
-                {{ order.updateTime | date: 'MMMM d h:mma' }}
+                {{ tpsl.updateTime | date: 'MMMM d h:mma' }}
               </span>
             </div>
           </div>
@@ -58,33 +58,32 @@
           <span
             class="jetbrains-bold text-white border text-[9px] py-1 px-2 rounded uppercase tracking-[1px]"
             [ngClass]="{
-              'bg-green-900/30 border-green-700/50': order.side === 'BUY',
-              'bg-red-900/30 border-red-700/50': order.side === 'SELL',
+              'bg-green-900/30 border-green-700/50': tpsl.side === 'BUY',
+              'bg-red-900/30 border-red-700/50': tpsl.side === 'SELL',
             }"
           >
-            {{ order.side }}
+            {{ tpsl.side }}
           </span>
         </td>
         <td>
-          @if (order.orderType === OrderTypeEnum.STOP_MARKET) {
+          @if (tpsl.orderType === orderTypeEnum.STOP_MARKET) {
             <span class="text-red-500">Stop Loss</span>
           } @else {
             <span class="text-green-500">Take Profit</span>
           }
         </td>
 
-        <td>{{ order.triggerPrice | number: '1.0-7' }}</td>
+        <td>{{ tpsl.triggerPrice | number: '1.0-7' }}</td>
 
         <td>
           <p-button
-            (click)="cancelOrder(order)"
-            icon="pi pi-times"
-            [text]="true"
+            (onClick)="removeTPSL(tpsl)"
+            icon="pi pi-trash"
+            size="small"
+            severity="secondary"
             [rounded]="true"
-            [outlined]="true"
-            severity="danger"
-          >
-          </p-button>
+            [disabled]="isLoadingPendingTpSl"
+          />
         </td>
       </tr>
     </ng-template>
