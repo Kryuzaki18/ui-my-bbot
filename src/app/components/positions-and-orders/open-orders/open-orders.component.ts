@@ -35,11 +35,11 @@ export class OpenOrdersComponent implements OnChanges {
   ngOnChanges(): void {
     this.orderTypeOptions = [
       {
-        label: `Basic (${this.ordersCount().basic})`,
+        label: `Basic(${this.ordersCount().basic})`,
         value: 'basic',
       },
       {
-        label: `Conditional (${this.ordersCount().conditional})`,
+        label: `Conditional(${this.ordersCount().conditional})`,
         value: 'conditional',
       },
     ];

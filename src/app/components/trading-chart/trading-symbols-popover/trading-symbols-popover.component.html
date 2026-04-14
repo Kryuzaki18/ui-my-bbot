@@ -4,7 +4,7 @@
       <span class="text-xs text-gray-400 jetbrains-bold">SELECT MARKET</span>
     </div>
 
-    <div class="px-3 pb-3 border-b border-gray-800/80 mb-1">
+    <div class="border-b border-gray-800/80 mb-3">
       <p-iconfield>
         <p-inputicon class="pi pi-search text-gray-500" />
         <input
@@ -26,53 +26,66 @@
         [loading]="tableData().length === 0"
         size="small"
         [scrollable]="true"
-        scrollHeight="450px"
+        scrollHeight="500px"
         [virtualScroll]="true"
         [virtualScrollItemSize]="46"
         [globalFilterFields]="['symbol']"
         sortField="isFavorite"
         [sortOrder]="-1"
         [tableStyle]="{ 'min-width': '100%' }"
+        class="jetbrains-light text-[11px]"
       >
         <ng-template #header>
-          <tr class="shadow-sm py-3 text-sm">
+          <tr>
             <th
               pSortableColumn="isFavorite"
               pFrozenColumn
               alignFrozen="left"
-              style="width: 40px"
-              class="!bg-gray-900 z-10"
+              class="!bg-gray-900 !w-10"
             >
               <span
                 class="flex items-center justify-center text-gray-500 hover:text-gray-300 transition-colors"
               >
-                <i class="pi pi-star"></i>
+                <span
+                  class="pi p-1.5 transition-all hover:scale-110"
+                  [ngClass]="
+                    dtSymbols.isSorted('isFavorite')
+                      ? 'pi-star-fill text-yellow-500 hover:text-yellow-200 drop-shadow-[0_0_8px_rgba(234,179,8,0.4)]'
+                      : 'pi-star text-gray-600 hover:text-white'
+                  "
+                ></span>
               </span>
             </th>
-            <th pSortableColumn="symbol" pFrozenColumn alignFrozen="left" class="!bg-gray-900 z-10">
+
+            <th
+              pSortableColumn="symbol"
+              pFrozenColumn
+              alignFrozen="left"
+              class="!bg-gray-900 shadow-[4px_0_12px_-4px_rgba(0,0,0,0.5)] !w-40"
+            >
               <span
-                class="flex items-center gap-1 text-gray-500 hover:text-gray-300 transition-colors"
+                class="flex items-center gap-1 text-gray-400 hover:text-gray-100 transition-color"
               >
-                <span>Pair</span>
+                <span>Symbols</span>
                 <p-sortIcon field="symbol"></p-sortIcon>
               </span>
             </th>
-            <th class="!bg-gray-900" style="width: 100px">
+            <th class="!bg-gray-900 !w-[100px]">
               <span class="text-gray-500">
                 <span>Last Price</span>
               </span>
             </th>
-            <th pSortableColumn="priceChangePercent" class="!bg-gray-900" style="width: 80px">
+            <th pSortableColumn="priceChangePercent" class="!bg-gray-900 !w-[80px]">
               <span
-                class="flex items-center gap-1 text-gray-500 hover:text-gray-300 transition-colors"
+                class="flex items-center gap-1 text-gray-400 hover:text-gray-100 transition-color"
               >
                 <span>24h %</span>
                 <p-sortIcon field="priceChangePercent"></p-sortIcon>
               </span>
             </th>
-            <th pSortableColumn="volNumber" class="!bg-gray-900" style="width: 80px">
+            <th pSortableColumn="volNumber" class="!bg-gray-900 !w-[80px]">
               <span
-                class="flex items-center gap-1 text-gray-500 hover:text-gray-300 transition-colors"
+                class="flex items-center gap-1 text-gray-400 hover:text-gray-100 transition-color"
               >
                 <span>Volume</span>
                 <p-sortIcon field="volNumber"></p-sortIcon>
@@ -83,20 +96,20 @@
 
         <ng-template #body let-item let-index="rowIndex">
           <tr
-            class="group hover:bg-gray-800/60 transition-colors cursor-pointer border-b border-gray-800/30"
+            class="group cursor-pointer transition-colors"
             (click)="hide(); selectSymbol(item.symbol)"
           >
             <td
               pFrozenColumn
               alignFrozen="left"
-              class="text-center !bg-gray-900 group-hover:!bg-gray-800 transition-colors"
+              class="text-center group-hover:!bg-yellow-700 transition-colors"
             >
               <span
                 class="pi p-1.5 transition-all group-hover:scale-110"
                 [ngClass]="
                   item.isFavorite
-                    ? 'pi-star-fill text-yellow-500 drop-shadow-[0_0_8px_rgba(234,179,8,0.4)]'
-                    : 'pi-star text-gray-600 group-hover:text-gray-400'
+                    ? 'pi-star-fill text-yellow-500 group-hover:text-yellow-200 drop-shadow-[0_0_8px_rgba(234,179,8,0.4)]'
+                    : 'pi-star text-gray-600 group-hover:text-white'
                 "
                 (click)="toggleFavorite(item.symbol, $event)"
               ></span>
@@ -104,15 +117,12 @@
             <td
               pFrozenColumn
               alignFrozen="left"
-              class="!bg-gray-900 group-hover:!bg-gray-800 transition-colors shadow-[4px_0_12px_-4px_rgba(0,0,0,0.5)] z-10"
+              class="group-hover:!bg-gray-950 !text-gray-400 shadow-[4px_0_12px_-4px_rgba(0,0,0,0.5)] transition-colors"
             >
-              <div class="flex items-center gap-1.5">
-                <span class="text-gray-200 group-hover:text-yellow-400 transition-colors text-sm">{{
-                  item.symbol
-                }}</span>
+              <div class="flex items-center gap-1.5 uppercase">
                 <span
-                  class="text-[9px] bg-yellow-900/30 border border-yellow-700/50 text-yellow-500 px-1 py-[2px] rounded uppercase tracking-wider"
-                  >PERP</span
+                  class="text-gray-200 group-hover:text-yellow-400 transition-colors text-sm jetbrains-bold tracking-[1.5px]"
+                  >{{ item.symbol }}</span
                 >
               </div>
             </td>

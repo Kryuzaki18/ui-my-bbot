@@ -81,6 +81,9 @@ export class HeaderComponent implements OnInit {
       closable: true,
       modal: true,
       contentStyle: { 'padding-bottom': '0' },
+      breakpoints: {
+        '375px': '90vw',
+      },
     });
   }
 

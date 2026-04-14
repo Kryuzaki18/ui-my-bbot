@@ -1,4 +1,4 @@
-import { Component, DestroyRef, inject, OnInit } from '@angular/core';
+import { Component, DestroyRef, inject, OnInit, signal } from '@angular/core';
 import { ReactiveFormsModule, FormsModule } from '@angular/forms';
 import { DecimalPipe, NgClass } from '@angular/common';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
@@ -42,7 +42,7 @@ export class TpSlComponent implements OnInit {
   private readonly defaultPntStr: string = '$0.00';
   private tpslData!: FuturePosition;
 
-  tickSize!: number;
+  tickSize = signal<number>(0);
   symbol = '';
   price!: number;
   type: OrderTypeEnum = OrderTypeEnum.STOP_MARKET;
@@ -71,26 +71,16 @@ export class TpSlComponent implements OnInit {
         this.price = parseFloat(this.tpslData?.stopLoss?.triggerPrice as string);
         this.percent = Math.round(Math.abs(this.tpslData?.stopLoss?.pnlPercent ?? 0));
       } else {
-        this.updateFromPrice();
+        this.updatePriceFromPercent(this.percent);
       }
     } else {
       if (this.tpslData?.takeProfit?.pnlPercent !== null) {
         this.price = parseFloat(this.tpslData?.takeProfit?.triggerPrice as string);
         this.percent = Math.round(Math.abs(this.tpslData?.takeProfit?.pnlPercent ?? 0));
       } else {
-        this.updateFromPrice();
+        this.updatePriceFromPercent(this.percent);
       }
     }
-  }
-
-  getSymbolTickSize(): void {
-    this.binanceRestService
-      .getExchangeInfo()
-      .pipe(takeUntilDestroyed(this.destroyRef))
-      .subscribe((res) => {
-        const exchangeSymbol = res.symbols.find((s) => s.symbol === this.tpslData.symbol);
-        this.tickSize = this.utilsService.getTickSize(exchangeSymbol?.filters);
-      });
   }
 
   updatePriceFromPercent(percent: number): void {
@@ -98,6 +88,11 @@ export class TpSlComponent implements OnInit {
     const leverage = this.leverage;
     const amount = this.positionAmt;
     this.percent = percent;
+    console.log('entryPrice', entryPrice);
+    console.log('leverage', leverage);
+    console.log('amount', amount);
+    console.log('percent', percent);
+    console.log('tickSize', this.tickSize());
 
     const targetPrice = this.utilsService.calculateTargetPrice(
       entryPrice,
@@ -105,7 +100,7 @@ export class TpSlComponent implements OnInit {
       percent,
       amount > 0,
       this.isStopLoss() ? false : true,
-      this.tickSize,
+      this.tickSize(),
     );
 
     this.price = targetPrice;
@@ -141,7 +136,7 @@ export class TpSlComponent implements OnInit {
       price,
       amount,
       leverage,
-      this.tickSize,
+      this.tickSize(),
     );
 
     this.estPnl = pnlStr;
@@ -212,5 +207,16 @@ export class TpSlComponent implements OnInit {
 
   closeDialog(): void {
     this.dialogRef.close();
+  }
+
+  private getSymbolTickSize(): void {
+    this.binanceRestService
+      .getExchangeInfo()
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe((res) => {
+        const exchangeSymbol = res.symbols.find((s) => s.symbol === this.tpslData.symbol);
+        const tickSize = this.utilsService.getTickSize(exchangeSymbol?.filters);
+        this.tickSize.set(tickSize);
+      });
   }
 }

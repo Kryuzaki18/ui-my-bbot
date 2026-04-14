@@ -1,6 +1,6 @@
 <div class="flex justify-center items-center">
   <div class="card w-[350px]">
-    <div class="absolute top-0 right-0 z-10 -mt-3 -mr-3">
+    <div class="absolute top-0 right-0 -mt-3 -mr-3">
       <p-button
         icon="pi pi-times"
         severity="danger"
@@ -14,7 +14,7 @@
         <p-tab value="0">Email</p-tab>
         <p-tab value="1">Binance API</p-tab>
       </p-tablist>
-      <p-tabpanels>
+      <p-tabpanels class="!px-0 !pt-6">
         <p-tabpanel value="0">
           <form [formGroup]="emailForm" (ngSubmit)="signInWithEmail()" class="flex flex-col gap-4">
             <p-floatlabel variant="on">

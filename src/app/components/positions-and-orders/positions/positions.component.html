@@ -5,81 +5,87 @@
 } @else {
   <p-table
     [value]="positions()"
-    [scrollable]="true"
-    class="mt-2 jetbrains-light text-[10px]"
+    class="jetbrains-light text-[11px]"
     size="small"
+    [scrollable]="true"
+    scrollHeight="500px"
+    [virtualScroll]="true"
+    [virtualScrollItemSize]="48"
   >
-    <ng-template pTemplate="header">
-      <tr class="text-left text-gray-600">
+    <ng-template #header>
+      <tr>
         <th
           pSortableColumn="symbol"
           pFrozenColumn
           alignFrozen="left"
-          class="!bg-gray-900 shadow-[4px_0_12px_-4px_rgba(0,0,0,0.5)]"
+          class="!bg-gray-900 shadow-[4px_0_12px_-4px_rgba(0,0,0,0.5)] !w-30"
         >
-          <span class="flex items-center gap-1">
-            <span>Symbol</span>
+          <div class="flex items-center gap-1 text-gray-400 hover:text-gray-100 transition-colors">
+            <span>Symbols</span>
             <p-sortIcon field="symbol"></p-sortIcon>
-          </span>
+          </div>
         </th>
-        <th class="!bg-gray-900">Side</th>
+
+        <th class="!bg-gray-900 !text-gray-400">Side</th>
 
         <th pSortableColumn="margin" class="!bg-gray-900">
-          <span class="flex items-center gap-1">
+          <div class="flex items-center gap-1 text-gray-400 hover:text-gray-100 transition-color">
             <span>Margin/Size</span>
             <p-sortIcon field="margin"></p-sortIcon>
-          </span>
+          </div>
         </th>
 
-        <th class="!bg-gray-900">Entry Price</th>
-        <th class="!bg-gray-900">Mark Price</th>
-        <th class="!bg-gray-900">Break Even Price</th>
+        <th class="!bg-gray-900 !text-gray-400">Entry Price</th>
+        <th class="!bg-gray-900 !text-gray-400">Mark Price</th>
+        <th class="!bg-gray-900 !text-gray-400">Break Even Price</th>
         <th pSortableColumn="livePnl" class="!bg-gray-900">
-          <span class="flex items-center gap-1">
+          <div class="flex items-center gap-1 text-gray-400 hover:text-gray-100 transition-color">
             <span>PNL(ROI%)</span>
             <p-sortIcon field="livePnl"></p-sortIcon>
-          </span>
+          </div>
         </th>
-        <th class="!bg-gray-900">Liq. Price</th>
-        <th class="!bg-gray-900">Take Profit</th>
-        <th class="!bg-gray-900">Stop Loss</th>
-        <th class="w-32 !bg-gray-900">Action</th>
+        <th class="!bg-gray-900 !text-gray-400">Liq. Price</th>
+        <th class="!bg-gray-900 !text-gray-400 !text-right">Take Profit</th>
+        <th class="!bg-gray-900 !text-gray-400 !text-right">Stop Loss</th>
+        <th class="!bg-gray-900 !text-gray-400 w-32">Action</th>
       </tr>
     </ng-template>
 
-    <ng-template pTemplate="body" let-pos>
+    <ng-template #body let-pos let-index="rowIndex">
       <tr
         [ngClass]="{
-          'selected-symbol !bg-gray-950':
+          'selected-symbol !bg-gray-900':
             chartService.selectedSymbol().toLowerCase() === pos.symbol.toLowerCase(),
         }"
       >
-        <td pFrozenColumn alignFrozen="left">
+        <td pFrozenColumn alignFrozen="left" class="shadow-[4px_0_12px_-4px_rgba(0,0,0,0.5)]">
           <div class="flex flex-col gap-2 text-gray-400">
             <span>
               <span
-                class="jetbrains-bold text-yellow-500 hover:text-yellow-200 cursor-pointer text-xs bg-yellow-200/10 px-2 py-1 rounded"
+                class="jetbrains-bold text-yellow-500 hover:text-yellow-200 cursor-pointer text-xs bg-yellow-200/10 px-2 py-1 rounded tracking-[1px]"
                 (click)="selectSymbol(pos.symbol)"
               >
                 {{ pos.symbol }}
               </span>
             </span>
             <span class="flex items-center gap-1">
-              <span class="jetbrains-bold text-gray-200 bg-gray-800 px-1"
+              <span class="text-gray-200 bg-gray-700 px-1 rounded"
                 >{{ pos.leverage || '20' }}x</span
               >
-              <span class="uppercase text-[9px]">{{ pos.marginType || 'cross' }}</span>
+              <span class="uppercase text-[10px] text-gray-200">{{
+                pos.marginType || 'cross'
+              }}</span>
             </span>
           </div>
         </td>
 
         <td>
           <span
-            class="text-[9px] px-1 py-[2px] rounded uppercase tracking-wider"
+            class="jetbrains-bold text-white border text-[9px] py-1 px-2 rounded uppercase tracking-[1px]"
             [ngClass]="
               pos.positionSide === 'LONG' || pos.positionAmt > 0
-                ? 'bg-green-900/30 text-green-500 border border-green-700/50'
-                : 'bg-red-900/30 text-red-500 border border-red-700/50'
+                ? 'bg-green-900/30 border-green-700/50'
+                : 'bg-red-900/30  border-red-700/50'
             "
           >
             {{ pos.positionSide === 'LONG' || pos.positionAmt > 0 ? 'Buy/Long' : 'Sell/Short' }}
@@ -123,47 +129,46 @@
 
         <td>
           @if (pos.takeProfit?.triggerPrice) {
-            <div class="flex flex-col gap-2">
-              <div class="flex">
-                <span class="text-emerald-300"
-                  >+{{ pos.takeProfit.pnlPercent | number: '1.0-0' }}% /
-                  {{ pos.takeProfit.triggerPrice | number: '1.0-7' }}</span
-                >
+            <div class="flex flex-col items-end gap-2">
+              <div>
+                <div class="flex gap-1">
+                  <span class="text-green-400"
+                    >+{{ pos.takeProfit.pnlPercent | number: '1.0-0' }}%</span
+                  >
+                  <span>/</span>
+                  <span>{{ pos.takeProfit.triggerPrice | number: '1.0-7' }}</span>
+                </div>
               </div>
               <div class="flex gap-1">
                 <p-button
                   size="small"
-                  severity="info"
-                  variant="outlined"
+                  severity="secondary"
+                  [rounded]="true"
                   (onClick)="openTPSLDialog(pos, true)"
-                  class="w-8"
+                  icon="pi pi-pen-to-square"
                 >
-                  <span class="pi pi-pencil" style="font-size: 10px"></span>
                 </p-button>
 
                 <p-button
                   size="small"
-                  severity="danger"
-                  variant="outlined"
+                  severity="secondary"
+                  [rounded]="true"
                   (onClick)="removeTPSL(pos)"
-                  class="w-8"
+                  icon="pi pi-trash"
                 >
-                  <span class="pi pi-trash" style="font-size: 10px"></span>
                 </p-button>
               </div>
             </div>
           } @else {
-            <div class="flex flex-col gap-2">
-              <span class="text-gray-500">-</span>
+            <div class="flex flex-col items-end gap-2">
+              <span class="text-gray-500 text-lg">--</span>
               <p-button
-                type="button"
                 size="small"
                 severity="secondary"
-                variant="outlined"
+                [rounded]="true"
                 (onClick)="openTPSLDialog(pos, true)"
-                class="w-8"
+                icon="pi pi-plus"
               >
-                <span class="pi pi-plus" style="font-size: 10px"></span>
               </p-button>
             </div>
           }
@@ -171,62 +176,57 @@
 
         <td>
           @if (pos.stopLoss?.triggerPrice) {
-            <div class="flex flex-col gap-2">
-              <div class="flex">
-                <span class="text-red-300"
-                  >{{ pos.stopLoss.pnlPercent | number: '1.0-0' }}% /
-                  {{ pos.stopLoss.triggerPrice | number: '1.0-7' }}</span
-                >
+            <div class="flex flex-col items-end gap-2">
+              <div>
+                <div class="flex gap-1">
+                  <span class="text-red-400">{{ pos.stopLoss.pnlPercent | number: '1.0-0' }}%</span>
+                  <span>/</span>
+                  <span>{{ pos.stopLoss.triggerPrice | number: '1.0-7' }}</span>
+                </div>
               </div>
+
               <div class="flex gap-1">
                 <p-button
                   size="small"
-                  severity="info"
-                  variant="outlined"
+                  severity="secondary"
+                  [rounded]="true"
                   (onClick)="openTPSLDialog(pos, false)"
-                  class="w-8"
+                  icon="pi pi-pen-to-square"
                 >
-                  <span class="pi pi-pencil" style="font-size: 10px"></span>
                 </p-button>
 
                 <p-button
                   size="small"
-                  severity="danger"
-                  variant="outlined"
+                  severity="secondary"
+                  [rounded]="true"
                   (onClick)="removeTPSL(pos)"
-                  class="w-8"
+                  icon="pi pi-trash"
                 >
-                  <span class="pi pi-trash" style="font-size: 10px"></span>
                 </p-button>
               </div>
             </div>
           } @else {
-            <div class="flex flex-col gap-2">
-              <span class="text-gray-500">-</span>
+            <div class="flex flex-col items-end gap-2">
+              <span class="text-gray-500 text-lg">-</span>
               <p-button
-                type="button"
                 size="small"
                 severity="secondary"
-                variant="outlined"
+                [rounded]="true"
                 (onClick)="openTPSLDialog(pos, false)"
-                class="w-8"
+                icon="pi pi-plus"
               >
-                <span class="pi pi-plus" style="font-size: 10px"></span>
               </p-button>
             </div>
           }
         </td>
 
         <td>
-          <p-button
-            label="Close Position"
+          <button
+            class="bg-red-950 text-gray-200 px-2 py-1 rounded text-[10px] cursor-pointer jetbrains-bold border border-red-900 hover:bg-red-900/70"
             (click)="closePosition(pos)"
-            size="small"
-            severity="danger"
-            [outlined]="true"
-            class="[&_.p-button]:!text-[8px] [&_.p-button]:!px-2 [&_.p-button]:!py-1 jetbrains-medium"
           >
-          </p-button>
+            Close Position
+          </button>
         </td>
       </tr>
     </ng-template>

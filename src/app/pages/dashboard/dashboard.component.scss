@@ -1,4 +1,4 @@
-@use '../../styles/variables' as *;
+@use 'variables' as *;
 
 $chart-height: calc(
   100vh - #{$header-height} - #{$volume-chart-height} - #{$timeframe-height} -

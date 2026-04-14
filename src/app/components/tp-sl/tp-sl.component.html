@@ -1,22 +1,24 @@
-<div class="flex items-center justify-center mb-2 mt-4">
+<div class="flex items-center justify-center my-4">
   <span class="text-gray-200 text-lg font-bold"
     >Set {{ isStopLoss() ? 'Stop Loss' : 'Take Profit' }}</span
   >
 </div>
 
 <div class="flex flex-col gap-2 text-xs text-wrap text-gray-400 mb-1">
-  <div class="flex items-center gap-1">
-    <span class="uppercase jetbrains-bold text-yellow-500 bg-yellow-200/10 rounded px-2 py-1">
+  <div class="flex items-center gap-1 tracking-[1px] uppercase">
+    <span
+      class="jetbrains-bold text-yellow-500 bg-yellow-200/10 rounded px-2 py-1 border border-yellow-200/20"
+    >
       {{ symbol }}
     </span>
 
     <span
-      class="uppercase jetbrains-bold rounded px-2 py-1"
+      class="jetbrains-bold rounded px-2 py-1 border"
       [ngClass]="{
-        'text-red-500 bg-red-200/10': !isOrderLong(),
-        'text-green-500 bg-green-200/10': isOrderLong(),
+        'text-red-500 bg-red-500/10  border-red-500/20': !isOrderLong(),
+        'text-green-500 bg-green-500/10  border-green-500/20': isOrderLong(),
       }"
-      >{{ isOrderLong() ? 'Long' : 'Short' }}</span
+      >{{ isOrderLong() ? 'Buy/Long' : 'Sell/Short' }}</span
     >
   </div>
 
