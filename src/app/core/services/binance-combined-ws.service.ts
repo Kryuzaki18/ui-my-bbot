@@ -4,7 +4,7 @@ import { retry } from 'rxjs/operators';
 import { environment } from '../../../environments/environment';
 
 @Injectable({ providedIn: 'root' })
-export class BinanceCombinedWStService implements OnDestroy {
+export class BinanceCombinedWSService implements OnDestroy {
   private readonly publicWsBase = environment.binancePublicWSBaseUrl;
   private socket$?: WebSocketSubject<any>;
   private requestId = 1; // Required for Binance request tracking

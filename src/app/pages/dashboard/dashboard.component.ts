@@ -9,9 +9,17 @@ import { TradingChartComponent } from '../../components/trading-chart/trading-ch
 
 @Component({
   selector: 'app-dashboard',
-  imports: [HeaderComponent, TradeFormComponent, AccountBalanceComponent, PositionsAndOrdersComponent, TradingChartComponent],
+  imports: [
+    HeaderComponent,
+    TradeFormComponent,
+    AccountBalanceComponent,
+    PositionsAndOrdersComponent,
+    TradingChartComponent,
+  ],
   templateUrl: './dashboard.component.html',
   styleUrl: './dashboard.component.scss',
   standalone: true,
 })
-export class DashboardComponent {}
+export class DashboardComponent {
+  
+}

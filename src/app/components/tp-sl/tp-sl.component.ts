@@ -55,9 +55,18 @@ export class TpSlComponent implements OnInit {
   leverage: number = 1;
 
   ngOnInit(): void {
-    this.getSymbolTickSize();
-
     this.tpslData = this.config.data;
+
+    this.binanceRestService.exchangeInfo$
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe((res) => {
+        const exchangeSymbol = res.symbols.find(
+          (s) => s.symbol.toLowerCase() === this.tpslData.symbol.toLowerCase(),
+        );
+        const tickSize = this.utilsService.getTickSize(exchangeSymbol?.filters);
+        this.tickSize.set(tickSize);
+      });
+
     this.margin = parseFloat(this.tpslData?.margin.toFixed(2));
     this.leverage = this.tpslData?.leverage;
     this.symbol = this.tpslData?.symbol;
@@ -77,6 +86,8 @@ export class TpSlComponent implements OnInit {
         this.percent = Math.round(Math.abs(this.tpslData?.takeProfit?.pnlPercent ?? 0));
       }
     }
+
+    this.updateFromPrice();
   }
 
   updatePriceFromPercent(percent: number): void {
@@ -198,16 +209,5 @@ export class TpSlComponent implements OnInit {
 
   closeDialog(): void {
     this.dialogRef.close();
-  }
-
-  private getSymbolTickSize(): void {
-    this.binanceRestService
-      .getExchangeInfo()
-      .pipe(takeUntilDestroyed(this.destroyRef))
-      .subscribe((res) => {
-        const exchangeSymbol = res.symbols.find((s) => s.symbol === this.tpslData.symbol);
-        const tickSize = this.utilsService.getTickSize(exchangeSymbol?.filters);
-        this.tickSize.set(tickSize);
-      });
   }
 }

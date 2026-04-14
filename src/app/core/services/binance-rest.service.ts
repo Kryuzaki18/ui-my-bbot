@@ -1,6 +1,6 @@
 import { Injectable, inject } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
-import { Observable, map, catchError, throwError, forkJoin } from 'rxjs';
+import { Observable, map, catchError, throwError, forkJoin, ReplaySubject, take } from 'rxjs';
 
 // Environments
 import { BINANCE_PUBLIC_API_ROUTES, environment } from '../../../environments/environment';
@@ -22,6 +22,13 @@ export class BinanceRestService {
   private readonly http = inject(HttpClient);
   private readonly base = environment.binanceFutureRestBaseUrl;
 
+  private exchangeInfoSubject = new ReplaySubject<ExchangeInfo>(1);
+  readonly exchangeInfo$ = this.exchangeInfoSubject.asObservable();
+
+  setExchangeInfo(exchangeInfo: ExchangeInfo): void {
+    this.exchangeInfoSubject.next(exchangeInfo);
+  }
+
   getAggTrades(symbol: string, limit: number = 50): Observable<AggTradeRest[]> {
     const params = new HttpParams()
       .set('symbol', symbol.toLowerCase())
@@ -35,7 +42,7 @@ export class BinanceRestService {
 
   getAllSymbolsWithVolume(): Observable<ExchangeSymbolsWithVolume[]> {
     return forkJoin({
-      info: this.getExchangeInfo(),
+      info: this.exchangeInfo$.pipe(take(1)),
       stats: this.http.get<Ticker24hrData[]>(
         `${this.base}${BINANCE_PUBLIC_API_ROUTES.chart.ticker}`,
       ),
