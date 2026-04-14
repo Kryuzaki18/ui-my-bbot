@@ -1,5 +1,6 @@
 import { Component, inject, OnInit, DestroyRef, signal, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { debounceTime } from 'rxjs';
 
@@ -19,6 +20,7 @@ import { DEFAULT_SYMBOL, STORAGE } from '../../core/constants/binance.constant';
 // Components
 import { PositionsComponent } from './positions/positions.component';
 import { OpenOrdersComponent } from './open-orders/open-orders.component';
+import { ConditionalOrdersComponent } from './conditional-orders/conditional-orders.component';
 import { TpSlComponent } from '../tp-sl/tp-sl.component';
 
 // PrimeNG Modules
@@ -26,11 +28,21 @@ import { ProgressBarModule } from 'primeng/progressbar';
 import { TabsModule } from 'primeng/tabs';
 import { ConfirmationService } from 'primeng/api';
 import { DialogService, DynamicDialogRef } from 'primeng/dynamicdialog';
+import { SelectButtonModule } from 'primeng/selectbutton';
 
 @Component({
   selector: 'app-positions-and-orders',
   standalone: true,
-  imports: [CommonModule, ProgressBarModule, TabsModule, PositionsComponent, OpenOrdersComponent],
+  imports: [
+    CommonModule,
+    FormsModule,
+    ProgressBarModule,
+    TabsModule,
+    SelectButtonModule,
+    PositionsComponent,
+    OpenOrdersComponent,
+    ConditionalOrdersComponent,
+  ],
   templateUrl: './positions-and-orders.component.html',
 })
 export class PositionsAndOrdersComponent implements OnInit {
@@ -47,43 +59,39 @@ export class PositionsAndOrdersComponent implements OnInit {
 
   private dialogRef: DynamicDialogRef<any> | null = null;
 
-  readonly allOpenOrders = signal<any[]>([]);
+  readonly openOrders = signal<any[]>([]);
+  readonly pendingTpSl = signal<any[]>([]);
   readonly positions = signal<any[]>([]);
   readonly livePrices = signal<Record<string, number>>({});
+  readonly orderTypeFilter = signal('basic');
+
+  readonly orderTypeOptions = computed(() => [
+    {
+      label: `Basic(${this.basicOrders().length})`,
+      value: 'basic',
+    },
+    {
+      label: `Conditional(${this.conditionalOrders().length})`,
+      value: 'conditional',
+    },
+  ]);
 
   readonly currentSymbol = this.localStorageService.getLocalStorageSignal(
     STORAGE.SYMBOL,
     DEFAULT_SYMBOL,
   );
 
-  readonly orderTypeFilter = signal('basic');
-
   readonly basicOrders = computed(() => {
-    return this.allOpenOrders().filter((o: any) => {
-      const type = o.type || o.orderType || '';
-      const isConditional = [OrderTypeEnum.STOP_MARKET, OrderTypeEnum.TAKE_PROFIT_MARKET].includes(
-        type,
-      );
-      return !isConditional && o.closePosition !== true;
+    return this.openOrders().filter((o: any) => {
+      return o.closePosition !== true;
     });
   });
 
   readonly conditionalOrders = computed(() => {
-    return this.allOpenOrders().filter((o: any) => {
+    return this.pendingTpSl().filter((o: any) => {
       const type = o.type || o.orderType || '';
       return [OrderTypeEnum.STOP_MARKET, OrderTypeEnum.TAKE_PROFIT_MARKET].includes(type);
     });
-  });
-
-  readonly visibleOrders = computed(() => {
-    return this.orderTypeFilter() === 'basic' ? this.basicOrders() : this.conditionalOrders();
-  });
-
-  readonly ordersCount = computed(() => {
-    return {
-      basic: this.basicOrders().length,
-      conditional: this.conditionalOrders().length,
-    };
   });
 
   readonly enrichedPositions = computed(() => {
@@ -152,7 +160,8 @@ export class PositionsAndOrdersComponent implements OnInit {
   });
 
   ngOnInit(): void {
-    this.fetchOrders();
+    this.fetchOpenOrders();
+    this.fetchPendingTpSl();
     this.fetchPositions();
 
     this.binanceWsService.wsAllTickers();
@@ -191,21 +200,6 @@ export class PositionsAndOrdersComponent implements OnInit {
         }
       });
 
-    this.appSettingsService.isLoadingOpenOrders$
-      .pipe(debounceTime(1200), takeUntilDestroyed(this.destroyRef))
-      .subscribe({
-        next: (isLoading) => {
-          if (isLoading) {
-            this.appSettingsService.setIsLoadingOpenOrders(false);
-            this.fetchOrders();
-          }
-        },
-        error: (err) => {
-          console.error(err);
-          this.appSettingsService.setIsLoadingOpenOrders(false);
-        },
-      });
-
     this.appSettingsService.isLoadingPositions$
       .pipe(debounceTime(1200), takeUntilDestroyed(this.destroyRef))
       .subscribe({
@@ -218,6 +212,36 @@ export class PositionsAndOrdersComponent implements OnInit {
         error: (err) => {
           console.error(err);
           this.appSettingsService.setIsLoadingPositions(false);
+        },
+      });
+
+    this.appSettingsService.isLoadingOpenOrders$
+      .pipe(debounceTime(1200), takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: (isLoading) => {
+          if (isLoading) {
+            this.appSettingsService.setIsLoadingOpenOrders(false);
+            this.fetchOpenOrders();
+          }
+        },
+        error: (err) => {
+          console.error(err);
+          this.appSettingsService.setIsLoadingOpenOrders(false);
+        },
+      });
+
+    this.appSettingsService.isLoadingPendingTpSl$
+      .pipe(debounceTime(1200), takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: (isLoading) => {
+          if (isLoading) {
+            this.appSettingsService.setIsLoadingPendingTpSl(false);
+            this.fetchPendingTpSl();
+          }
+        },
+        error: (err) => {
+          console.error(err);
+          this.appSettingsService.setIsLoadingPendingTpSl(false);
         },
       });
   }
@@ -235,15 +259,27 @@ export class PositionsAndOrdersComponent implements OnInit {
       });
   }
 
-  private fetchOrders(): void {
+  private fetchOpenOrders(): void {
+    this.futureTradeService
+      .getOpenOrders()
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: (orders) => {
+          this.openOrders.set(orders);
+        },
+        error: (err) => {
+          console.error(err);
+        },
+      });
+  }
+
+  private fetchPendingTpSl(): void {
     this.futureTradeService
       .getPendingTpSl()
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
         next: (orders) => {
-          setTimeout(() => {
-            this.allOpenOrders.set(orders);
-          }, 1000);
+          this.pendingTpSl.set(orders);
         },
         error: (err) => {
           console.error(err);
@@ -252,7 +288,7 @@ export class PositionsAndOrdersComponent implements OnInit {
   }
 
   private handleOrderTradeUpdate(o: any): void {
-    this.allOpenOrders.update((current) => {
+    this.pendingTpSl.update((current) => {
       const isTerminal = ['CANCELED', 'FILLED', 'REJECTED', 'EXPIRED'].includes(o.X);
       const idx = current.findIndex((ord) => ord.orderId === o.i || ord.clientOrderId === o.c);
 
@@ -327,12 +363,14 @@ export class PositionsAndOrdersComponent implements OnInit {
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
         next: () => {
-          this.appSettingsService.setIsLoadingOpenOrders(true);
           this.appSettingsService.setIsLoadingPositions(true);
+          this.appSettingsService.setIsLoadingOpenOrders(true);
+          this.appSettingsService.setIsLoadingPendingTpSl(true);
         },
         error: (err) => {
-          this.appSettingsService.setIsLoadingOpenOrders(false);
           this.appSettingsService.setIsLoadingPositions(false);
+          this.appSettingsService.setIsLoadingOpenOrders(false);
+          this.appSettingsService.setIsLoadingPendingTpSl(false);
           console.error(err);
         },
       });
@@ -378,13 +416,14 @@ export class PositionsAndOrdersComponent implements OnInit {
           .pipe(takeUntilDestroyed(this.destroyRef))
           .subscribe({
             next: () => {
-              this.appSettingsService.setIsLoadingOpenOrders(true);
               this.appSettingsService.setIsLoadingPositions(true);
+              this.appSettingsService.setIsLoadingOpenOrders(true);
+              this.appSettingsService.setIsLoadingPendingTpSl(true);
             },
             error: (err) => {
-              this.appSettingsService.setIsLoadingOpenOrders(false);
               this.appSettingsService.setIsLoadingPositions(false);
-              console.error('Failed to close position', err);
+              this.appSettingsService.setIsLoadingOpenOrders(false);
+              this.appSettingsService.setIsLoadingPendingTpSl(false);
             },
           });
       },
@@ -436,15 +475,17 @@ export class PositionsAndOrdersComponent implements OnInit {
               this.toastMessageService.success(
                 isTakeProfit ? 'Take profit removed.' : 'Stop loss removed.',
               );
-              this.appSettingsService.setIsLoadingOpenOrders(true);
               this.appSettingsService.setIsLoadingPositions(true);
+              this.appSettingsService.setIsLoadingOpenOrders(true);
+              this.appSettingsService.setIsLoadingPendingTpSl(true);
             },
             error: (err) => {
               const { error, details } = err.error;
               this.toastMessageService.error(error, details.msg);
 
-              this.appSettingsService.setIsLoadingOpenOrders(false);
               this.appSettingsService.setIsLoadingPositions(false);
+              this.appSettingsService.setIsLoadingOpenOrders(false);
+              this.appSettingsService.setIsLoadingPendingTpSl(false);
             },
           });
         return;
@@ -466,15 +507,17 @@ export class PositionsAndOrdersComponent implements OnInit {
           .subscribe({
             next: (res) => {
               this.toastMessageService.success('Stop loss set successfully.');
-              this.appSettingsService.setIsLoadingOpenOrders(true);
               this.appSettingsService.setIsLoadingPositions(true);
+              this.appSettingsService.setIsLoadingOpenOrders(true);
+              this.appSettingsService.setIsLoadingPendingTpSl(true);
             },
             error: (err) => {
               const { error, details } = err.error;
               this.toastMessageService.error(error, details.msg);
 
-              this.appSettingsService.setIsLoadingOpenOrders(false);
               this.appSettingsService.setIsLoadingPositions(false);
+              this.appSettingsService.setIsLoadingOpenOrders(false);
+              this.appSettingsService.setIsLoadingPendingTpSl(false);
             },
           });
       } else if (payload?.type === OrderTypeEnum.TAKE_PROFIT_MARKET) {
@@ -487,15 +530,17 @@ export class PositionsAndOrdersComponent implements OnInit {
           .subscribe({
             next: (res) => {
               this.toastMessageService.success('Take profit set successfully.');
-              this.appSettingsService.setIsLoadingOpenOrders(true);
               this.appSettingsService.setIsLoadingPositions(true);
+              this.appSettingsService.setIsLoadingOpenOrders(true);
+              this.appSettingsService.setIsLoadingPendingTpSl(true);
             },
             error: (err) => {
               const { error, details } = err.error;
               this.toastMessageService.error(error, details.msg);
 
-              this.appSettingsService.setIsLoadingOpenOrders(false);
               this.appSettingsService.setIsLoadingPositions(false);
+              this.appSettingsService.setIsLoadingOpenOrders(false);
+              this.appSettingsService.setIsLoadingPendingTpSl(false);
             },
           });
       }

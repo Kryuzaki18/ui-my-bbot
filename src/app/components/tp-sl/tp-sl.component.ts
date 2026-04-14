@@ -70,15 +70,11 @@ export class TpSlComponent implements OnInit {
       if (this.tpslData?.stopLoss?.pnlPercent !== null) {
         this.price = parseFloat(this.tpslData?.stopLoss?.triggerPrice as string);
         this.percent = Math.round(Math.abs(this.tpslData?.stopLoss?.pnlPercent ?? 0));
-      } else {
-        this.updatePriceFromPercent(this.percent);
       }
     } else {
       if (this.tpslData?.takeProfit?.pnlPercent !== null) {
         this.price = parseFloat(this.tpslData?.takeProfit?.triggerPrice as string);
         this.percent = Math.round(Math.abs(this.tpslData?.takeProfit?.pnlPercent ?? 0));
-      } else {
-        this.updatePriceFromPercent(this.percent);
       }
     }
   }
@@ -88,11 +84,6 @@ export class TpSlComponent implements OnInit {
     const leverage = this.leverage;
     const amount = this.positionAmt;
     this.percent = percent;
-    console.log('entryPrice', entryPrice);
-    console.log('leverage', leverage);
-    console.log('amount', amount);
-    console.log('percent', percent);
-    console.log('tickSize', this.tickSize());
 
     const targetPrice = this.utilsService.calculateTargetPrice(
       entryPrice,

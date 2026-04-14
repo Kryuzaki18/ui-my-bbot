@@ -1,6 +1,6 @@
-<div class="w-full text-white">
+<div class="w-full min-h-[500px]">
   @if (
-    (appSettingsService.isLoadingOpenOrders$ | async) ||
+    (appSettingsService.isLoadingPendingTpSl$ | async) ||
     (appSettingsService.isLoadingPositions$ | async)
   ) {
     <div class="h-2 mt-1">
@@ -21,8 +21,8 @@
       <p-tab value="1">
         <div class="flex items-center text-xs">
           <span> Open Orders </span>
-          @if (allOpenOrders().length > 0) {
-            <span> ({{ allOpenOrders().length }}) </span>
+          @if (openOrders().length > 0 || conditionalOrders().length > 0) {
+            <span> ({{ openOrders().length + conditionalOrders().length }}) </span>
           }
         </div>
       </p-tab>
@@ -40,14 +40,33 @@
       </p-tabpanel>
 
       <p-tabpanel value="1">
-        <app-open-orders
-          [ordersCount]="ordersCount()"
-          [visibleOrders]="visibleOrders()"
-          [orderTypeFilter]="orderTypeFilter()"
-          (onFilterChange)="orderTypeFilter.set($event)"
-          (onCancelOrder)="cancelOrder($event)"
-          (onSelectSymbol)="selectSymbol($event)"
-        ></app-open-orders>
+        <div class="flex justify-between items-center mb-3">
+          <p-selectButton
+            [options]="orderTypeOptions()"
+            [ngModel]="orderTypeFilter()"
+            (ngModelChange)="orderTypeFilter.set($event)"
+            [allowEmpty]="false"
+            optionLabel="label"
+            optionValue="value"
+            size="small"
+            class="[&_.p-togglebutton]:!text-xs"
+          >
+          </p-selectButton>
+        </div>
+
+        @if (this.orderTypeFilter() === 'basic') {
+          <app-open-orders
+            [basicOrders]="basicOrders()"
+            (onCancelOrder)="cancelOrder($event)"
+            (onSelectSymbol)="selectSymbol($event)"
+          ></app-open-orders>
+        } @else {
+          <app-conditional-orders
+            [conditionalOrders]="conditionalOrders()"
+            (onCancelOrder)="cancelOrder($event)"
+            (onSelectSymbol)="selectSymbol($event)"
+          ></app-conditional-orders>
+        }
       </p-tabpanel>
     </p-tabpanels>
   </p-tabs>

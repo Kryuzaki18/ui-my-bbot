@@ -1,10 +1,10 @@
-@if (basicOrders().length === 0) {
+@if (conditionalOrders().length === 0) {
   <div class="text-center text-gray-400 jetbrains-regular text-[10px] py-2 bg-green-900/5">
-    “No basic open orders. Awaiting execution opportunities.”
+    “No conditional open orders. Awaiting execution opportunities.”
   </div>
 } @else {
   <p-table
-    [value]="basicOrders()"
+    [value]="conditionalOrders()"
     class="jetbrains-light text-[11px]"
     size="small"
     [scrollable]="true"
@@ -28,8 +28,6 @@
         <th class="!bg-gray-900 !text-gray-400">Side</th>
         <th class="!bg-gray-900 !text-gray-400">Type</th>
         <th class="!bg-gray-900 !text-gray-400">Price</th>
-        <th class="!bg-gray-900 !text-gray-400">Amount</th>
-        <th class="!bg-gray-900 !text-gray-400">Filled</th>
         <th class="!bg-gray-900 !text-gray-400 !w-30">Action</th>
       </tr>
     </ng-template>
@@ -67,19 +65,14 @@
           </span>
         </td>
         <td>
-          {{ order.type }}
-        </td>
-
-        <td>{{ order.price | number: '1.0-7' }}</td>
-        <td>{{ order.origQty }}</td>
-
-        <td>
-          @if (order.executedQty && order.executedQty > 0) {
-            {{ ((order.executedQty / order.origQty) * 100).toFixed(0) }}%
+          @if (order.orderType === OrderTypeEnum.STOP_MARKET) {
+            <span class="text-red-500">Stop Loss</span>
           } @else {
-            0%
+            <span class="text-green-500">Take Profit</span>
           }
         </td>
+
+        <td>{{ order.triggerPrice | number: '1.0-7' }}</td>
 
         <td>
           <p-button
