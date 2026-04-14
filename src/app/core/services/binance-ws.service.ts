@@ -73,7 +73,7 @@ export class BinanceWsService {
 
   wsAllTickers(): void {
     const stream = `!ticker@arr`;
-    this.connectWs('allTickers', stream, (data) => {
+    this.connectWs(STREAM_NAME.ALL_TICKERS, stream, (data) => {
       this.allTickersSubject.next(data);
     });
   }

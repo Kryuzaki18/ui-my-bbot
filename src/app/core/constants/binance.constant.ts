@@ -23,6 +23,7 @@ export const STREAM_NAME = {
   KLINE: 'kline',
   MARK_PRICE_UPDATE: 'markPriceUpdate',
   TICKER_24HR: '24hrTicker',
+  ALL_TICKERS: 'allTickers',
 }
 
 export const STORAGE = {

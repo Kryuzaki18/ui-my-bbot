@@ -10,6 +10,7 @@ import { BinanceRestService } from './core/services/binance-rest.service';
 import { ConfirmDialogModule } from 'primeng/confirmdialog';
 import { ToastModule } from 'primeng/toast';
 import { ScrollPanelModule } from 'primeng/scrollpanel';
+import { ToastMessageService } from './core/services/toast-message.service';
 
 @Component({
   selector: 'app-root',
@@ -19,12 +20,17 @@ import { ScrollPanelModule } from 'primeng/scrollpanel';
 })
 export class App implements OnInit {
   private readonly binanceRestService = inject(BinanceRestService);
+  private readonly toastMessageService = inject(ToastMessageService);
   private readonly authService = inject(AuthService);
   private readonly destroyRef = inject(DestroyRef);
 
   ngOnInit(): void {
     this.getSymbolTickSize();
     this.authService.checkAuth().pipe(takeUntilDestroyed(this.destroyRef)).subscribe();
+  }
+
+  close(): void {
+    this.toastMessageService.clear();
   }
 
   private getSymbolTickSize(): void {

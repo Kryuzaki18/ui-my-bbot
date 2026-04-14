@@ -15,7 +15,11 @@ import { ToastMessageService } from '../../core/services/toast-message.service';
 import { ChartService } from '../../core/services/chart/chart.service';
 
 // Models
-import { OrderSideEnum, OrderTypeEnum, PositionSideEnum } from '../../core/models/trades.model';
+import {
+  OrderSideEnum,
+  OrderTypeEnum,
+  PositionSideEnum,
+} from '../../core/models/trades.model';
 import { DEFAULT_SYMBOL, STORAGE } from '../../core/constants/binance.constant';
 
 // Components
@@ -61,9 +65,9 @@ export class PositionsAndOrdersComponent implements OnInit {
 
   private dialogRef: DynamicDialogRef<any> | null = null;
 
+  readonly positions = signal<any[]>([]);
   readonly openOrders = signal<any[]>([]);
   readonly pendingTpSl = signal<any[]>([]);
-  readonly positions = signal<any[]>([]);
   readonly livePrices = signal<Record<string, number>>({});
   readonly orderTypeFilter = signal('basic');
 
@@ -136,6 +140,16 @@ export class PositionsAndOrdersComponent implements OnInit {
             ((slOrder.triggerPrice - entryPrice) / entryPrice) * leverage * sign * 100;
         }
 
+        // if (positionAmt > 0 && tpOrder && pos.markPrice >= tpOrder.triggerPrice) {
+        //   this.toastMessageService.success(`${pos.symbol}`, ` Take Profit hit.`);
+        //   console.log('tp hit', pos.symbol);
+        // }
+
+        // if (positionAmt < 0 && slOrder && pos.markPrice <= slOrder.triggerPrice) {
+        //   this.toastMessageService.warn(`${pos.symbol}`, ` Stop Loss hit.`);
+        //   console.log('sl hit', pos.symbol);
+        // }
+
         return {
           ...pos,
           livePnl,
@@ -198,9 +212,9 @@ export class PositionsAndOrdersComponent implements OnInit {
   });
 
   ngOnInit(): void {
+    this.fetchPositions();
     this.fetchOpenOrders();
     this.fetchPendingTpSl();
-    this.fetchPositions();
 
     this.binanceWsService.wsAllTickers();
 
@@ -222,19 +236,6 @@ export class PositionsAndOrdersComponent implements OnInit {
 
         if (updated) {
           this.livePrices.set(currentPrice);
-        }
-      });
-
-    this.userWsService
-      .getUserDataStream()
-      .pipe(takeUntilDestroyed(this.destroyRef))
-      .subscribe((data) => {
-        if (!data) return;
-
-        if (data.e === 'ORDER_TRADE_UPDATE') {
-          this.handleOrderTradeUpdate(data.o);
-        } else if (data.e === 'ACCOUNT_UPDATE') {
-          this.handleAccountUpdate(data.a);
         }
       });
 
@@ -325,76 +326,6 @@ export class PositionsAndOrdersComponent implements OnInit {
       });
   }
 
-  private handleOrderTradeUpdate(o: any): void {
-    this.pendingTpSl.update((current) => {
-      const isTerminal = ['CANCELED', 'FILLED', 'REJECTED', 'EXPIRED'].includes(o.X);
-      const idx = current.findIndex((ord) => ord.orderId === o.i || ord.clientOrderId === o.c);
-
-      if (isTerminal) {
-        if (idx > -1) {
-          const updated = [...current];
-          updated.splice(idx, 1);
-          return updated;
-        }
-        return current;
-      }
-
-      const orderData = {
-        updateTime: o.T,
-        symbol: o.s,
-        side: o.S,
-        type: o.o,
-        price: parseFloat(o.p),
-        stopPrice: parseFloat(o.sp),
-        origQty: parseFloat(o.q),
-        executedQty: parseFloat(o.z),
-        clientOrderId: o.c,
-        orderId: o.i,
-        closePosition: o.cp,
-      };
-
-      if (idx > -1) {
-        const updated = [...current];
-        updated[idx] = { ...updated[idx], ...orderData };
-        return updated;
-      } else {
-        return [orderData, ...current];
-      }
-    });
-  }
-
-  private handleAccountUpdate(a: any): void {
-    if (!a.P || !Array.isArray(a.P)) return;
-
-    this.positions.update((current) => {
-      let updated = [...current];
-      for (const p of a.P) {
-        const amt = parseFloat(p.pa);
-        const idx = updated.findIndex((pos) => pos.symbol === p.s);
-
-        if (amt === 0) {
-          if (idx > -1) updated.splice(idx, 1);
-        } else {
-          const posData = {
-            symbol: p.s,
-            positionAmt: p.pa,
-            entryPrice: p.ep,
-            unRealizedProfit: p.up,
-            positionSide: p.ps,
-          };
-          if (idx > -1) {
-            updated[idx] = { ...updated[idx], ...posData };
-          } else {
-            updated.push(posData);
-          }
-        }
-      }
-      return updated;
-    });
-
-    this.fetchPositions();
-  }
-
   cancelOrder(order: any): void {
     this.futureTradeService
       .cancelOrder(order.symbol, order.orderId, order.clientOrderId)
@@ -479,8 +410,6 @@ export class PositionsAndOrdersComponent implements OnInit {
   }
 
   removeTPSL(pos: any): void {
-    console.log(pos);
-
     this.futureTradeService
       .cancelTpSl({
         algoId: pos.isTakeProfit
