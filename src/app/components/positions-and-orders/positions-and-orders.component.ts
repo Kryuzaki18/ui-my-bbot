@@ -1,4 +1,4 @@
-import { Component, inject, OnInit, DestroyRef, signal, computed } from '@angular/core';
+import { Component, inject, OnInit, DestroyRef, signal, computed, effect } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
@@ -12,6 +12,7 @@ import { LocalStorageService } from '../../core/services/local-storage.service';
 import { UserWsService } from '../../core/services/user-ws.service';
 import { BinanceWsService } from '../../core/services/binance-ws.service';
 import { ToastMessageService } from '../../core/services/toast-message.service';
+import { ChartService } from '../../core/services/chart/chart.service';
 
 // Models
 import { OrderSideEnum, OrderTypeEnum, PositionSideEnum } from '../../core/models/trades.model';
@@ -54,6 +55,7 @@ export class PositionsAndOrdersComponent implements OnInit {
   private readonly futureTradeService = inject(FutureTradeService);
   private readonly dialogService = inject(DialogService);
   private readonly toastMessageService = inject(ToastMessageService);
+  private readonly chartService = inject(ChartService);
   readonly confirmationService = inject(ConfirmationService);
   readonly appSettingsService = inject(AppSettingsService);
 
@@ -157,6 +159,33 @@ export class PositionsAndOrdersComponent implements OnInit {
       });
 
     return mapList;
+  });
+
+  private readonly syncPositionToChart = effect(() => {
+    const sym = this.currentSymbol().toLowerCase();
+    const pos = this.enrichedPositions().find(
+      (p) => p.symbol.toLowerCase() === sym,
+    );
+
+    if (!pos) {
+      this.chartService.setPositionChartData(null);
+      return;
+    }
+
+    const entryPrice = parseFloat(pos.entryPrice);
+    const tpPrice = pos.takeProfit?.triggerPrice
+      ? parseFloat(pos.takeProfit.triggerPrice)
+      : null;
+    const slPrice = pos.stopLoss?.triggerPrice
+      ? parseFloat(pos.stopLoss.triggerPrice)
+      : null;
+
+    this.chartService.setPositionChartData({
+      entryPrice: isNaN(entryPrice) ? null : entryPrice,
+      takeProfit: tpPrice && !isNaN(tpPrice) ? tpPrice : null,
+      stopLoss: slPrice && !isNaN(slPrice) ? slPrice : null,
+      positionSide: pos.positionSide ?? '',
+    });
   });
 
   ngOnInit(): void {

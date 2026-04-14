@@ -22,6 +22,7 @@ import {
   createChart,
   IChartApi,
   ISeriesApi,
+  IPriceLine,
   CandlestickSeries,
   HistogramSeries,
   LineSeries,
@@ -49,6 +50,7 @@ import {
   IndicatorType,
   IndicatorConfig,
   Ticker24hrData,
+  PositionChartData,
 } from '../../core/models/chart.model';
 
 // Components
@@ -127,6 +129,11 @@ export class TradingChartComponent implements OnInit, AfterViewInit, OnDestroy {
   private macdSignalSeries: ISeriesApi<'Line'> | null = null;
   private macdHistSeries: ISeriesApi<'Histogram'> | null = null;
   private rsiSeries: ISeriesApi<'Line'> | null = null;
+
+  // Position price lines
+  private entryPriceLine: IPriceLine | null = null;
+  private takeProfitLine: IPriceLine | null = null;
+  private stopLossLine: IPriceLine | null = null;
 
   private readonly initCandles = signal<CandleData[]>([]);
   readonly aggTrades = signal<AggTradeWsMessage[]>([]);
@@ -408,6 +415,11 @@ export class TradingChartComponent implements OnInit, AfterViewInit, OnDestroy {
 
     this.resizeObserver.observe(this.chartContainerRef.nativeElement);
     this.resizeObserver.observe(this.volumeContainerRef.nativeElement);
+
+    // Subscribe to position / TP / SL for current symbol
+    this.chartService.positionChartData$
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe((data) => this.updatePositionLines(data));
   }
 
   private applyTheme(t: any): void {
@@ -425,6 +437,59 @@ export class TradingChartComponent implements OnInit, AfterViewInit, OnDestroy {
       wickUpColor: t.up,
       wickDownColor: t.dn,
     });
+  }
+
+  private updatePositionLines(data: PositionChartData | null): void {
+    if (!this.candleSeries) return;
+
+    // Remove all existing lines first
+    if (this.entryPriceLine) {
+      this.candleSeries.removePriceLine(this.entryPriceLine);
+      this.entryPriceLine = null;
+    }
+    if (this.takeProfitLine) {
+      this.candleSeries.removePriceLine(this.takeProfitLine);
+      this.takeProfitLine = null;
+    }
+    if (this.stopLossLine) {
+      this.candleSeries.removePriceLine(this.stopLossLine);
+      this.stopLossLine = null;
+    }
+
+    if (!data) return;
+
+    if (data.entryPrice) {
+      this.entryPriceLine = this.candleSeries.createPriceLine({
+        price: data.entryPrice,
+        color: '#f0a500',
+        lineWidth: 1,
+        lineStyle: 1, // Dotted
+        axisLabelVisible: true,
+        title: 'Entry',
+      });
+    }
+
+    if (data.takeProfit) {
+      this.takeProfitLine = this.candleSeries.createPriceLine({
+        price: data.takeProfit,
+        color: '#3fb950',
+        lineWidth: 1,
+        lineStyle: 1,
+        axisLabelVisible: true,
+        title: 'TP',
+      });
+    }
+
+    if (data.stopLoss) {
+      this.stopLossLine = this.candleSeries.createPriceLine({
+        price: data.stopLoss,
+        color: '#f85149',
+        lineWidth: 1,
+        lineStyle: 1,
+        axisLabelVisible: true,
+        title: 'SL',
+      });
+    }
   }
 
   private movingTheChart(): void {

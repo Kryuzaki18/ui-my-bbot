@@ -2,7 +2,7 @@ import { inject, Injectable } from '@angular/core';
 import { BehaviorSubject } from 'rxjs';
 
 // Models
-import { ChartTheme } from '../../models/chart.model';
+import { ChartTheme, PositionChartData } from '../../models/chart.model';
 
 // Constants
 import { DEFAULT_SYMBOL, STORAGE } from '../../constants/binance.constant';
@@ -14,6 +14,7 @@ import { LocalStorageService } from '../local-storage.service';
 export class ChartService {
   private readonly localStorageService = inject(LocalStorageService);
   private themeSubject = new BehaviorSubject<ChartTheme>(this.buildTheme());
+  private positionChartDataSubject = new BehaviorSubject<PositionChartData | null>(null);
 
   readonly selectedSymbol = this.localStorageService.getLocalStorageSignal<string>(
     STORAGE.SYMBOL,
@@ -21,6 +22,11 @@ export class ChartService {
   );
 
   readonly theme$ = this.themeSubject.asObservable();
+  readonly positionChartData$ = this.positionChartDataSubject.asObservable();
+
+  setPositionChartData(data: PositionChartData | null): void {
+    this.positionChartDataSubject.next(data);
+  }
 
   get currentTheme(): ChartTheme {
     return this.themeSubject.value;

@@ -185,3 +185,10 @@ export interface RsiPoint {
   time: number;
   value: number;
 }
+
+export interface PositionChartData {
+  entryPrice: number | null;
+  takeProfit: number | null;
+  stopLoss: number | null;
+  positionSide: 'LONG' | 'SHORT' | string;
+}
