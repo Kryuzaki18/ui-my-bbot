@@ -10,12 +10,12 @@ import {
   computed,
   ChangeDetectionStrategy,
   DestroyRef,
-  HostListener,
   NgZone,
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormsModule } from '@angular/forms';
+import { ActivatedRoute, Router } from '@angular/router';
 
 // Lightweight Charts
 import {
@@ -33,7 +33,6 @@ import {
 // Constants
 import {
   DEFAULT_TIMEFRAME,
-  MAX_TRADE_HISTORY,
   STORAGE,
   STREAM_NAME,
   TIMEFRAMES,
@@ -52,6 +51,7 @@ import {
   Ticker24hrData,
   PositionChartData,
   OpenOrderChartLine,
+  WsStatus,
 } from '../../core/models/chart.model';
 
 // Components
@@ -59,7 +59,7 @@ import { TradingSymbolsPopoverComponent } from './trading-symbols-popover/tradin
 
 // Services
 import { BinanceRestService } from '../../core/services/binance-rest.service';
-import { BinanceWsService, WsStatus } from '../../core/services/binance-ws.service';
+import { BinanceWsService } from '../../core/services/binance-ws.service';
 import { ChartService } from '../../core/services/chart/chart.service';
 import { UtilsService } from '../../core/services/utils.service';
 import { IndicatorMaService } from '../../core/services/chart/indicator-ma.service';
@@ -75,7 +75,6 @@ import { SkeletonModule } from 'primeng/skeleton';
 import { ScrollPanelModule } from 'primeng/scrollpanel';
 import { PopoverModule } from 'primeng/popover';
 import { DividerModule } from 'primeng/divider';
-import { ActivatedRoute, Router } from '@angular/router';
 
 @Component({
   selector: 'app-trading-chart',
@@ -97,7 +96,6 @@ import { ActivatedRoute, Router } from '@angular/router';
 export class TradingChartComponent implements OnInit, AfterViewInit, OnDestroy {
   @ViewChild('chartContainer', { static: true }) chartContainerRef!: ElementRef<HTMLDivElement>;
   @ViewChild('volumeContainer', { static: true }) volumeContainerRef!: ElementRef<HTMLDivElement>;
-  @ViewChild('indicatorMenuRef') indicatorMenuRef!: ElementRef<HTMLDivElement>;
 
   private readonly ngZone = inject(NgZone);
   private readonly destroyRef = inject(DestroyRef);
@@ -109,7 +107,6 @@ export class TradingChartComponent implements OnInit, AfterViewInit, OnDestroy {
   private readonly indicatorBollingerService = inject(IndicatorBollingerService);
   private readonly indicatorRsiService = inject(IndicatorRsiService);
   private readonly localStorageService = inject(LocalStorageService);
-  private readonly router = inject(Router);
   readonly utilsService = inject(UtilsService);
   readonly authService = inject(AuthService);
   readonly activatedRoute = inject(ActivatedRoute);
@@ -135,7 +132,6 @@ export class TradingChartComponent implements OnInit, AfterViewInit, OnDestroy {
   private entryPriceLine: IPriceLine | null = null;
   private takeProfitLine: IPriceLine | null = null;
   private stopLossLine: IPriceLine | null = null;
-
   // Open order price lines
   private openOrderLines: IPriceLine[] = [];
 
@@ -147,19 +143,17 @@ export class TradingChartComponent implements OnInit, AfterViewInit, OnDestroy {
   readonly markPriceData = signal<MarkPriceData | null>(null);
   readonly openInterest = signal(0);
   readonly ohlc = signal<OhlcDisplay | null>(null);
-  readonly timeframes: Timeframe[] = TIMEFRAMES;
   readonly currentPrice = signal(0);
   readonly previousPrice = signal(0);
   readonly volumeHeight = signal(100);
-  readonly MAX_TRADE_HISTORY = MAX_TRADE_HISTORY;
   readonly selectedSymbol = this.chartService.selectedSymbol();
-
+  
+  readonly timeframes: Timeframe[] = TIMEFRAMES;
   readonly selectedTimeframe = this.localStorageService.getLocalStorageSignal<Timeframe>(
     STORAGE.TIMEFRAME,
     DEFAULT_TIMEFRAME,
   );
 
-  readonly showIndicatorMenu = signal(false);
   readonly indicators = signal<IndicatorConfig[]>([
     { type: 'MA', label: 'MA (20)', color: '#58a6ff', enabled: false },
     { type: 'EMA', label: 'EMA (20)', color: '#f0a500', enabled: false },
@@ -198,15 +192,6 @@ export class TradingChartComponent implements OnInit, AfterViewInit, OnDestroy {
 
     return [hours, minutes, seconds].map((v) => v.toString().padStart(2, '0')).join(':');
   });
-
-  @HostListener('document:click', ['$event'])
-  onDocumentClick(event: MouseEvent): void {
-    if (!this.showIndicatorMenu()) return;
-    const menu = this.indicatorMenuRef?.nativeElement;
-    if (menu && !menu.contains(event.target as Node)) {
-      this.showIndicatorMenu.set(false);
-    }
-  }
 
   ngOnInit(): void {
     this.initAllWs();
@@ -255,12 +240,15 @@ export class TradingChartComponent implements OnInit, AfterViewInit, OnDestroy {
     this.subscribeRestOpenInterest();
   }
 
-  setTimeframe(tf: Timeframe): void {
-    if (tf === this.selectedTimeframe()) return;
-    this.localStorageService.updateLocalStorageSignal(STORAGE.TIMEFRAME, tf);
-    this.fetchKlines(tf);
+  setTimeframe(timeframe: Timeframe): void {
+    if (timeframe === this.selectedTimeframe()) return;
+
+    this.localStorageService.updateLocalStorageSignal(STORAGE.TIMEFRAME, timeframe);
+    this.fetchKlines(timeframe);
+
     this.binanceWsService.unsubscribeWs(STREAM_NAME.KLINE);
-    this.binanceWsService.wsKline(this.selectedSymbol, tf);
+    this.binanceWsService.wsKline(this.selectedSymbol, timeframe);
+
     this.ngZone.runOutsideAngular(() => {
       this.subscribeWsKline();
     });
@@ -272,11 +260,9 @@ export class TradingChartComponent implements OnInit, AfterViewInit, OnDestroy {
     const startHeight = this.volumeHeight();
 
     const onMouseMove = (e: MouseEvent) => {
-      // Moving mouse up locally decreases Y, so deltaY is positive, increasing volume height
       const deltaY = startY - e.clientY;
       let newHeight = startHeight + deltaY;
 
-      // Boundaries to prevent breaking the overall wrapper layout
       if (newHeight < 50) newHeight = 50;
       if (newHeight > 500) newHeight = 500;
 
@@ -292,16 +278,13 @@ export class TradingChartComponent implements OnInit, AfterViewInit, OnDestroy {
     document.addEventListener('mouseup', onMouseUp);
   }
 
-  toggleIndicatorMenu(event: MouseEvent): void {
-    event.stopPropagation();
-    this.showIndicatorMenu.update((v) => !v);
-  }
-
   toggleIndicator(type: IndicatorType, event: MouseEvent): void {
     event.stopPropagation();
+
     this.indicators.update((list) =>
       list.map((ind) => (ind.type === type ? { ...ind, enabled: !ind.enabled } : ind)),
     );
+
     this.renderAllIndicators();
   }
 
@@ -315,6 +298,7 @@ export class TradingChartComponent implements OnInit, AfterViewInit, OnDestroy {
 
   private initCharts(): void {
     const theme = this.chartService.currentTheme;
+
     const sharedOpts = {
       layout: {
         background: { color: theme.background },
@@ -388,9 +372,12 @@ export class TradingChartComponent implements OnInit, AfterViewInit, OnDestroy {
 
     this.chart.subscribeCrosshairMove((param) => {
       if (!param.time || !param.seriesData) return;
+
       const d = param.seriesData.get(this.candleSeries) as any;
       const vd = param.seriesData.get(this.volumeSeries) as any;
+
       if (!d) return;
+
       this.ohlc.set({
         o: d.open.toFixed(7),
         h: d.high.toFixed(7),
@@ -408,7 +395,6 @@ export class TradingChartComponent implements OnInit, AfterViewInit, OnDestroy {
     // Start auto-resizing
     this.resizeObserver = new ResizeObserver((entries) => {
       for (const entry of entries) {
-        // Debounce or directly apply resize locally natively to Lightweight Charts arrays mappings
         if (entry.target === this.chartContainerRef.nativeElement) {
           this.chart?.resize(entry.contentRect.width, entry.contentRect.height);
         } else if (entry.target === this.volumeContainerRef.nativeElement) {
@@ -451,7 +437,6 @@ export class TradingChartComponent implements OnInit, AfterViewInit, OnDestroy {
   private updatePositionLines(data: PositionChartData | null): void {
     if (!this.candleSeries) return;
 
-    // Remove all existing lines first
     if (this.entryPriceLine) {
       this.candleSeries.removePriceLine(this.entryPriceLine);
       this.entryPriceLine = null;
@@ -555,9 +540,6 @@ export class TradingChartComponent implements OnInit, AfterViewInit, OnDestroy {
 
   private applyKlineData(candles: CandleData[]): void {
     this.initCandles.set(candles);
-    // if (this.lastCandles.length > 0) {
-    //   this.lastCandles.pop();
-    // }
     const theme = this.chartService.currentTheme;
 
     const history = this.initCandles().map((d) => ({

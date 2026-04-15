@@ -3,27 +3,29 @@ import { Observable, Subject } from 'rxjs';
 
 // Models
 import {
+  AggTradeWs,
   AggTradeWsMessage,
   KlineWsMessage,
   Ticker24hrWsMessage,
   Timeframe,
+  WsStatus,
 } from '../models/chart.model';
+
+// Constants
 import { MAX_TRADE_HISTORY, STREAM_NAME } from '../constants/binance.constant';
+
+// Services
 import { AppSettingsService } from './app-settings.service';
-
-export type WsStatus = 'connecting' | 'live' | 'error' | 'closed';
-
-export interface AggTradeWs {
-  socket: WebSocket;
-  subject: Subject<AggTradeWsMessage[]>;
-}
 
 @Injectable({
   providedIn: 'root',
 })
 export class BinanceWsService {
-  private readonly appSettingsService = inject(AppSettingsService)
-  private get binanceMarketWSBaseUrl() { return this.appSettingsService.env().binanceMarketWSBaseUrl; }
+  private readonly appSettingsService = inject(AppSettingsService);
+
+  private get binanceMarketWSBaseUrl(): string {
+    return this.appSettingsService.env().binanceMarketWSBaseUrl;
+  }
 
   private aggTradeConnections: Record<string, AggTradeWs> = {};
   private marketWSconnections = new Map<string, WebSocket>();

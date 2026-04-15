@@ -99,7 +99,10 @@ export class AuthService {
     return this.http
       .post<IAuth>(`${this.apiBaseUrl}${API_ROUTES.auth.signOut}`, {})
       .pipe(
-        tap(() => this.clearSession()),
+        tap(() => {
+          this.appSettingsService.setTestnet(false);
+          this.clearSession();
+        }),
         catchError((err) => {
           this.clearSession();
           return throwError(() => err);

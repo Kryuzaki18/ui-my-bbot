@@ -1,3 +1,5 @@
+import { Subject } from "rxjs";
+
 export type Timeframe =
   | '1m'
   | '3m'
@@ -107,6 +109,13 @@ export interface AggTradeWsMessage {
   m: boolean; // maker
   T: number; // trade time
 }
+
+export interface AggTradeWs {
+  socket: WebSocket;
+  subject: Subject<AggTradeWsMessage[]>;
+}
+
+export type WsStatus = 'connecting' | 'live' | 'error' | 'closed';
 
 export interface DepthLevel {
   price: number;

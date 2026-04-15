@@ -74,7 +74,7 @@ export class SigninComponent implements OnInit {
         ],
       ],
       password: ['', [Validators.required, Validators.minLength(7)]],
-      rememberMe: [false],
+      // rememberMe: [false],
       useTestnet: [true],
     });
 

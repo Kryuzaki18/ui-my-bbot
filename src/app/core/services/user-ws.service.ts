@@ -21,14 +21,20 @@ interface UserStream {
 export class UserWsService {
   private readonly http = inject(HttpClient);
   private readonly appSettingsService = inject(AppSettingsService);
-  private get apiBaseUrl() { return this.appSettingsService.env().apiBaseUrl; }
-  private get binanceWSBaseUrl() { return this.appSettingsService.env().binanceWSBaseUrl; }
+
+  private get apiBaseUrl(): string {
+    return this.appSettingsService.env().apiBaseUrl;
+  }
+
+  private get binanceWSBaseUrl(): string {
+    return this.appSettingsService.env().binanceWSBaseUrl;
+  }
+
   private readonly userData$ = new Subject<any>();
 
   private userDataListenKey: string | null = null;
   private userDataWs: WebSocket | null = null;
   private userDataPingInterval: any;
-
 
   getUserDataStream(): Observable<any> {
     return this.userData$.asObservable();
@@ -62,9 +68,7 @@ export class UserWsService {
       this.userDataWs = null;
     }
     if (this.userDataListenKey) {
-      this.http
-        .delete(`${this.apiBaseUrl}${API_ROUTES.user.userDataStream}`)
-        .subscribe();
+      this.http.delete(`${this.apiBaseUrl}${API_ROUTES.user.userDataStream}`).subscribe();
       this.userDataListenKey = null;
     }
   }
@@ -106,10 +110,8 @@ export class UserWsService {
   }
 
   private keepAliveUserDataStream(): void {
-    this.http
-      .put<UserStream>(`${this.apiBaseUrl}${API_ROUTES.user.userDataStream}`, {})
-      .subscribe({
-        error: (err) => console.error('Failed to keep-alive listenKey', err),
-      });
+    this.http.put<UserStream>(`${this.apiBaseUrl}${API_ROUTES.user.userDataStream}`, {}).subscribe({
+      error: (err) => console.error('Failed to keep-alive listenKey', err),
+    });
   }
 }
