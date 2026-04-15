@@ -23,10 +23,8 @@ export class AppSettingsService implements OnDestroy {
   private isLoadingPendingTpSlSubject = new BehaviorSubject<boolean>(false);
   readonly isLoadingPendingTpSl$ = this.isLoadingPendingTpSlSubject.asObservable();
 
-  env(): any {
-    const isTestnet = this.localStorageService.getLocalStorageSignal(STORAGE.IS_TESTNET, false);
-    return isTestnet() ? testnetEnv : prodEnv;
-  }
+  private readonly isTestnet = this.localStorageService.getLocalStorageSignal<boolean>(STORAGE.IS_TESTNET, false);
+  readonly env = computed(() => this.isTestnet() ? testnetEnv : prodEnv);
 
   setTestnet(value: boolean): void {
     this.localStorageService.updateLocalStorageSignal(STORAGE.IS_TESTNET, value);

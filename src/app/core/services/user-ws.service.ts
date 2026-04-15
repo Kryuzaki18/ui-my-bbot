@@ -21,8 +21,8 @@ interface UserStream {
 export class UserWsService {
   private readonly http = inject(HttpClient);
   private readonly appSettingsService = inject(AppSettingsService);
-  private readonly apiBaseUrl = this.appSettingsService.env().apiBaseUrl;
-  private readonly binanceWSBaseUrl = this.appSettingsService.env().binanceWSBaseUrl;
+  private get apiBaseUrl() { return this.appSettingsService.env().apiBaseUrl; }
+  private get binanceWSBaseUrl() { return this.appSettingsService.env().binanceWSBaseUrl; }
   private readonly userData$ = new Subject<any>();
 
   private userDataListenKey: string | null = null;

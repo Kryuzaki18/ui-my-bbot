@@ -23,7 +23,7 @@ export interface AggTradeWs {
 })
 export class BinanceWsService {
   private readonly appSettingsService = inject(AppSettingsService)
-  private readonly binanceMarketWSBaseUrl = this.appSettingsService.env().binanceMarketWSBaseUrl;
+  private get binanceMarketWSBaseUrl() { return this.appSettingsService.env().binanceMarketWSBaseUrl; }
 
   private aggTradeConnections: Record<string, AggTradeWs> = {};
   private marketWSconnections = new Map<string, WebSocket>();

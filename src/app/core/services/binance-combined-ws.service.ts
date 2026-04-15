@@ -11,7 +11,7 @@ import { AppSettingsService } from './app-settings.service';
 @Injectable({ providedIn: 'root' })
 export class BinanceCombinedWSService implements OnDestroy {
   private readonly appSettingsService = inject(AppSettingsService)
-  private readonly binancePublicWSBaseUrl = this.appSettingsService.env().binancePublicWSBaseUrl;
+  private get binancePublicWSBaseUrl() { return this.appSettingsService.env().binancePublicWSBaseUrl; }
 
   private socket$?: WebSocketSubject<any>;
   private requestId = 1; // Required for Binance request tracking

@@ -24,8 +24,7 @@ import { AppSettingsService } from './app-settings.service';
 export class BinanceRestService {
   private readonly http = inject(HttpClient);
   private readonly appSettingsService = inject(AppSettingsService);
-  private readonly binanceFutureRestBaseUrl =
-    this.appSettingsService.env().binanceFutureRestBaseUrl;
+  private get binanceFutureRestBaseUrl() { return this.appSettingsService.env().binanceFutureRestBaseUrl; }
 
   private exchangeInfoSubject = new ReplaySubject<ExchangeInfo>(1);
   readonly exchangeInfo$ = this.exchangeInfoSubject.asObservable();

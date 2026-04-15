@@ -14,7 +14,7 @@ import { AppSettingsService } from './app-settings.service';
 export class UserService {
   private readonly http = inject(HttpClient);
   private readonly appSettingsService = inject(AppSettingsService);
-  private readonly apiBaseUrl = this.appSettingsService.env().apiBaseUrl;
+  private get apiBaseUrl() { return this.appSettingsService.env().apiBaseUrl; }
 
   getLeverageBracket(): Observable<any> {
     return this.http.post(`${this.apiBaseUrl}${API_ROUTES.futures.leverageBracket}`, {});
