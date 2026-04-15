@@ -1,10 +1,18 @@
-import { Injectable, OnDestroy } from "@angular/core";
-import { BehaviorSubject } from "rxjs";
+import { computed, inject, Injectable, OnDestroy, signal } from '@angular/core';
+import { BehaviorSubject } from 'rxjs';
+
+// Environments
+import { prodEnv, testnetEnv } from '../../../environments/environment';
+
+// Services
+import { LocalStorageService } from './local-storage.service';
+import { STORAGE } from '../constants/binance.constant';
 
 @Injectable({
-    providedIn: 'root'
+  providedIn: 'root',
 })
 export class AppSettingsService implements OnDestroy {
+  private readonly localStorageService = inject(LocalStorageService);
 
   private isLoadingPositionsSubject = new BehaviorSubject<boolean>(false);
   readonly isLoadingPositions$ = this.isLoadingPositionsSubject.asObservable();
@@ -15,15 +23,24 @@ export class AppSettingsService implements OnDestroy {
   private isLoadingPendingTpSlSubject = new BehaviorSubject<boolean>(false);
   readonly isLoadingPendingTpSl$ = this.isLoadingPendingTpSlSubject.asObservable();
 
-  setIsLoadingPositions(value: boolean) {
+  env(): any {
+    const isTestnet = this.localStorageService.getLocalStorageSignal(STORAGE.IS_TESTNET, false);
+    return isTestnet() ? testnetEnv : prodEnv;
+  }
+
+  setTestnet(value: boolean): void {
+    this.localStorageService.updateLocalStorageSignal(STORAGE.IS_TESTNET, value);
+  }
+
+  setIsLoadingPositions(value: boolean): void {
     this.isLoadingPositionsSubject.next(value);
   }
 
-  setIsLoadingOpenOrders(value: boolean) {
+  setIsLoadingOpenOrders(value: boolean): void {
     this.isLoadingOpenOrdersSubject.next(value);
   }
 
-  setIsLoadingPendingTpSl(value: boolean) {
+  setIsLoadingPendingTpSl(value: boolean): void {
     this.isLoadingPendingTpSlSubject.next(value);
   }
 
@@ -32,4 +49,4 @@ export class AppSettingsService implements OnDestroy {
     this.isLoadingOpenOrdersSubject.complete();
     this.isLoadingPendingTpSlSubject.complete();
   }
-} 
+}

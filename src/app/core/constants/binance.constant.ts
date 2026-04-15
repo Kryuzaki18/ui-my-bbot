@@ -30,6 +30,7 @@ export const STORAGE = {
   TIMEFRAME: 'tf',
   SYMBOL: 'symbol',
   FAV_SYMBOLS: 'fav_symbols',
+  IS_TESTNET: "is_testnet",
 };
 
 // keepalive — Binance requires a PUT every 30–60 minutes

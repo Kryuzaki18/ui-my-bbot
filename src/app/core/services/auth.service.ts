@@ -2,11 +2,11 @@ import { HttpClient } from '@angular/common/http';
 import { computed, inject, Injectable, signal } from '@angular/core';
 import { catchError, Observable, of, shareReplay, tap, throwError } from 'rxjs';
 
-// Environment
-import { API_ROUTES, environment } from '../../../environments/environment';
+import { API_ROUTES } from '../../../environments/environment';
 
 // Services
 import { UserWsService } from './user-ws.service';
+import { AppSettingsService } from './app-settings.service';
 
 interface IAuth {
   message: string;
@@ -18,7 +18,10 @@ interface IAuth {
 export class AuthService {
   private readonly http = inject(HttpClient);
   private readonly userWsService = inject(UserWsService);
+  private readonly appSettingsService = inject(AppSettingsService)
+  private readonly apiBaseUrl = this.appSettingsService.env().apiBaseUrl;
   private readonly session = signal<boolean>(false);
+  
   private checkAuth$?: Observable<boolean>;
   private hasChecked = false;
 
@@ -39,7 +42,7 @@ export class AuthService {
     if (this.checkAuth$) return this.checkAuth$;
 
     this.checkAuth$ = this.http
-      .get<boolean>(`${environment.apiTradingBotUrl}${API_ROUTES.auth.me}`)
+      .get<boolean>(`${this.apiBaseUrl}${API_ROUTES.auth.me}`)
       .pipe(
         tap((isAuth: boolean) => {
           this.session.set(isAuth);
@@ -60,7 +63,7 @@ export class AuthService {
 
   signIn(apiKey: string, apiSecret: string, useTestnet: boolean): Observable<IAuth> {
     return this.http
-      .post<IAuth>(`${environment.apiTradingBotUrl}${API_ROUTES.auth.signIn}`, {
+      .post<IAuth>(`${this.apiBaseUrl}${API_ROUTES.auth.signIn}`, {
         apiKey,
         apiSecret,
         useTestnet,
@@ -69,13 +72,14 @@ export class AuthService {
         tap((res) => {
           this.userWsService.startUserDataStream();
           this.session.set(true);
+          this.appSettingsService.setTestnet(useTestnet);
         }),
       );
   }
 
   signInWithEmail(email: string, password: string, useTestnet: boolean): Observable<IAuth> {
     return this.http
-      .post<IAuth>(`${environment.apiTradingBotUrl}${API_ROUTES.auth.signInWithEmail}`, {
+      .post<IAuth>(`${this.apiBaseUrl}${API_ROUTES.auth.signInWithEmail}`, {
         email,
         password,
         useTestnet,
@@ -84,6 +88,7 @@ export class AuthService {
         tap((res) => {
           this.userWsService.startUserDataStream();
           this.session.set(true);
+          this.appSettingsService.setTestnet(useTestnet);
         }),
       );
   }
@@ -92,7 +97,7 @@ export class AuthService {
     this.userWsService.stopUserDataStream();
 
     return this.http
-      .post<IAuth>(`${environment.apiTradingBotUrl}${API_ROUTES.auth.signOut}`, {})
+      .post<IAuth>(`${this.apiBaseUrl}${API_ROUTES.auth.signOut}`, {})
       .pipe(
         tap(() => this.clearSession()),
         catchError((err) => {

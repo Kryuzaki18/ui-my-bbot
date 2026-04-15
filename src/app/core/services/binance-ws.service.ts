@@ -1,8 +1,5 @@
-import { Injectable } from '@angular/core';
+import { inject, Injectable } from '@angular/core';
 import { Observable, Subject } from 'rxjs';
-
-// Environment
-import { environment } from '../../../environments/environment';
 
 // Models
 import {
@@ -12,6 +9,7 @@ import {
   Timeframe,
 } from '../models/chart.model';
 import { MAX_TRADE_HISTORY, STREAM_NAME } from '../constants/binance.constant';
+import { AppSettingsService } from './app-settings.service';
 
 export type WsStatus = 'connecting' | 'live' | 'error' | 'closed';
 
@@ -24,7 +22,8 @@ export interface AggTradeWs {
   providedIn: 'root',
 })
 export class BinanceWsService {
-  private readonly marketWsBase = environment.binanceMarketWSBaseUrl;
+  private readonly appSettingsService = inject(AppSettingsService)
+  private readonly binanceMarketWSBaseUrl = this.appSettingsService.env().binanceMarketWSBaseUrl;
 
   private aggTradeConnections: Record<string, AggTradeWs> = {};
   private marketWSconnections = new Map<string, WebSocket>();
@@ -127,7 +126,7 @@ export class BinanceWsService {
 
     this.statusSubject.next({ key, status: 'connecting' });
 
-    const ws = new WebSocket(`${this.marketWsBase}/${stream}`);
+    const ws = new WebSocket(`${this.binanceMarketWSBaseUrl}/${stream}`);
     this.marketWSconnections.set(key, ws);
 
     ws.onopen = () => {
@@ -196,7 +195,7 @@ export class BinanceWsService {
   }
 
   private createAggTrade(symbol: string): AggTradeWs {
-    const wsUrl = `${this.marketWsBase}/${symbol.toLowerCase()}@aggTrade`;
+    const wsUrl = `${this.binanceMarketWSBaseUrl}/${symbol.toLowerCase()}@aggTrade`;
     const socket = new WebSocket(wsUrl);
 
     const aggTradeSubject = new Subject<AggTradeWsMessage[]>();

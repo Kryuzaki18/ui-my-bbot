@@ -3,7 +3,7 @@ import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable, map, catchError, throwError, forkJoin, ReplaySubject, take } from 'rxjs';
 
 // Environments
-import { BINANCE_PUBLIC_API_ROUTES, environment } from '../../../environments/environment';
+import { BINANCE_PUBLIC_API_ROUTES } from '../../../environments/environment';
 
 // Models
 import {
@@ -17,10 +17,15 @@ import {
 } from '../models/chart.model';
 import { ExchangeInfo, ExchangeSymbolsWithVolume } from '../models/trades.model';
 
+// Services
+import { AppSettingsService } from './app-settings.service';
+
 @Injectable({ providedIn: 'root' })
 export class BinanceRestService {
   private readonly http = inject(HttpClient);
-  private readonly base = environment.binanceFutureRestBaseUrl;
+  private readonly appSettingsService = inject(AppSettingsService);
+  private readonly binanceFutureRestBaseUrl =
+    this.appSettingsService.env().binanceFutureRestBaseUrl;
 
   private exchangeInfoSubject = new ReplaySubject<ExchangeInfo>(1);
   readonly exchangeInfo$ = this.exchangeInfoSubject.asObservable();
@@ -33,18 +38,25 @@ export class BinanceRestService {
     const params = new HttpParams()
       .set('symbol', symbol.toLowerCase())
       .set('limit', limit.toString());
-    return this.http.get<AggTradeRest[]>(`${this.base}${BINANCE_PUBLIC_API_ROUTES.aggTrades}`, { params });
+    return this.http.get<AggTradeRest[]>(
+      `${this.binanceFutureRestBaseUrl}${BINANCE_PUBLIC_API_ROUTES.aggTrades}`,
+      {
+        params,
+      },
+    );
   }
 
   getExchangeInfo(): Observable<ExchangeInfo> {
-    return this.http.get<ExchangeInfo>(`${this.base}${BINANCE_PUBLIC_API_ROUTES.exchangeInfo}`);
+    return this.http.get<ExchangeInfo>(
+      `${this.binanceFutureRestBaseUrl}${BINANCE_PUBLIC_API_ROUTES.exchangeInfo}`,
+    );
   }
 
   getAllSymbolsWithVolume(): Observable<ExchangeSymbolsWithVolume[]> {
     return forkJoin({
       info: this.exchangeInfo$.pipe(take(1)),
       stats: this.http.get<Ticker24hrData[]>(
-        `${this.base}${BINANCE_PUBLIC_API_ROUTES.chart.ticker}`,
+        `${this.binanceFutureRestBaseUrl}${BINANCE_PUBLIC_API_ROUTES.chart.ticker}`,
       ),
     }).pipe(
       map(({ info, stats }) => {
@@ -64,7 +76,7 @@ export class BinanceRestService {
             lowPrice: ticker?.lowPrice || 0,
             volume: ticker?.volume || 0,
             quoteVolume: ticker?.quoteVolume || 0,
-            volNumber: Number(ticker?.quoteVolume)
+            volNumber: Number(ticker?.quoteVolume),
           };
         });
       }),
@@ -78,7 +90,9 @@ export class BinanceRestService {
       .set('limit', limit.toString());
 
     return this.http
-      .get<any[][]>(`${this.base}${BINANCE_PUBLIC_API_ROUTES.chart.klines}`, { params })
+      .get<
+        any[][]
+      >(`${this.binanceFutureRestBaseUrl}${BINANCE_PUBLIC_API_ROUTES.chart.klines}`, { params })
       .pipe(
         map((raw) =>
           raw.map((k) => ({
@@ -98,7 +112,9 @@ export class BinanceRestService {
     const params = new HttpParams().set('symbol', symbol.toLowerCase());
 
     return this.http
-      .get<any>(`${this.base}${BINANCE_PUBLIC_API_ROUTES.chart.ticker}`, { params })
+      .get<any>(`${this.binanceFutureRestBaseUrl}${BINANCE_PUBLIC_API_ROUTES.chart.ticker}`, {
+        params,
+      })
       .pipe(
         map((d) => ({
           lastPrice: parseFloat(d.lastPrice),
@@ -117,7 +133,9 @@ export class BinanceRestService {
     const params = new HttpParams().set('symbol', symbol.toLowerCase());
 
     return this.http
-      .get<any>(`${this.base}${BINANCE_PUBLIC_API_ROUTES.markPrice}`, { params })
+      .get<any>(`${this.binanceFutureRestBaseUrl}${BINANCE_PUBLIC_API_ROUTES.markPrice}`, {
+        params,
+      })
       .pipe(
         map((d) => ({
           markPrice: parseFloat(d.markPrice),
@@ -133,7 +151,9 @@ export class BinanceRestService {
     const params = new HttpParams().set('symbol', symbol.toUpperCase());
 
     return this.http
-      .get<any>(`${this.base}${BINANCE_PUBLIC_API_ROUTES.openInterest}`, { params })
+      .get<any>(`${this.binanceFutureRestBaseUrl}${BINANCE_PUBLIC_API_ROUTES.openInterest}`, {
+        params,
+      })
       .pipe(
         map((d) => ({ openInterest: parseFloat(d.openInterest) })),
         catchError((err) => throwError(() => err)),
@@ -146,7 +166,7 @@ export class BinanceRestService {
       .set('limit', limit.toString());
 
     return this.http
-      .get<any>(`${this.base}${BINANCE_PUBLIC_API_ROUTES.depth}`, { params })
+      .get<any>(`${this.binanceFutureRestBaseUrl}${BINANCE_PUBLIC_API_ROUTES.depth}`, { params })
       .pipe(catchError((err) => throwError(() => err)));
   }
 }

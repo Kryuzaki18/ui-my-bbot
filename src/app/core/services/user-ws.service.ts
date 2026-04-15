@@ -3,10 +3,13 @@ import { inject, Injectable } from '@angular/core';
 import { Observable, Subject } from 'rxjs';
 
 // Environments
-import { API_ROUTES, environment } from '../../../environments/environment';
+import { API_ROUTES } from '../../../environments/environment';
 
 // Constants
 import { KEEP_ALIVE_USER_DATA_STREAM } from '../constants/binance.constant';
+
+// Services
+import { AppSettingsService } from './app-settings.service';
 
 interface UserStream {
   listenKey: string;
@@ -16,11 +19,16 @@ interface UserStream {
   providedIn: 'root',
 })
 export class UserWsService {
+  private readonly http = inject(HttpClient);
+  private readonly appSettingsService = inject(AppSettingsService);
+  private readonly apiBaseUrl = this.appSettingsService.env().apiBaseUrl;
+  private readonly binanceWSBaseUrl = this.appSettingsService.env().binanceWSBaseUrl;
+  private readonly userData$ = new Subject<any>();
+
   private userDataListenKey: string | null = null;
   private userDataWs: WebSocket | null = null;
   private userDataPingInterval: any;
-  private readonly userData$ = new Subject<any>();
-  private readonly http = inject(HttpClient);
+
 
   getUserDataStream(): Observable<any> {
     return this.userData$.asObservable();
@@ -30,7 +38,7 @@ export class UserWsService {
     if (this.userDataWs) return;
 
     this.http
-      .post<UserStream>(`${environment.apiTradingBotUrl}${API_ROUTES.user.userDataStream}`, {})
+      .post<UserStream>(`${this.apiBaseUrl}${API_ROUTES.user.userDataStream}`, {})
       .subscribe({
         next: (res) => {
           this.userDataListenKey = res.listenKey;
@@ -55,7 +63,7 @@ export class UserWsService {
     }
     if (this.userDataListenKey) {
       this.http
-        .delete(`${environment.apiTradingBotUrl}${API_ROUTES.user.userDataStream}`)
+        .delete(`${this.apiBaseUrl}${API_ROUTES.user.userDataStream}`)
         .subscribe();
       this.userDataListenKey = null;
     }
@@ -64,7 +72,7 @@ export class UserWsService {
   private connectUserDataWebSocket(): void {
     if (!this.userDataListenKey) return;
 
-    const WS_URL = `${environment.binanceWSBaseUrl}/${this.userDataListenKey}`;
+    const WS_URL = `${this.binanceWSBaseUrl}/${this.userDataListenKey}`;
     const socket = new WebSocket(WS_URL);
 
     socket.onopen = () => {
@@ -99,7 +107,7 @@ export class UserWsService {
 
   private keepAliveUserDataStream(): void {
     this.http
-      .put<UserStream>(`${environment.apiTradingBotUrl}${API_ROUTES.user.userDataStream}`, {})
+      .put<UserStream>(`${this.apiBaseUrl}${API_ROUTES.user.userDataStream}`, {})
       .subscribe({
         error: (err) => console.error('Failed to keep-alive listenKey', err),
       });

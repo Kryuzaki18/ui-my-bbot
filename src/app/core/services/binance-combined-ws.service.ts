@@ -1,36 +1,38 @@
-import { Injectable, signal, OnDestroy } from '@angular/core';
+import { Injectable, signal, OnDestroy, inject } from '@angular/core';
 import { webSocket, WebSocketSubject } from 'rxjs/webSocket';
 import { retry } from 'rxjs/operators';
-import { environment } from '../../../environments/environment';
+
+// Constants
+import { STREAM_NAME } from '../constants/binance.constant';
+
+// Services
+import { AppSettingsService } from './app-settings.service';
 
 @Injectable({ providedIn: 'root' })
 export class BinanceCombinedWSService implements OnDestroy {
-  private readonly publicWsBase = environment.binancePublicWSBaseUrl;
+  private readonly appSettingsService = inject(AppSettingsService)
+  private readonly binancePublicWSBaseUrl = this.appSettingsService.env().binancePublicWSBaseUrl;
+
   private socket$?: WebSocketSubject<any>;
   private requestId = 1; // Required for Binance request tracking
 
-  // 1. Using Signals for State (Best for UI)
   public trades = signal<any>(null);
   public ticker24hr = signal<any>(null);
   public kline = signal<any>(null);
-  public activeStreams = signal<string[]>([]); // Track what is actually ON
+  public activeStreams = signal<string[]>([]);
 
   connect(symbol: string) {
     const s = symbol.toLowerCase();
-    // Using /ws/ path is better for dynamic SUBSCRIBE/UNSUBSCRIBE
-    const url = `${this.publicWsBase}/ws/`;
-
-    this.socket$ = webSocket(url);
+    this.socket$ = webSocket(this.binancePublicWSBaseUrl);
 
     this.socket$.pipe(retry({ delay: 3000 })).subscribe({
       next: (msg) => this.dispatch(msg),
       error: (err) => console.error('Connection Error:', err),
     });
 
-    // Initial Subscriptions
-    this.toggleStream(s, 'aggTrade', true);
-    this.toggleStream(s, '24hrTicker', true);
-    this.toggleStream(s, 'kline_1m', true);
+    this.toggleStream(s, STREAM_NAME.AGG_TRADE, true);
+    this.toggleStream(s, STREAM_NAME.TICKER_24HR, true);
+    this.toggleStream(s, STREAM_NAME.KLINE, true);
   }
 
   toggleStream(symbol: string, type: string, state: boolean) {
@@ -60,13 +62,13 @@ export class BinanceCombinedWSService implements OnDestroy {
     }
 
     switch (msg.e) {
-      case 'aggTrade':
+      case STREAM_NAME.AGG_TRADE:
         this.trades.set(msg);
         break;
-      case '24hrTicker':
+      case STREAM_NAME.TICKER_24HR:
         this.ticker24hr.set(msg);
         break;
-      case 'kline':
+      case STREAM_NAME.KLINE:
         this.kline.set(msg);
         break;
     }

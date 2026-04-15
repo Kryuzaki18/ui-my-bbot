@@ -3,55 +3,57 @@ import { inject, Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
 
 // Environment
-import { API_ROUTES, environment } from '../../../environments/environment';
+import { API_ROUTES } from '../../../environments/environment';
+
+// Services
+import { AppSettingsService } from './app-settings.service';
 
 @Injectable({
   providedIn: 'root',
 })
 export class FutureTradeService {
   private http = inject(HttpClient);
+  private readonly appSettingsService = inject(AppSettingsService);
+  private readonly apiBaseUrl = this.appSettingsService.env().apiBaseUrl;
 
   getPendingTpSl(symbol?: string): Observable<any[]> {
-    let url = `${environment.apiTradingBotUrl}${API_ROUTES.futures.pendingTpSl}`;
+    let url = `${this.apiBaseUrl}${API_ROUTES.futures.pendingTpSl}`;
     if (symbol) url += `?symbol=${symbol}`;
     return this.http.get<any[]>(url);
   }
 
   getOpenOrders(symbol?: string): Observable<any[]> {
-    let url = `${environment.apiTradingBotUrl}${API_ROUTES.futures.openOrders}`;
+    let url = `${this.apiBaseUrl}${API_ROUTES.futures.openOrders}`;
     if (symbol) url += `?symbol=${symbol}`;
     return this.http.get<any[]>(url);
   }
 
   getFuturesPositions(): Observable<any[]> {
-    return this.http.get<any[]>(`${environment.apiTradingBotUrl}${API_ROUTES.futures.positions}`);
+    return this.http.get<any[]>(`${this.apiBaseUrl}${API_ROUTES.futures.positions}`);
   }
 
   placeOrder(body: any): Observable<any> {
-    return this.http.post(`${environment.apiTradingBotUrl}${API_ROUTES.futures.order}`, body);
+    return this.http.post(`${this.apiBaseUrl}${API_ROUTES.futures.order}`, body);
   }
 
   takeProfit(body: any): Observable<any> {
-    return this.http.post(`${environment.apiTradingBotUrl}${API_ROUTES.futures.takeProfit}`, body);
+    return this.http.post(`${this.apiBaseUrl}${API_ROUTES.futures.takeProfit}`, body);
   }
 
   stopLoss(body: any): Observable<any> {
-    return this.http.post(`${environment.apiTradingBotUrl}${API_ROUTES.futures.stopLoss}`, body);
+    return this.http.post(`${this.apiBaseUrl}${API_ROUTES.futures.stopLoss}`, body);
   }
 
   closePosition(body: any): Observable<any> {
-    return this.http.post(
-      `${environment.apiTradingBotUrl}${API_ROUTES.futures.closePosition}`,
-      body,
-    );
+    return this.http.post(`${this.apiBaseUrl}${API_ROUTES.futures.closePosition}`, body);
   }
 
   cancelTpSl(body: any): Observable<any> {
-    return this.http.post(`${environment.apiTradingBotUrl}${API_ROUTES.futures.cancelTpSl}`, body);
+    return this.http.post(`${this.apiBaseUrl}${API_ROUTES.futures.cancelTpSl}`, body);
   }
 
   cancelOrder(symbol: string, orderId: number, clientOrderId?: string): Observable<any> {
     const payload = { symbol, orderId, clientOrderId };
-    return this.http.post(`${environment.apiTradingBotUrl}${API_ROUTES.futures.cancel}`, payload);
+    return this.http.post(`${this.apiBaseUrl}${API_ROUTES.futures.cancel}`, payload);
   }
 }

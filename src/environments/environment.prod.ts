@@ -1,5 +1,6 @@
 //https://developers.binance.com/docs/derivatives/usds-margined-futures/websocket-market-streams/Important-WebSocket-Change-Notice
 const binanceWSBaseUrl = 'wss://fstream.binance.com/ws';
+const binanceTestnetWSBaseUrl = 'wss://fstream.binancefuture.com/ws';
 
 export const environment = {
   binanceFutureRestBaseUrl: 'https://fapi.binance.com',
@@ -10,15 +11,25 @@ export const environment = {
   apiTradingBotUrl: 'http://localhost:3000',
 };
 
+export const testnetEnvironment = {
+  binanceFutureRestBaseUrl: 'https://demo-fapi.binance.com',
+  binanceWSBaseUrl: binanceTestnetWSBaseUrl,
+  binancePublicWSBaseUrl: `${binanceTestnetWSBaseUrl}/public`,
+  binanceMarketWSBaseUrl: `${binanceTestnetWSBaseUrl}/market`,
+  binancePrivateWSBaseUrl: `${binanceTestnetWSBaseUrl}/private`,
+  apiTradingBotUrl: 'http://localhost:3000',
+};
+
 export const BINANCE_PUBLIC_API_ROUTES = {
   leverageBracket: '/fapi/v1/leverageBracket',
   exchangeInfo: '/fapi/v1/exchangeInfo',
+  markPrice: '/fapi/v1/premiumIndex',
+  openInterest: '/fapi/v1/openInterest',
+  depth: '/fapi/v1/depth',
+  aggTrades: '/fapi/v1/aggTrades',
   chart: {
     klines: '/fapi/v1/klines',
     ticker: '/fapi/v1/ticker/24hr',
-    markPrice: '/fapi/v1/premiumIndex',
-    openInterest: '/fapi/v1/openInterest',
-    depth: '/fapi/v1/depth',
   },
 };
 
@@ -26,6 +37,7 @@ export const API_ROUTES = {
   auth: {
     me: '/api/auth/me',
     signIn: '/api/auth/signin',
+    signInWithEmail: '/api/auth/signin-email',
     signOut: '/api/auth/signout',
   },
   user: {
