@@ -69,13 +69,17 @@
             <p-button
               styleClass="w-full"
               type="submit"
-              label="Sign In"
-              iconPos="right"
-              icon="pi pi-sign-in"
               severity="contrast"
-              [loading]="loading()"
               [disabled]="emailForm.invalid"
             >
+              <div class="flex items-center justify-center w-full gap-2">
+                @if (!loading()) {
+                  <span class="jetbrains-bold text-xs">Sign In</span>
+                  <i class="pi pi-sign-in"></i>
+                } @else {
+                  <i class="pi pi-spinner-dotted"></i>
+                }
+              </div>
             </p-button>
           </form>
 
@@ -155,13 +159,17 @@
             <p-button
               styleClass="w-full"
               type="submit"
-              label="Establish Secure Session"
-              iconPos="right"
-              icon="pi pi-sign-in"
               severity="contrast"
-              [loading]="loading()"
               [disabled]="binanceForm.invalid"
             >
+              <div class="flex items-center justify-center w-full gap-2">
+                @if (!loading()) {
+                  <span class="jetbrains-bold text-xs">Sign In</span>
+                  <i class="pi pi-sign-in"></i>
+                } @else {
+                  <i class="pi pi-spinner-dotted"></i>
+                }
+              </div>
             </p-button>
           </form>
         </p-tabpanel>

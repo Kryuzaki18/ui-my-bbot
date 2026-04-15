@@ -98,9 +98,9 @@ export class SigninComponent implements OnInit {
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
         next: (res) => {
-          this.loading.set(false);
           this.dialogRef.close();
           this.router.navigate(['/future']);
+          this.loading.set(false);
         },
         error: (err) => {
           this.loading.set(false);
@@ -123,8 +123,8 @@ export class SigninComponent implements OnInit {
       .subscribe({
         next: (res) => {
           this.dialogRef.close();
-          this.loading.set(false);
           this.router.navigate(['/future']);
+          this.loading.set(false);
         },
         error: (err) => {
           this.loading.set(false);

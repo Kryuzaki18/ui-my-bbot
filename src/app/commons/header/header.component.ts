@@ -17,6 +17,7 @@ import { MenuItem } from 'primeng/api';
 
 // Services
 import { AppSettingsService } from '../../core/services/app-settings.service';
+import { ChartService } from '../../core/services/chart/chart.service';
 
 @Component({
   selector: 'app-header',
@@ -27,6 +28,7 @@ import { AppSettingsService } from '../../core/services/app-settings.service';
 })
 export class HeaderComponent implements OnInit {
   readonly appSettingsService = inject(AppSettingsService);
+  readonly chartService = inject(ChartService);
   readonly authService = inject(AuthService);
   private readonly router = inject(Router);
   private readonly dialogService = inject(DialogService);
@@ -69,6 +71,8 @@ export class HeaderComponent implements OnInit {
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
         next: () => {
+          this.chartService.setPositionChartData(null);
+          this.chartService.setOpenOrdersChartData([]);
           this.router.navigate(['/home']);
         },
         error: (err) => {},
