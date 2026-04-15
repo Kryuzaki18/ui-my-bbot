@@ -2,19 +2,34 @@ import { Component, DestroyRef, inject, OnInit } from '@angular/core';
 import { RouterModule } from '@angular/router';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
+// Components
+import { HeaderComponent } from './commons/header/header.component';
+import { ChatComponent } from './components/chat/chat-component';
+
 //Services
 import { AuthService } from './core/services/auth.service';
 import { BinanceRestService } from './core/services/binance-rest.service';
+import { ToastMessageService } from './core/services/toast-message.service';
 
 // PrimeNG Modules
 import { ConfirmDialogModule } from 'primeng/confirmdialog';
 import { ToastModule } from 'primeng/toast';
 import { ScrollPanelModule } from 'primeng/scrollpanel';
-import { ToastMessageService } from './core/services/toast-message.service';
+import { ButtonModule } from 'primeng/button';
+import { DialogModule } from 'primeng/dialog';
 
 @Component({
   selector: 'app-root',
-  imports: [RouterModule, ConfirmDialogModule, ToastModule, ScrollPanelModule],
+  imports: [
+    RouterModule,
+    ConfirmDialogModule,
+    ToastModule,
+    ScrollPanelModule,
+    ButtonModule,
+    DialogModule,
+    HeaderComponent,
+    ChatComponent,
+  ],
   templateUrl: './app.html',
   styleUrl: './app.scss',
 })
@@ -34,11 +49,8 @@ export class App implements OnInit {
   }
 
   private getSymbolTickSize(): void {
-    this.binanceRestService
-      .getExchangeInfo()
-      .subscribe((res) => {
-        this.binanceRestService.setExchangeInfo(res);
-      });
+    this.binanceRestService.getExchangeInfo().subscribe((res) => {
+      this.binanceRestService.setExchangeInfo(res);
+    });
   }
-
 }
