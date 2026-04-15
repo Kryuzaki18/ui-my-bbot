@@ -20,6 +20,10 @@ export class UserService {
     return this.http.post(`${this.apiBaseUrl}${API_ROUTES.futures.leverageBracket}`, {});
   }
 
+  getCommissionRate(symbols: string[]): Observable<any> {
+    return this.http.post(`${this.apiBaseUrl}${API_ROUTES.futures.commissionRate}`, { symbols });
+  }
+
   getUserInfo(): Observable<any> {
     return this.http.get(`${this.apiBaseUrl}${API_ROUTES.user.userInfo}`);
   }

@@ -2,7 +2,7 @@ import { Component, inject, OnInit, DestroyRef, signal, computed, effect } from 
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { debounceTime } from 'rxjs';
+import { debounceTime, forkJoin } from 'rxjs';
 
 // Services
 import { UtilsService } from '../../core/services/utils.service';
@@ -15,11 +15,7 @@ import { ToastMessageService } from '../../core/services/toast-message.service';
 import { ChartService } from '../../core/services/chart/chart.service';
 
 // Models
-import {
-  OrderSideEnum,
-  OrderTypeEnum,
-  PositionSideEnum,
-} from '../../core/models/trades.model';
+import { OrderSideEnum, OrderTypeEnum, PositionSideEnum } from '../../core/models/trades.model';
 import { DEFAULT_SYMBOL, STORAGE } from '../../core/constants/binance.constant';
 
 // Components
@@ -34,6 +30,7 @@ import { TabsModule } from 'primeng/tabs';
 import { ConfirmationService } from 'primeng/api';
 import { DialogService, DynamicDialogRef } from 'primeng/dynamicdialog';
 import { SelectButtonModule } from 'primeng/selectbutton';
+import { UserService } from '../../core/services/user.service';
 
 @Component({
   selector: 'app-positions-and-orders',
@@ -54,6 +51,7 @@ export class PositionsAndOrdersComponent implements OnInit {
   private readonly destroyRef = inject(DestroyRef);
   private readonly utilsService = inject(UtilsService);
   private readonly userWsService = inject(UserWsService);
+  private readonly userService = inject(UserService);
   private readonly binanceWsService = inject(BinanceWsService);
   private readonly localStorageService = inject(LocalStorageService);
   private readonly futureTradeService = inject(FutureTradeService);
@@ -122,7 +120,7 @@ export class PositionsAndOrdersComponent implements OnInit {
         const sign = pos.positionAmt > 0 ? 1 : -1;
 
         const currentPrice =
-          this.livePrices()[pos.symbol] || parseFloat(pos.markPrice || pos.entryPrice);
+          this.livePrices()[pos.symbol] || parseFloat(pos.markPrice);
         const positionAmt = parseFloat(pos.positionAmt);
         const livePnl = (currentPrice - entryPrice) * positionAmt;
         const initialMargin = (Math.abs(positionAmt) * entryPrice) / leverage;
@@ -139,6 +137,10 @@ export class PositionsAndOrdersComponent implements OnInit {
           stopLossPnlPercent =
             ((slOrder.triggerPrice - entryPrice) / entryPrice) * leverage * sign * 100;
         }
+
+        const fee = parseFloat(pos.commissionRate?.takerCommissionRate || 0.0004);
+        pos.breakEvenPrice = this.utilsService.calculateBreakEven(currentPrice, positionAmt, fee);
+        pos.markPrice = currentPrice;
 
         // if (positionAmt > 0 && tpOrder && pos.markPrice >= tpOrder.triggerPrice) {
         //   this.toastMessageService.success(`${pos.symbol}`, ` Take Profit hit.`);
@@ -285,13 +287,25 @@ export class PositionsAndOrdersComponent implements OnInit {
       });
   }
 
-  fetchPositions(): void {
-    this.futureTradeService
-      .getFuturesPositions()
+  private fetchPositions(): void {
+    forkJoin({
+      positions: this.futureTradeService.getFuturesPositions(),
+      commissionRate: this.userService.getCommissionRate([this.currentSymbol()]),
+    })
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
-        next: (allPositions) => {
-          const activePos = allPositions.filter((p: any) => parseFloat(p.positionAmt) !== 0);
+        next: ({ positions, commissionRate }) => {
+          const activePos = positions
+            .filter((p: any) => parseFloat(p.positionAmt) !== 0)
+            .map((pos: any) => {
+              return {
+                ...pos,
+                commissionRate: commissionRate.find(
+                  (r: any) => r.symbol.toLowerCase() === pos.symbol.toLowerCase(),
+                ),
+              };
+            });
+
           this.positions.set(activePos);
         },
         error: (err) => console.error(err),
@@ -481,7 +495,6 @@ export class PositionsAndOrdersComponent implements OnInit {
             next: (res) => {
               this.toastMessageService.success('Stop loss set successfully.');
               this.appSettingsService.setIsLoadingPositions(true);
-              this.appSettingsService.setIsLoadingOpenOrders(true);
               this.appSettingsService.setIsLoadingPendingTpSl(true);
             },
             error: (err) => {
@@ -489,7 +502,6 @@ export class PositionsAndOrdersComponent implements OnInit {
               this.toastMessageService.error(error, details.msg);
 
               this.appSettingsService.setIsLoadingPositions(false);
-              this.appSettingsService.setIsLoadingOpenOrders(false);
               this.appSettingsService.setIsLoadingPendingTpSl(false);
             },
           });

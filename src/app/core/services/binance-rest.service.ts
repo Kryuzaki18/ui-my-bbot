@@ -3,7 +3,7 @@ import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable, map, catchError, throwError, forkJoin, ReplaySubject, take } from 'rxjs';
 
 // Environments
-import { BINANCE_PUBLIC_API_ROUTES } from '../../../environments/environment';
+import { API_ROUTES, BINANCE_PUBLIC_API_ROUTES } from '../../../environments/environment';
 
 // Models
 import {
@@ -24,13 +24,21 @@ import { AppSettingsService } from './app-settings.service';
 export class BinanceRestService {
   private readonly http = inject(HttpClient);
   private readonly appSettingsService = inject(AppSettingsService);
-  private get binanceFutureRestBaseUrl() { return this.appSettingsService.env().binanceFutureRestBaseUrl; }
+  private get binanceFutureRestBaseUrl() {
+    return this.appSettingsService.env().binanceFutureRestBaseUrl;
+  }
 
   private exchangeInfoSubject = new ReplaySubject<ExchangeInfo>(1);
   readonly exchangeInfo$ = this.exchangeInfoSubject.asObservable();
 
   setExchangeInfo(exchangeInfo: ExchangeInfo): void {
     this.exchangeInfoSubject.next(exchangeInfo);
+  }
+
+  getExchangeInfo(): Observable<ExchangeInfo> {
+    return this.http.get<ExchangeInfo>(
+      `${this.binanceFutureRestBaseUrl}${BINANCE_PUBLIC_API_ROUTES.exchangeInfo}`,
+    );
   }
 
   getAggTrades(symbol: string, limit: number = 50): Observable<AggTradeRest[]> {
@@ -42,12 +50,6 @@ export class BinanceRestService {
       {
         params,
       },
-    );
-  }
-
-  getExchangeInfo(): Observable<ExchangeInfo> {
-    return this.http.get<ExchangeInfo>(
-      `${this.binanceFutureRestBaseUrl}${BINANCE_PUBLIC_API_ROUTES.exchangeInfo}`,
     );
   }
 

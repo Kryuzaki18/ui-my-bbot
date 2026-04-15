@@ -55,5 +55,6 @@ export const API_ROUTES = {
     pendingTpSl: '/api/futures/pending-tpsl',
     closePosition: '/api/futures/close-position',
     leverageBracket: '/api/futures/leverage-bracket',
+    commissionRate: '/api/futures/commission-rate',
   },
 };

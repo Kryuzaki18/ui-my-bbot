@@ -11,6 +11,15 @@ export class UtilsService {
     return n.toFixed(2);
   }
 
+  calculateBreakEven(entry: number, amt: number, fee: number): number {
+    if (amt > 0) {
+      return (entry * (1 + fee)) / (1 - fee);
+    } else if (amt < 0) {
+      return (entry * (1 - fee)) / (1 + fee);
+    }
+    return 0;
+  }
+
   calculateEstimatedPnL(
     entryPrice: number,
     targetPrice: number,
