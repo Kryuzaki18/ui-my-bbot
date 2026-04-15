@@ -227,9 +227,9 @@ export class PositionsAndOrdersComponent implements OnInit {
         const activeSymbols = new Set(this.positions().map((p) => p.symbol));
         if (activeSymbols.size === 0) return;
 
-        for (const t of tickers) {
-          if (activeSymbols.has(t.s)) {
-            currentPrice[t.s] = parseFloat(t.c);
+        for (const ticker of tickers) {
+          if (activeSymbols.has(ticker.s)) {
+            currentPrice[ticker.s] = parseFloat(ticker.c);
             updated = true;
           }
         }

@@ -36,15 +36,15 @@
         </th>
 
         <th class="!bg-gray-900 !text-gray-400">Entry Price</th>
-        <th class="!bg-gray-900 !text-gray-400">Mark Price</th>
         <th class="!bg-gray-900 !text-gray-400">Break Even Price</th>
+        <th class="!bg-gray-900 !text-gray-400">Mark Price</th>
+        <th class="!bg-gray-900 !text-gray-400">Liq. Price</th>
         <th pSortableColumn="livePnl" class="!bg-gray-900">
           <div class="flex items-center gap-1 text-gray-400 hover:text-gray-100 transition-color">
             <span>PNL(ROI%)</span>
             <p-sortIcon field="livePnl"></p-sortIcon>
           </div>
         </th>
-        <th class="!bg-gray-900 !text-gray-400">Liq. Price</th>
         <th class="!bg-gray-900 !text-gray-400 !text-right">Take Profit</th>
         <th class="!bg-gray-900 !text-gray-400 !text-right">Stop Loss</th>
         <th class="!bg-gray-900 !text-gray-400 w-32">Action</th>
@@ -104,8 +104,16 @@
           </div>
         </td>
         <td>{{ pos.entryPrice | number: '1.0-7' }}</td>
-        <td>{{ pos.markPrice | number: '1.0-7' }}</td>
         <td>{{ pos.breakEvenPrice | number: '1.0-7' }}</td>
+        <td>{{ pos.markPrice | number: '1.0-7' }}</td>
+        <td class="text-yellow-500 jetbrains-bold">
+          {{
+            pos.liquidationPrice && pos.liquidationPrice !== '0'
+              ? (pos.liquidationPrice | number: '1.0-5')
+              : '--'
+          }}
+        </td>
+
         <td
           [ngClass]="
             pos.livePnl >= 0 ? 'text-green-500 jetbrains-bold' : 'text-red-500 jetbrains-bold'
@@ -117,14 +125,6 @@
               >{{ pos.roi >= 0 ? '+' : '' }}{{ pos.roi | number: '1.0-2' }}%</span
             >
           </div>
-        </td>
-
-        <td class="text-yellow-500 jetbrains-bold">
-          {{
-            pos.liquidationPrice && pos.liquidationPrice !== '0'
-              ? (pos.liquidationPrice | number: '1.0-5')
-              : '--'
-          }}
         </td>
 
         <td>

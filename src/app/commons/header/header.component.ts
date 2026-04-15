@@ -15,6 +15,9 @@ import { DialogService, DynamicDialogModule } from 'primeng/dynamicdialog';
 import { MenuModule } from 'primeng/menu';
 import { MenuItem } from 'primeng/api';
 
+// Services
+import { AppSettingsService } from '../../core/services/app-settings.service';
+
 @Component({
   selector: 'app-header',
   imports: [ButtonModule, DynamicDialogModule, DialogModule, MenuModule],
@@ -23,6 +26,7 @@ import { MenuItem } from 'primeng/api';
   standalone: true,
 })
 export class HeaderComponent implements OnInit {
+  readonly appSettingsService = inject(AppSettingsService);
   readonly authService = inject(AuthService);
   private readonly router = inject(Router);
   private readonly dialogService = inject(DialogService);

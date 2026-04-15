@@ -5,6 +5,9 @@
     <div class="pl-3 flex items-center gap-2">
       <img src="/binance_logo.svg" alt="binance" width="20px" />
       <h1 class="text-emerald-500 text-md font-bold">BBot.v1</h1>
+      <h1 class="text-gray-100 text-[10px] font-bold px-1 bg-yellow-700 rounded tracking-wider">
+        {{ appSettingsService.isTestnet() ? 'Demo' : 'Live' }} Trading
+      </h1>
     </div>
 
     @if (authService.isLoggedIn()) {
