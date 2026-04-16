@@ -2,10 +2,10 @@ import { inject, Injectable } from '@angular/core';
 import { BehaviorSubject } from 'rxjs';
 
 // Models
-import { ChartTheme, OpenOrderChartLine, PositionChartData } from '../../models/chart.model';
+import { ChartTheme, OpenOrderChartLine, PositionChartData, Timeframe } from '../../models/chart.model';
 
 // Constants
-import { DEFAULT_SYMBOL, STORAGE } from '../../constants/binance.constant';
+import { DEFAULT_SYMBOL, DEFAULT_TIMEFRAME, STORAGE } from '../../constants/binance.constant';
 
 // Services
 import { LocalStorageService } from '../local-storage.service';
@@ -20,6 +20,11 @@ export class ChartService {
   readonly selectedSymbol = this.localStorageService.getLocalStorageSignal<string>(
     STORAGE.SYMBOL,
     DEFAULT_SYMBOL,
+  );
+
+  readonly selectedTimeframe = this.localStorageService.getLocalStorageSignal<Timeframe>(
+    STORAGE.TIMEFRAME,
+    DEFAULT_TIMEFRAME,
   );
 
   readonly theme$ = this.themeSubject.asObservable();

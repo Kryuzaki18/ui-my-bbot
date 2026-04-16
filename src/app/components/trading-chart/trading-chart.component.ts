@@ -146,13 +146,16 @@ export class TradingChartComponent implements OnInit, AfterViewInit, OnDestroy {
   readonly currentPrice = signal(0);
   readonly previousPrice = signal(0);
   readonly volumeHeight = signal(100);
-  readonly selectedSymbol = this.chartService.selectedSymbol();
-  
+
+  get selectedSymbol() {
+    return this.chartService.selectedSymbol();
+  }
+
+  get selectedTimeframe() {
+    return this.chartService.selectedTimeframe();
+  }
+
   readonly timeframes: Timeframe[] = TIMEFRAMES;
-  readonly selectedTimeframe = this.localStorageService.getLocalStorageSignal<Timeframe>(
-    STORAGE.TIMEFRAME,
-    DEFAULT_TIMEFRAME,
-  );
 
   readonly indicators = signal<IndicatorConfig[]>([
     { type: 'MA', label: 'MA (20)', color: '#58a6ff', enabled: false },
@@ -203,7 +206,7 @@ export class TradingChartComponent implements OnInit, AfterViewInit, OnDestroy {
       this.subscribeAllRest();
     });
 
-    this.fetchKlines(this.selectedTimeframe());
+    this.fetchKlines(this.selectedTimeframe);
 
     this.initCharts();
     this.movingTheChart();
@@ -223,7 +226,7 @@ export class TradingChartComponent implements OnInit, AfterViewInit, OnDestroy {
 
   private initAllWs(): void {
     this.binanceWsService.createAggTradeStream(this.selectedSymbol);
-    this.binanceWsService.wsKline(this.selectedSymbol, this.selectedTimeframe());
+    this.binanceWsService.wsKline(this.selectedSymbol, this.selectedTimeframe);
     this.binanceWsService.wsMarkPrice(this.selectedSymbol);
     this.binanceWsService.wsTicker24h(this.selectedSymbol);
   }
@@ -241,7 +244,7 @@ export class TradingChartComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   setTimeframe(timeframe: Timeframe): void {
-    if (timeframe === this.selectedTimeframe()) return;
+    if (timeframe === this.selectedTimeframe) return;
 
     this.localStorageService.updateLocalStorageSignal(STORAGE.TIMEFRAME, timeframe);
     this.fetchKlines(timeframe);

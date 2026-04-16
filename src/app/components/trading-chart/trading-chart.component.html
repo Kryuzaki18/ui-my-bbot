@@ -41,7 +41,7 @@
     </div>
 
     <div>
-      <span class="pi pi-caret-down text-yellow-400 p-2" style="font-size: 0.8rem"></span>
+      <span class="pi pi-caret-down text-yellow-400 p-2 !text-xs"></span>
     </div>
   </div>
 
@@ -154,7 +154,7 @@
       <p-button
         size="small"
         variant="text"
-        [severity]="selectedTimeframe() === tf ? 'primary' : 'secondary'"
+        [severity]="selectedTimeframe === tf ? 'primary' : 'secondary'"
         (click)="setTimeframe(tf)"
       >
         <span class="text-xs">{{ tf }}</span>
@@ -172,7 +172,7 @@
     >
       <div class="flex items-center justify-between gap-2 w-full">
         <div class="flex items-center">
-          <span class="pi pi-chart-line" style="font-size: 0.6rem"></span>
+          <span class="pi pi-chart-line !text-xs"></span>
           <span class="text-xs ml-3 mr-1">Indicators</span>
           @if (activeIndicatorCount() > 0) {
             <div class="bg-blue-600 text-white text-[9px] h-3 w-3 rounded">
@@ -181,7 +181,7 @@
           }
         </div>
 
-        <span class="pi pi-chevron-down" style="font-size: 0.6rem"></span>
+        <span class="pi pi-chevron-down !text-xs"></span>
       </div>
     </p-button>
 
