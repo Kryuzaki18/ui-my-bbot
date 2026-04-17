@@ -71,7 +71,7 @@
               <div class="px-3">
                 @for (item of conversation; track $index) {
                   @if (item.isError) {
-                    <div class="flex flex-col space-y-1 max-w-[80%]">
+                    <div class="flex flex-col space-y-1 py-2 max-w-[80%]">
                       <div
                         class="text-red-500 rounded-2xl text-[10px] shadow-sm break-words whitespace-pre-wrap"
                       >
@@ -80,154 +80,174 @@
                       <span class="text-[9px] text-slate-500 ml-1">{{ item.timestamp }}</span>
                     </div>
                   } @else if (item.sender === 'bot') {
-                    @if (item.response) {
-                      <div class="space-y-1 max-w-[80%]">
+                    @if (item.data) {
+                      <div class="py-2 max-w-[80%]">
                         <div
-                          class="bg-slate-800 text-slate-200 p-2 rounded-2xl rounded-tl-none text-[10px] border border-slate-700 shadow-sm break-words whitespace-pre-wrap"
+                          class="bg-slate-800 text-slate-200 p-2 rounded-2xl rounded-tl-none text-[10px] border border-slate-700 shadow-sm"
                         >
-                          @if (item.response) {
-                            <div class="font-bold text-xs">{{ item.response.message }}</div>
-                            <div class="font-bold text-green-500 text-xs mt-4">
-                              Buy/Long - {{ selectedSymbol }} @ {{ selectedTimeframe }}
-                            </div>
-                            @for (buy of item.response.data?.buy; track $index) {
-                              <div
-                                class="flex flex-col my-1 bg-green-950/20 rounded p-[0.5rem] border border-green-900/50"
-                              >
-                                <div class="flex gap-1">
-                                  <span class="text-slate-400">Indicators:</span
-                                  ><span class="text-xs"> {{ buy.indicators.join(', ') }}</span>
-                                </div>
+                          <div class="font-bold text-xs">{{ item.message }}</div>
 
-                                <div class="flex gap-1">
-                                  <span class="text-slate-400">Pattern:</span
-                                  ><span class="text-xs"> {{ buy.pattern.join(', ') }}</span>
-                                </div>
-
-                                <div class="flex gap-1">
-                                  <span class="text-slate-400">Leverage:</span
-                                  ><span class="text-xs"> {{ buy.leverage }}</span>
-                                </div>
-
-                                <div class="flex gap-1">
-                                  <span class="text-slate-400">Entry:</span
-                                  ><span class="text-xs"> {{ buy.entry }}</span>
-                                </div>
-
-                                <div class="flex gap-1">
-                                  <span class="text-slate-400">Stop Loss:</span
-                                  ><span class="text-xs"> {{ buy.sl }}</span>
-                                </div>
-
-                                <div class="flex gap-1">
-                                  <span class="text-slate-400">Take Profit:</span
-                                  ><span class="text-xs"> {{ buy.tp }}</span>
-                                </div>
-                              </div>
-                            }
-
-                            <div class="font-bold mt-2 text-red-500 text-xs mt-4">
-                              Sell/Short - {{ selectedSymbol }} @ {{ selectedTimeframe }}
-                            </div>
-                            @for (sell of item.response.data?.sell; track $index) {
-                              <div
-                                class="flex flex-col my-1 bg-red-950/20 rounded p-[0.5rem] border border-red-900/50"
-                              >
-                                <div class="flex gap-1">
-                                  <span class="text-slate-400">Indicators:</span
-                                  ><span class="text-xs"> {{ sell.indicators.join(', ') }}</span>
-                                </div>
-
-                                <div class="flex gap-1">
-                                  <span class="text-slate-400">Pattern:</span
-                                  ><span class="text-xs"> {{ sell.pattern.join(', ') }}</span>
-                                </div>
-
-                                <div class="flex gap-1">
-                                  <span class="text-slate-400">Leverage:</span
-                                  ><span class="text-xs"> {{ sell.leverage }}</span>
-                                </div>
-
-                                <div class="flex gap-1">
-                                  <span class="text-slate-400">Entry:</span
-                                  ><span class="text-xs"> {{ sell.entry }}</span>
-                                </div>
-
-                                <div class="flex gap-1">
-                                  <span class="text-slate-400">Stop Loss:</span
-                                  ><span class="text-xs"> {{ sell.sl }}</span>
-                                </div>
-
-                                <div class="flex gap-1">
-                                  <span class="text-slate-400">Take Profit:</span
-                                  ><span class="text-xs"> {{ sell.tp }}</span>
-                                </div>
-                              </div>
-                            }
-
-                            <div class="font-bold text-xs mt-4 text-yellow-400">
-                              Signal - {{ selectedSymbol }} @ {{ selectedTimeframe }}
-                            </div>
+                          <div class="font-bold text-green-500 text-xs mt-4">
+                            Buy/Long - {{ selectedSymbol }} @ {{ selectedTimeframe }}
+                          </div>
+                          @for (buy of item.data.response?.buy; track $index) {
                             <div
-                              class="flex flex-col my-1 bg-slate-950/20 rounded p-[0.5rem] border border-slate-900/50"
+                              class="flex flex-col my-1 bg-green-950/20 rounded p-[0.5rem] border border-green-900/50"
                             >
-                              <div class="flex flex-col">
-                                <div class="flex">
-                                  <span class="text-slate-400">Type:</span
-                                  ><span class="text-xs">
-                                    {{ item.response.data?.signal?.type }}</span
-                                  >
-                                </div>
-
-                                <div class="flex">
-                                  <span class="text-slate-400">Probability:</span
-                                  ><span class="text-xs">
-                                    {{ item.response.data?.signal?.probability }}</span
-                                  >
-                                </div>
-
-                                <div class="flex">
-                                  <span class="text-slate-400">Entry Zone:</span
-                                  ><span class="text-xs">
-                                    {{ item.response.data?.signal?.entryZone }}</span
-                                  >
-                                </div>
-
-                                <div class="flex">
-                                  <span class="text-slate-400">Stop Loss:</span
-                                  ><span class="text-xs">
-                                    {{ item.response.data?.signal?.sl }}</span
-                                  >
-                                </div>
-
-                                <div class="flex">
-                                  <span class="text-slate-400">Take Profit:</span
-                                  ><span class="text-xs">
-                                    {{ item.response.data?.signal?.tp }}</span
-                                  >
-                                </div>
-
-                                <div class="flex">
-                                  <span class="text-slate-400">Leverage:</span
-                                  ><span class="text-xs">
-                                    {{ item.response.data?.signal?.leverage }}</span
-                                  >
-                                </div>
+                              <div class="flex">
+                                <span class="text-slate-400 w-[75px] shrink-0">Indicators:</span
+                                ><span class="text-xs break-words">
+                                  {{ buy.indicators.join(', ') }}</span
+                                >
                               </div>
 
-                              <div class="flex flex-col gap-1">
-                                <span class="text-slate-400">Reasoning:</span
-                                ><span class="text-xs">
-                                  {{ item.response.data?.signal?.reasoning }}</span
+                              <div class="flex">
+                                <span class="text-slate-400 w-[75px] shrink-0">Pattern:</span
+                                ><span class="text-xs break-words">
+                                  {{ buy.pattern.join(', ') }}</span
                                 >
+                              </div>
+
+                              <div class="flex">
+                                <span class="text-slate-400 w-[75px] shrink-0">Leverage:</span
+                                ><span class="text-xs"> {{ buy.leverage }}</span>
+                              </div>
+
+                              <div class="flex">
+                                <span class="text-slate-400 w-[75px] shrink-0">Entry Zone:</span
+                                ><span class="text-xs"> {{ buy.entryZone.join('-') }}</span>
+                              </div>
+
+                              <div class="flex">
+                                <span class="text-slate-400 w-[75px] shrink-0">Stop Loss:</span
+                                ><span class="text-xs"> {{ buy.sl }}</span>
+                              </div>
+
+                              <div class="flex">
+                                <span class="text-slate-400 w-[75px] shrink-0">Take Profit:</span
+                                ><span class="text-xs"> {{ buy.tp }}</span>
+                              </div>
+
+                              <div class="flex">
+                                <span class="text-slate-400 w-[75px] shrink-0">Risk Reward:</span
+                                ><span class="text-xs"> {{ buy.riskReward }}</span>
                               </div>
                             </div>
                           }
+
+                          <div class="font-bold mt-2 text-red-500 text-xs mt-4">
+                            Sell/Short - {{ selectedSymbol }} @ {{ selectedTimeframe }}
+                          </div>
+                          @for (sell of item.data.response?.sell; track $index) {
+                            <div
+                              class="flex flex-col my-1 bg-red-950/20 rounded p-[0.5rem] border border-red-900/50"
+                            >
+                              <div class="flex">
+                                <span class="text-slate-400 w-[75px] shrink-0">Indicators:</span
+                                ><span class="text-xs break-words">
+                                  {{ sell.indicators.join(', ') }}</span
+                                >
+                              </div>
+
+                              <div class="flex">
+                                <span class="text-slate-400 w-[75px] shrink-0">Pattern:</span
+                                ><span class="text-xs break-words">
+                                  {{ sell.pattern.join(', ') }}</span
+                                >
+                              </div>
+
+                              <div class="flex">
+                                <span class="text-slate-400 w-[75px] shrink-0">Leverage:</span
+                                ><span class="text-xs"> {{ sell.leverage }}</span>
+                              </div>
+
+                              <div class="flex">
+                                <span class="text-slate-400 w-[75px] shrink-0">Entry Zone:</span
+                                ><span class="text-xs"> {{ sell.entryZone.join('-') }}</span>
+                              </div>
+
+                              <div class="flex">
+                                <span class="text-slate-400 w-[75px] shrink-0">Stop Loss:</span
+                                ><span class="text-xs"> {{ sell.sl }}</span>
+                              </div>
+
+                              <div class="flex">
+                                <span class="text-slate-400 w-[75px] shrink-0">Take Profit:</span
+                                ><span class="text-xs"> {{ sell.tp }}</span>
+                              </div>
+
+                              <div class="flex">
+                                <span class="text-slate-400 w-[75px] shrink-0">Risk Reward:</span
+                                ><span class="text-xs"> {{ sell.riskReward }}</span>
+                              </div>
+                            </div>
+                          }
+
+                          <div class="font-bold text-xs mt-4 text-yellow-400">
+                            Signal - {{ selectedSymbol }} @ {{ selectedTimeframe }}
+                          </div>
+                          <div
+                            class="flex flex-col my-1 bg-yellow-900/20 rounded p-[0.5rem] border border-yellow-900/50"
+                          >
+                            <div class="flex flex-col">
+                              <div class="flex">
+                                <span class="text-slate-400 w-[75px] shrink-0">Type:</span
+                                ><span class="text-xs">
+                                  {{ item.data.response?.signal?.type }}</span
+                                >
+                              </div>
+
+                              <div class="flex">
+                                <span class="text-slate-400 w-[75px] shrink-0">Score:</span
+                                ><span class="text-xs">
+                                  {{ item.data.response?.signal?.confidence?.score }}</span
+                                >
+                              </div>
+
+                              <div class="flex">
+                                <span class="text-slate-400 w-[75px] shrink-0">Entry Zone:</span
+                                ><span class="text-xs">
+                                  {{ item.data.response?.signal?.entryZone?.join('-') }}</span
+                                >
+                              </div>
+
+                              <div class="flex">
+                                <span class="text-slate-400 w-[75px] shrink-0">Stop Loss:</span
+                                ><span class="text-xs"> {{ item.data.response?.signal?.sl }}</span>
+                              </div>
+
+                              <div class="flex">
+                                <span class="text-slate-400 w-[75px] shrink-0">Take Profit:</span
+                                ><span class="text-xs"> {{ item.data.response?.signal?.tp }}</span>
+                              </div>
+
+                              <div class="flex">
+                                <span class="text-slate-400 w-[75px] shrink-0">Leverage:</span
+                                ><span class="text-xs">
+                                  {{ item.data.response?.signal?.leverage }}</span
+                                >
+                              </div>
+
+                              <div class="flex">
+                                <span class="text-slate-400 w-[75px] shrink-0">Risk Reward:</span
+                                ><span class="text-xs">
+                                  {{ item.data.response?.signal?.riskReward }}</span
+                                >
+                              </div>
+                            </div>
+
+                            <div class="flex flex-col gap-1">
+                              <span class="text-xs text-slate-400">Reasoning:</span
+                              ><span class="text-xs">
+                                {{ item.data.response?.signal?.reasoning }}</span
+                              >
+                            </div>
+                          </div>
                         </div>
                         <span class="text-[9px] text-slate-500 ml-1">{{ item.timestamp }}</span>
                       </div>
                     } @else {
-                      <div class="flex flex-col space-y-1 max-w-[80%]">
+                      <div class="flex flex-col space-y-1 py-2 max-w-[80%]">
                         <div
                           class="bg-slate-800 text-slate-200 p-2 rounded-2xl rounded-tl-none text-xs border border-slate-700 shadow-sm break-words whitespace-pre-wrap"
                         >
@@ -237,7 +257,7 @@
                       </div>
                     }
                   } @else {
-                    <div class="flex flex-col space-y-1 items-end ml-auto max-w-[80%]">
+                    <div class="flex flex-col space-y-1 py-2 items-end ml-auto max-w-[80%]">
                       <div
                         class="bg-blue-600 text-white p-2 rounded-2xl rounded-tr-none text-xs shadow-md break-words whitespace-pre-wrap"
                       >

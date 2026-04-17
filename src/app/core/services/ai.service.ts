@@ -10,6 +10,7 @@ import { AppSettingsService } from './app-settings.service';
 
 // Models
 import { AIResponse } from '../models/ai.model';
+import { Observable } from 'rxjs';
 
 @Injectable({
   providedIn: 'root',
@@ -20,19 +21,21 @@ export class AIService {
   private readonly appSettingsService = inject(AppSettingsService);
   private readonly apiBaseUrl = this.appSettingsService.env().apiBaseUrl;
 
-  chatBot(message: string) {
-    const endpoint =
-      this.authService.isLoggedIn()
-        ? API_ROUTES.ai.chat
-        : API_ROUTES.ai.chat;
-    return this.http.post<AIResponse>(`${this.apiBaseUrl}${endpoint}`, { message });
+  private get isTestnet() {
+    return this.appSettingsService.isTestnet();
   }
 
-  analyzeMarket(symbol: string, timeframe: string) {
-    const endpoint =
-      this.authService.isLoggedIn()
-        ? API_ROUTES.ai.analyzeMarket
-        : API_ROUTES.ai.analyzeMarket;
-    return this.http.post<AIResponse>(`${this.apiBaseUrl}${endpoint}`, { symbol, timeframe });
+  chatBot(message: string): Observable<AIResponse> {
+    return this.http.post<AIResponse>(`${this.apiBaseUrl}${API_ROUTES.ai.chat}`, { message });
+  }
+
+  analyzeMarket(symbol: string, interval: string): Observable<AIResponse> {
+    const deepAnalyze = !this.authService.isLoggedIn() ? 0 : this.isTestnet ? 0 : 1;
+
+    return this.http.post<AIResponse>(`${this.apiBaseUrl}${API_ROUTES.ai.analyzeMarket}`, {
+      symbol: symbol.toLowerCase(),
+      interval,
+      deepAnalyze,
+    });
   }
 }

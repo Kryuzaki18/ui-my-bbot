@@ -20,7 +20,6 @@ import { OrderSideEnum } from '../../core/models/trades.model';
 @Component({
   selector: 'app-chat',
   templateUrl: './chart.component.html',
-  styleUrl: './chat.component.scss',
   imports: [
     DragDropModule,
     CommonModule,
@@ -60,7 +59,8 @@ export class ChatComponent {
   ];
 
   ngOnInit(): void {
-    // this.sampleConversation();
+    this.sampleConversation();
+    this.scrollToBottom();
   }
 
   sampleConversation(): void {
@@ -105,48 +105,93 @@ export class ChatComponent {
       },
       {
         sender: 'bot',
-        message: '',
+        message:
+          'BTCUSDT exhibits strong bullish momentum on the daily timeframe, maintaining price discovery above the $75,000 threshold. The 15m timeframe shows an impulsive expansion to $76,350 followed by a healthy corrective consolidation. Market structure remains bullish as price forms higher lows above previous resistance turned support. Confluence is established through the 20-period EMA providing dynamic support and the RSI cooling from overbought levels, suggesting a trend continuation. Key liquidity resides at $75,400. A break above $76,350 targets Fibonacci extension levels near $77,500.',
         timestamp: new Date().toLocaleTimeString(),
         isError: false,
-        response: {
-          data: {
-            status: 'accepted',
-            message:
-              'The BTC is currently at 100000 and it is expected to go up by 10% in the next 2 hours.',
+        data: {
+          status: 'accepted',
+          message:
+            'BTCUSDT exhibits strong bullish momentum on the daily timeframe, maintaining price discovery above the $75,000 threshold. The 15m timeframe shows an impulsive expansion to $76,350 followed by a healthy corrective consolidation. Market structure remains bullish as price forms higher lows above previous resistance turned support. Confluence is established through the 20-period EMA providing dynamic support and the RSI cooling from overbought levels, suggesting a trend continuation. Key liquidity resides at $75,400. A break above $76,350 targets Fibonacci extension levels near $77,500.',
+          response: {
             signal: {
               type: OrderSideEnum.BUY,
-              probability: '10%',
-              entryZone: '100000-110000',
-              sl: 100000,
-              tp: 110000,
-              leverage: 10,
+              entryZone: [75500, 75700],
+              sl: 74950,
+              tp: 77200,
+              leverage: 35,
+              riskReward: 2.46,
               reasoning:
-                'The BTC is currently at 100000 and it is expected to go up by 10% in the next 2 hours.',
+                'Strong bullish expansion past $76k followed by high-volume consolidation. Retest of the breakout zone coincides with the 15m 50-EMA and structural support. Confidence is high due to the alignment of daily and intraday trends.',
+              confidence: {
+                score: 86,
+                components: {
+                  trend: 92,
+                  momentum: 85,
+                  volume: 80,
+                  structure: 88,
+                },
+              },
             },
             buy: [
               {
-                indicators: ['RSI', 'MACD'],
+                indicators: ['EMA 50', 'RSI'],
+                pattern: ['Bullish Flag'],
+                leverage: 5,
+                entryZone: [75200, 75500],
+                sl: 74200,
+                tp: 77500,
+                riskReward: 2.3,
+              },
+              {
+                indicators: ['EMA 20', 'VWAP'],
+                pattern: ['Break of Structure'],
+                leverage: 15,
+                entryZone: [75500, 75700],
+                sl: 74950,
+                tp: 77200,
+                riskReward: 2.46,
+              },
+              {
+                indicators: ['Stochastic RSI', 'Bollinger Bands'],
                 pattern: ['Bullish Engulfing'],
-                entry: 100000,
-                sl: 100000,
-                tp: 110000,
-                leverage: 10,
+                leverage: 35,
+                entryZone: [75650, 75750],
+                sl: 75300,
+                tp: 76800,
+                riskReward: 2.56,
               },
             ],
             sell: [
               {
-                indicators: ['RSI', 'MACD'],
-                pattern: ['Bullish Engulfing'],
-                entry: 100000,
-                sl: 100000,
-                tp: 110000,
-                leverage: 10,
+                indicators: ['RSI Divergence', 'EMA 20'],
+                pattern: ['Double Top'],
+                leverage: 5,
+                entryZone: [76200, 76350],
+                sl: 76850,
+                tp: 75200,
+                riskReward: 1.54,
+              },
+              {
+                indicators: ['MACD Histogram', 'Volume Profile'],
+                pattern: ['Rising Wedge'],
+                leverage: 15,
+                entryZone: [76100, 76250],
+                sl: 76600,
+                tp: 74800,
+                riskReward: 2.88,
+              },
+              {
+                indicators: ['Bollinger Bands', 'RSI Overbought'],
+                pattern: ['M-Top'],
+                leverage: 35,
+                entryZone: [76300, 76350],
+                sl: 76550,
+                tp: 75800,
+                riskReward: 2.2,
               },
             ],
           },
-          status: 'accepted',
-          message:
-            'The BTC is currently at 100000 and it is expected to go up by 10% in the next 2 hours.',
         },
       },
     ];
@@ -180,7 +225,7 @@ export class ChatComponent {
               message: res.message,
               timestamp: new Date().toLocaleTimeString(),
               isError: false,
-              response: res,
+              data: res,
             });
           } else {
             this.conversation.push({
@@ -223,9 +268,6 @@ export class ChatComponent {
       timestamp: new Date().toLocaleTimeString(),
       isError: false,
     });
-
-    this.message = '';
-    this.scrollToBottom();
 
     this.aiService
       .chatBot(this.message)
@@ -272,15 +314,12 @@ export class ChatComponent {
   }
 
   scrollToBottom(): void {
-    setTimeout(() => {
-      if (this.chatScrollPanel) {
-        const container = this.chatScrollPanel?.contentViewChild?.nativeElement;
-        container.scrollTop = container.scrollHeight;
-        container.scrollTo({
-          top: container.scrollHeight,
-          behavior: 'smooth',
-        });
-      }
-    }, 1000);
+    const container = this.chatScrollPanel?.contentViewChild?.nativeElement;
+    if (container) {
+      container.scrollTo({
+        top: container.scrollHeight,
+        behavior: 'smooth',
+      });
+    }
   }
 }
