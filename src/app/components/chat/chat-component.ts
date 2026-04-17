@@ -6,16 +6,16 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
 // Services
 import { AIService } from '../../core/services/ai.service';
+import { ChartService } from '../../core/services/chart/chart.service';
 
 // Models
 import { AIResponse, ChatResponse } from '../../core/models/ai.model';
+import { OrderSideEnum } from '../../core/models/trades.model';
 
 // PrimeNG Modules
 import { InputTextModule } from 'primeng/inputtext';
 import { ButtonModule } from 'primeng/button';
 import { ScrollPanel, ScrollPanelModule } from 'primeng/scrollpanel';
-import { ChartService } from '../../core/services/chart/chart.service';
-import { OrderSideEnum } from '../../core/models/trades.model';
 
 @Component({
   selector: 'app-chat',
@@ -59,8 +59,7 @@ export class ChatComponent {
   ];
 
   ngOnInit(): void {
-    this.sampleConversation();
-    this.scrollToBottom();
+    // this.sampleConversation();
   }
 
   sampleConversation(): void {
@@ -196,12 +195,6 @@ export class ChatComponent {
       },
     ];
     this.conversation.push(...convo);
-    // this.conversation.push({
-    //   sender: 'bot',
-    //   message: 'Something went wrong. Please try again.',
-    //   timestamp: new Date().toLocaleTimeString(),
-    //   isError: true,
-    // });
 
     this.reset();
   }
