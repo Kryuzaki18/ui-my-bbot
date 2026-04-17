@@ -4,7 +4,6 @@ export interface ChatResponse {
   sender: string;
   message: string;
   timestamp: string;
-  isSuggestion: boolean;
   isError: boolean;
   response?: AIResponse | null;
 }
@@ -16,17 +15,27 @@ export interface AIResponse {
 }
 
 export interface AIResponseData {
-  symbol: string;
-  timeframe: string;
+  signal: AISignal;
   buy: AIResponseDataEntry[];
   sell: AIResponseDataEntry[];
+}
+
+export interface AISignal {
+  type: OrderSideEnum;
+  probability: string;
+  entryZone: string;
+  sl: number;
+  tp: number;
+  leverage: number;
+  reasoning: string;
 }
 
 export interface AIResponseDataEntry {
   indicators: string[];
   pattern: string[];
-  leverage: number;
+  entry: number;
   sl: number;
   tp: number;
+  leverage: number;
 }
 

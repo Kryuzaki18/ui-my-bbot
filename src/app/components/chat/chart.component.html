@@ -38,164 +38,231 @@
             </button>
           </div>
 
-          <p-scrollpanel [style]="{ width: '100%', height: '350px' }">
-            <div class="flex-grow p-3 space-y-4 bg-slate-900/50">
-              @for (item of conversation; track $index) {
-                @if (item.isError) {
-                  <div class="flex flex-col space-y-1 max-w-[80%]">
-                    <div
-                      class="text-red-500 rounded-2xl text-[10px] shadow-sm break-words whitespace-pre-wrap"
-                    >
-                      {{ item.message }}
-                    </div>
-                    <span class="text-[9px] text-slate-500 ml-1">{{ item.timestamp }}</span>
-                  </div>
-                } @else if (item.isSuggestion) {
-                  <div class="space-y-1">
-                    <p-button
-                      size="small"
-                      severity="contrast"
-                      class="shadow-md"
-                      (click)="analyze()"
-                      [disabled]="isLoading"
-                    >
-                      <div class="flex items-center justify-center w-full gap-2">
-                        @if (!isLoading) {
-                          <span class="jetbrains-bold text-xs">{{ item.message }}</span>
-                          <i class="pi pi-arrow-right !text-xs"></i>
-                        } @else {
-                          <span class="jetbrains-bold text-xs">Analyzing</span>
-                          <div class="flex gap-1">
-                            <span
-                              class="w-1.5 h-1.5 bg-slate-500 rounded-full animate-bounce [animation-delay:-0.3s]"
-                            ></span>
-                            <span
-                              class="w-1.5 h-1.5 bg-slate-500 rounded-full animate-bounce [animation-delay:-0.15s]"
-                            ></span>
-                            <span
-                              class="w-1.5 h-1.5 bg-slate-500 rounded-full animate-bounce"
-                            ></span>
-                          </div>
-                        }
+          <p-scrollpanel #chatScrollPanel [style]="{ width: '100%', height: '350px' }">
+            <div class="flex-grow space-y-1 bg-slate-900/50">
+              <div class="space-y-1 sticky top-0 px-3 py-2 bg-slate-900/10">
+                <p-button
+                  size="small"
+                  severity="contrast"
+                  class="shadow-md"
+                  (click)="analyze()"
+                  [disabled]="isAnalyzing || isLoading"
+                >
+                  <div class="flex items-center justify-center w-full gap-2">
+                    @if (!isAnalyzing) {
+                      <span class="jetbrains-bold text-xs">Analyze now</span>
+                      <i class="pi pi-arrow-right !text-xs"></i>
+                    } @else {
+                      <span class="jetbrains-bold text-xs">Analyzing</span>
+                      <div class="flex gap-1">
+                        <span
+                          class="w-1.5 h-1.5 bg-slate-500 rounded-full animate-bounce [animation-delay:-0.3s]"
+                        ></span>
+                        <span
+                          class="w-1.5 h-1.5 bg-slate-500 rounded-full animate-bounce [animation-delay:-0.15s]"
+                        ></span>
+                        <span class="w-1.5 h-1.5 bg-slate-500 rounded-full animate-bounce"></span>
                       </div>
-                    </p-button>
+                    }
                   </div>
-                } @else if (item.sender === 'bot') {
-                  @if (item.response) {
-                    <div class="space-y-1 max-w-[80%]">
-                      <div
-                        class="bg-slate-800 text-slate-200 p-2 rounded-2xl rounded-tl-none text-[10px] border border-slate-700 shadow-sm break-words whitespace-pre-wrap"
-                      >
-                        @if (item.response) {
-                          <div class="font-bold text-xs">{{ item.response.message }}</div>
-                          <div class="font-bold text-green-500 text-xs mt-4">
-                            Buy/Long - {{ item.response.data?.symbol }} @
-                            {{ item.response.data?.timeframe }}
-                          </div>
-                          @for (buy of item.response.data?.buy; track $index) {
-                            <div
-                              class="flex flex-col my-1 bg-green-950/20 rounded p-[0.5rem] border border-green-900/50"
-                            >
-                              <div class="flex gap-1">
-                                <span class="text-slate-400">Indicators:</span
-                                ><span class="text-xs"> {{ buy.indicators.join(', ') }}</span>
-                              </div>
+                </p-button>
+              </div>
 
-                              <div class="flex gap-1">
-                                <span class="text-slate-400">Pattern:</span
-                                ><span class="text-xs"> {{ buy.pattern.join(', ') }}</span>
-                              </div>
-
-                              <div class="flex gap-1">
-                                <span class="text-slate-400">Leverage:</span
-                                ><span class="text-xs"> {{ buy.leverage }}</span>
-                              </div>
-
-                              <div class="flex gap-1">
-                                <span class="text-slate-400">Stop Loss:</span
-                                ><span class="text-xs"> {{ buy.sl }}</span>
-                              </div>
-
-                              <div class="flex gap-1">
-                                <span class="text-slate-400">Take Profit:</span
-                                ><span class="text-xs"> {{ buy.tp }}</span>
-                              </div>
-                            </div>
-                          }
-
-                          <div class="font-bold mt-2 text-red-500 text-xs mt-4">
-                            Sell/Short - {{ item.response.data?.symbol }} @
-                            {{ item.response.data?.timeframe }}
-                          </div>
-                          @for (sell of item.response.data?.sell; track $index) {
-                            <div
-                              class="flex flex-col my-1 bg-red-950/20 rounded p-[0.5rem] border border-red-900/50"
-                            >
-                              <div class="flex gap-1">
-                                <span class="text-slate-400">Indicators:</span
-                                ><span class="text-xs"> {{ sell.indicators.join(', ') }}</span>
-                              </div>
-
-                              <div class="flex gap-1">
-                                <span class="text-slate-400">Pattern:</span
-                                ><span class="text-xs"> {{ sell.pattern.join(', ') }}</span>
-                              </div>
-
-                              <div class="flex gap-1">
-                                <span class="text-slate-400">Leverage:</span
-                                ><span class="text-xs"> {{ sell.leverage }}</span>
-                              </div>
-                              <div class="flex gap-1">
-                                <span class="text-slate-400">Stop Loss:</span
-                                ><span class="text-xs"> {{ sell.sl }}</span>
-                              </div>
-
-                              <div class="flex gap-1">
-                                <span class="text-slate-400">Take Profit:</span
-                                ><span class="text-xs"> {{ sell.tp }}</span>
-                              </div>
-                            </div>
-                          }
-                        }
-                      </div>
-                      <span class="text-[9px] text-slate-500 ml-1">{{ item.timestamp }}</span>
-                    </div>
-                  } @else {
+              <div class="px-3">
+                @for (item of conversation; track $index) {
+                  @if (item.isError) {
                     <div class="flex flex-col space-y-1 max-w-[80%]">
                       <div
-                        class="bg-slate-800 text-slate-200 p-2 rounded-2xl rounded-tl-none text-xs border border-slate-700 shadow-sm break-words whitespace-pre-wrap"
+                        class="text-red-500 rounded-2xl text-[10px] shadow-sm break-words whitespace-pre-wrap"
                       >
                         {{ item.message }}
                       </div>
                       <span class="text-[9px] text-slate-500 ml-1">{{ item.timestamp }}</span>
                     </div>
-                  }
-                } @else {
-                  <div class="flex flex-col space-y-1 items-end ml-auto max-w-[80%]">
-                    <div
-                      class="bg-blue-600 text-white p-2 rounded-2xl rounded-tr-none text-xs shadow-md break-words whitespace-pre-wrap"
-                    >
-                      {{ item.message }}
+                  } @else if (item.sender === 'bot') {
+                    @if (item.response) {
+                      <div class="space-y-1 max-w-[80%]">
+                        <div
+                          class="bg-slate-800 text-slate-200 p-2 rounded-2xl rounded-tl-none text-[10px] border border-slate-700 shadow-sm break-words whitespace-pre-wrap"
+                        >
+                          @if (item.response) {
+                            <div class="font-bold text-xs">{{ item.response.message }}</div>
+                            <div class="font-bold text-green-500 text-xs mt-4">
+                              Buy/Long - {{ selectedSymbol }} @ {{ selectedTimeframe }}
+                            </div>
+                            @for (buy of item.response.data?.buy; track $index) {
+                              <div
+                                class="flex flex-col my-1 bg-green-950/20 rounded p-[0.5rem] border border-green-900/50"
+                              >
+                                <div class="flex gap-1">
+                                  <span class="text-slate-400">Indicators:</span
+                                  ><span class="text-xs"> {{ buy.indicators.join(', ') }}</span>
+                                </div>
+
+                                <div class="flex gap-1">
+                                  <span class="text-slate-400">Pattern:</span
+                                  ><span class="text-xs"> {{ buy.pattern.join(', ') }}</span>
+                                </div>
+
+                                <div class="flex gap-1">
+                                  <span class="text-slate-400">Leverage:</span
+                                  ><span class="text-xs"> {{ buy.leverage }}</span>
+                                </div>
+
+                                <div class="flex gap-1">
+                                  <span class="text-slate-400">Entry:</span
+                                  ><span class="text-xs"> {{ buy.entry }}</span>
+                                </div>
+
+                                <div class="flex gap-1">
+                                  <span class="text-slate-400">Stop Loss:</span
+                                  ><span class="text-xs"> {{ buy.sl }}</span>
+                                </div>
+
+                                <div class="flex gap-1">
+                                  <span class="text-slate-400">Take Profit:</span
+                                  ><span class="text-xs"> {{ buy.tp }}</span>
+                                </div>
+                              </div>
+                            }
+
+                            <div class="font-bold mt-2 text-red-500 text-xs mt-4">
+                              Sell/Short - {{ selectedSymbol }} @ {{ selectedTimeframe }}
+                            </div>
+                            @for (sell of item.response.data?.sell; track $index) {
+                              <div
+                                class="flex flex-col my-1 bg-red-950/20 rounded p-[0.5rem] border border-red-900/50"
+                              >
+                                <div class="flex gap-1">
+                                  <span class="text-slate-400">Indicators:</span
+                                  ><span class="text-xs"> {{ sell.indicators.join(', ') }}</span>
+                                </div>
+
+                                <div class="flex gap-1">
+                                  <span class="text-slate-400">Pattern:</span
+                                  ><span class="text-xs"> {{ sell.pattern.join(', ') }}</span>
+                                </div>
+
+                                <div class="flex gap-1">
+                                  <span class="text-slate-400">Leverage:</span
+                                  ><span class="text-xs"> {{ sell.leverage }}</span>
+                                </div>
+
+                                <div class="flex gap-1">
+                                  <span class="text-slate-400">Entry:</span
+                                  ><span class="text-xs"> {{ sell.entry }}</span>
+                                </div>
+
+                                <div class="flex gap-1">
+                                  <span class="text-slate-400">Stop Loss:</span
+                                  ><span class="text-xs"> {{ sell.sl }}</span>
+                                </div>
+
+                                <div class="flex gap-1">
+                                  <span class="text-slate-400">Take Profit:</span
+                                  ><span class="text-xs"> {{ sell.tp }}</span>
+                                </div>
+                              </div>
+                            }
+
+                            <div class="font-bold text-xs mt-4 text-yellow-400">
+                              Signal - {{ selectedSymbol }} @ {{ selectedTimeframe }}
+                            </div>
+                            <div
+                              class="flex flex-col my-1 bg-slate-950/20 rounded p-[0.5rem] border border-slate-900/50"
+                            >
+                              <div class="flex flex-col">
+                                <div class="flex">
+                                  <span class="text-slate-400">Type:</span
+                                  ><span class="text-xs">
+                                    {{ item.response.data?.signal?.type }}</span
+                                  >
+                                </div>
+
+                                <div class="flex">
+                                  <span class="text-slate-400">Probability:</span
+                                  ><span class="text-xs">
+                                    {{ item.response.data?.signal?.probability }}</span
+                                  >
+                                </div>
+
+                                <div class="flex">
+                                  <span class="text-slate-400">Entry Zone:</span
+                                  ><span class="text-xs">
+                                    {{ item.response.data?.signal?.entryZone }}</span
+                                  >
+                                </div>
+
+                                <div class="flex">
+                                  <span class="text-slate-400">Stop Loss:</span
+                                  ><span class="text-xs">
+                                    {{ item.response.data?.signal?.sl }}</span
+                                  >
+                                </div>
+
+                                <div class="flex">
+                                  <span class="text-slate-400">Take Profit:</span
+                                  ><span class="text-xs">
+                                    {{ item.response.data?.signal?.tp }}</span
+                                  >
+                                </div>
+
+                                <div class="flex">
+                                  <span class="text-slate-400">Leverage:</span
+                                  ><span class="text-xs">
+                                    {{ item.response.data?.signal?.leverage }}</span
+                                  >
+                                </div>
+                              </div>
+
+                              <div class="flex flex-col gap-1">
+                                <span class="text-slate-400">Reasoning:</span
+                                ><span class="text-xs">
+                                  {{ item.response.data?.signal?.reasoning }}</span
+                                >
+                              </div>
+                            </div>
+                          }
+                        </div>
+                        <span class="text-[9px] text-slate-500 ml-1">{{ item.timestamp }}</span>
+                      </div>
+                    } @else {
+                      <div class="flex flex-col space-y-1 max-w-[80%]">
+                        <div
+                          class="bg-slate-800 text-slate-200 p-2 rounded-2xl rounded-tl-none text-xs border border-slate-700 shadow-sm break-words whitespace-pre-wrap"
+                        >
+                          {{ item.message }}
+                        </div>
+                        <span class="text-[9px] text-slate-500 ml-1">{{ item.timestamp }}</span>
+                      </div>
+                    }
+                  } @else {
+                    <div class="flex flex-col space-y-1 items-end ml-auto max-w-[80%]">
+                      <div
+                        class="bg-blue-600 text-white p-2 rounded-2xl rounded-tr-none text-xs shadow-md break-words whitespace-pre-wrap"
+                      >
+                        {{ item.message }}
+                      </div>
+                      <span class="text-[9px] text-slate-500 mr-1">{{ item.timestamp }}</span>
                     </div>
-                    <span class="text-[9px] text-slate-500 mr-1">{{ item.timestamp }}</span>
+                  }
+                }
+
+                @if (isLoading && !isAnalyzing) {
+                  <div class="flex items-center gap-1 px-2 pt-2">
+                    <div class="flex gap-1">
+                      <span
+                        class="w-1.5 h-1.5 bg-slate-500 rounded-full animate-bounce [animation-delay:-0.3s]"
+                      ></span>
+                      <span
+                        class="w-1.5 h-1.5 bg-slate-500 rounded-full animate-bounce [animation-delay:-0.15s]"
+                      ></span>
+                      <span class="w-1.5 h-1.5 bg-slate-500 rounded-full animate-bounce"></span>
+                    </div>
+                    <span class="text-[10px] text-slate-500 italic ml-1">Agent is typing</span>
                   </div>
                 }
-              }
-
-              @if (isLoading) {
-                <div class="flex items-center gap-1 px-2 pt-2">
-                  <div class="flex gap-1">
-                    <span
-                      class="w-1.5 h-1.5 bg-slate-500 rounded-full animate-bounce [animation-delay:-0.3s]"
-                    ></span>
-                    <span
-                      class="w-1.5 h-1.5 bg-slate-500 rounded-full animate-bounce [animation-delay:-0.15s]"
-                    ></span>
-                    <span class="w-1.5 h-1.5 bg-slate-500 rounded-full animate-bounce"></span>
-                  </div>
-                  <span class="text-[10px] text-slate-500 italic ml-1">Agent is typing</span>
-                </div>
-              }
+              </div>
             </div>
           </p-scrollpanel>
 
@@ -205,23 +272,24 @@
                 [(ngModel)]="message"
                 pInputText
                 minlength="3"
-                maxlength="100"
+                maxlength="150"
                 placeholder="Type your message..."
                 (keydown.enter)="chatBot()"
+                [disabled]="isLoading || isAnalyzing"
                 class="w-full !bg-slate-950/50 !border-slate-700 !text-white !text-sm !pl-4 !pr-10 !py-2.5 !rounded-xl focus:!ring-blue-500/50 focus:!border-blue-500/50 transition-all"
               />
               <button
                 type="button"
                 class="absolute right-3 text-blue-500 hover:text-blue-400 p-1 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
                 (click)="chatBot()"
-                [disabled]="!message || message.length < 3"
+                [disabled]="isLoading || isAnalyzing || !message || message.length < 3"
               >
                 <span class="pi pi-send"></span>
               </button>
             </div>
             <div class="flex justify-center mt-3">
               <span class="text-[9px] text-slate-600 uppercase tracking-widest font-bold"
-                >Powered by BBot</span
+                >Powered by Gemini</span
               >
             </div>
           </div>
@@ -230,7 +298,7 @@
 
       <button
         type="button"
-        (click)="chatOpen = !chatOpen"
+        (click)="openChat()"
         class="z-100 group relative w-14 h-14 rounded-full shadow-[0_10px_25px_rgba(37,99,235,0.4)] bg-gradient-to-tr from-blue-700 to-blue-500 hover:from-blue-600 hover:to-blue-400 cursor-move flex items-center justify-center transition-all duration-300 hover:scale-110 active:scale-95 border border-blue-400/30"
         [class.animate-bounce]="!chatOpen"
       >

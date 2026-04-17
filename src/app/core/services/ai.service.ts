@@ -23,8 +23,16 @@ export class AIService {
   chatBot(message: string) {
     const endpoint =
       this.authService.isLoggedIn()
-        ? API_ROUTES.ai.signalPro
-        : API_ROUTES.ai.signalBasic;
+        ? API_ROUTES.ai.chat
+        : API_ROUTES.ai.chat;
     return this.http.post<AIResponse>(`${this.apiBaseUrl}${endpoint}`, { message });
+  }
+
+  analyzeMarket(symbol: string, timeframe: string) {
+    const endpoint =
+      this.authService.isLoggedIn()
+        ? API_ROUTES.ai.analyzeMarket
+        : API_ROUTES.ai.analyzeMarket;
+    return this.http.post<AIResponse>(`${this.apiBaseUrl}${endpoint}`, { symbol, timeframe });
   }
 }

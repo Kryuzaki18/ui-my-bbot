@@ -35,8 +35,8 @@ export const BINANCE_PUBLIC_API_ROUTES = {
 
 export const API_ROUTES = {
   ai: {
-    signalBasic: '/api/ai/signal-basic',
-    signalPro: '/api/ai/signal-pro',
+    chat: '/api/ai/chat',
+    analyzeMarket: '/api/ai/analyze-market',
   },
   auth: {
     me: '/api/auth/me',
