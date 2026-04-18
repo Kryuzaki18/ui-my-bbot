@@ -1,121 +1,128 @@
-@if (basicOrders().length === 0) {
-  <div class="text-center text-gray-400 jetbrains-regular text-[10px] py-2 bg-green-900/5">
-    “No basic open orders. Awaiting execution opportunities.”
-  </div>
-} @else {
-  <p-table
-    [value]="basicOrders()"
-    class="jetbrains-light text-[11px]"
-    size="small"
-    [scrollable]="true"
-    scrollHeight="350px"
-    [virtualScroll]="true"
-    [virtualScrollItemSize]="46"
-    sortField="symbol"
-  >
-    <ng-template #header>
-      <tr>
-        <th
-          pSortableColumn="symbol"
-          pFrozenColumn
-          alignFrozen="left"
-          class="shadow-[4px_0_12px_-4px_rgba(0,0,0,0.5)] !bg-gray-900 !w-[200px]"
-        >
-          <span class="flex items-center gap-1 text-gray-400 hover:text-gray-100 transition-colors">
-            <span>Symbols</span>
-            <p-sortIcon field="symbol"> </p-sortIcon>
-          </span>
-        </th>
-        <th class="!bg-gray-900 !text-gray-400 !w-[120px]">Side</th>
-        <th class="!bg-gray-900 !text-gray-400 !w-[150px]">Type</th>
-        <th class="!bg-gray-900 !text-gray-400 !w-[120px]">Price</th>
-        <th class="!bg-gray-900 !text-gray-400 !w-[120px]">Amount</th>
-        <th class="!bg-gray-900 !text-gray-400">Trigger Conditions</th>
-        <th class="!bg-gray-900 !text-gray-400">Reduce Only</th>
-        <th class="!bg-gray-900 !text-gray-400">TIF</th>
-        <th class="!bg-gray-900 !text-gray-400">Filled</th>
-        <th class="!bg-gray-900 !text-gray-400 !w-30">Action</th>
-      </tr>
-    </ng-template>
-
-    <ng-template #body let-order let-index="rowIndex">
-      <tr
-        [ngClass]="{
-          'selected-symbol !bg-gray-900':
-            chartService.selectedSymbol().toLowerCase() === order.symbol.toLowerCase(),
-        }"
+<p-table
+  [value]="basicOrders()"
+  class="jetbrains-light text-[11px]"
+  size="small"
+  [scrollable]="true"
+  scrollHeight="350px"
+  [virtualScroll]="true"
+  [virtualScrollItemSize]="46"
+  sortField="symbol"
+>
+  <ng-template #header>
+    <tr>
+      <th
+        pSortableColumn="symbol"
+        pFrozenColumn
+        alignFrozen="left"
+        class="shadow-[4px_0_12px_-4px_rgba(0,0,0,0.5)] !bg-gray-900 !w-[200px]"
       >
-        <td pFrozenColumn alignFrozen="left" class="shadow-[4px_0_12px_-4px_rgba(0,0,0,0.5)]">
-          <div class="flex flex-col gap-2">
-            <div>
-              <span
-                class="jetbrains-bold text-yellow-500 hover:text-yellow-200 cursor-pointer text-xs bg-yellow-200/10 px-2 py-1 rounded"
-                (click)="selectSymbol(order.symbol)"
-              >
-                {{ order.symbol }}
-              </span>
-            </div>
+        <span class="flex items-center gap-1 text-gray-400 hover:text-gray-100 transition-colors">
+          <span>Symbols</span>
+          <p-sortIcon field="symbol"> </p-sortIcon>
+        </span>
+      </th>
+      <th class="!bg-gray-900 !text-gray-400 !w-[120px]">Side</th>
+      <th class="!bg-gray-900 !text-gray-400 !w-[150px]">Type</th>
+      <th class="!bg-gray-900 !text-gray-400 !w-[120px]">Price</th>
+      <th class="!bg-gray-900 !text-gray-400 !w-[120px]">Amount</th>
+      <th class="!bg-gray-900 !text-gray-400">Trigger Conditions</th>
+      <th class="!bg-gray-900 !text-gray-400">Reduce Only</th>
+      <th class="!bg-gray-900 !text-gray-400">TIF</th>
+      <th class="!bg-gray-900 !text-gray-400">Filled</th>
+      <th class="!bg-gray-900 !text-gray-400 !w-30">Action</th>
+    </tr>
+  </ng-template>
 
-            <div>
-              <span class="text-gray-400 text-[9px]">
-                {{ order.updateTime | date: 'MMMM d h:mma' }}
-              </span>
-            </div>
+  <ng-template #body let-order let-index="rowIndex">
+    <tr
+      [ngClass]="{
+        'selected-symbol !bg-gray-900':
+          chartService.selectedSymbol().toLowerCase() === order.symbol.toLowerCase(),
+      }"
+    >
+      <td pFrozenColumn alignFrozen="left" class="shadow-[4px_0_12px_-4px_rgba(0,0,0,0.5)]">
+        <div class="flex flex-col gap-2">
+          <div>
+            <span
+              class="jetbrains-bold text-yellow-500 hover:text-yellow-200 cursor-pointer text-xs bg-yellow-200/10 px-2 py-1 rounded"
+              (click)="selectSymbol(order.symbol)"
+            >
+              {{ order.symbol }}
+            </span>
           </div>
-        </td>
 
-        <td>
-          <span
-            class="jetbrains-bold text-white border text-[9px] py-1 px-2 rounded uppercase tracking-[1px]"
-            [ngClass]="{
-              'bg-green-900/30 border-green-700/50': order.side === 'BUY',
-              'bg-red-900/30 border-red-700/50': order.side === 'SELL',
-            }"
-          >
-            {{ order.side }}
-          </span>
-        </td>
-        <td>
-          @if (order.type === OrderTypeEnum.TAKE_PROFIT_MARKET) {
-            <span class="text-green-500">TAKE PROFIT</span>
-          } @else if (order.type === OrderTypeEnum.STOP_MARKET) {
-            <span class="text-red-500">STOP LOSS</span>
-          } @else {
-            {{ order.type }}
-          }
-        </td>
+          <div>
+            <span class="text-gray-400 text-[9px]">
+              {{ order.updateTime | date: 'MMMM d h:mma' }}
+            </span>
+          </div>
+        </div>
+      </td>
 
-        <td>
-          @if ([OrderTypeEnum.TAKE_PROFIT_MARKET, OrderTypeEnum.STOP_MARKET].includes(order.type)) {
-            Market
-          } @else {
-            {{ order.price | number: '1.0-7' }}
-          }
-        </td>
-        <td>{{ order.origQty }}</td>
-        <td>{{ +order.stopPrice === 0 ? '-' : (order.stopPrice | number: '1.0-7') }}</td>
-        <td>{{ order.reduceOnly ? 'Yes' : 'No' }}</td>
-        <td>{{ order.timeInForce }}</td>
+      <td>
+        <span
+          class="jetbrains-bold text-white border text-[9px] py-1 px-2 rounded uppercase tracking-[1px]"
+          [ngClass]="{
+            'bg-green-900/30 border-green-700/50': order.side === 'BUY',
+            'bg-red-900/30 border-red-700/50': order.side === 'SELL',
+          }"
+        >
+          {{ order.side }}
+        </span>
+      </td>
+      <td>
+        @if (order.type === OrderTypeEnum.TAKE_PROFIT_MARKET) {
+          <span class="text-green-500">TAKE PROFIT</span>
+        } @else if (order.type === OrderTypeEnum.STOP_MARKET) {
+          <span class="text-red-500">STOP LOSS</span>
+        } @else {
+          {{ order.type }}
+        }
+      </td>
 
-        <td>
-          @if (order.executedQty && order.executedQty > 0) {
-            {{ ((order.executedQty / order.origQty) * 100).toFixed(0) }}%
-          } @else {
-            0%
-          }
-        </td>
+      <td>
+        @if ([OrderTypeEnum.TAKE_PROFIT_MARKET, OrderTypeEnum.STOP_MARKET].includes(order.type)) {
+          Market
+        } @else {
+          {{ order.price | number: '1.0-7' }}
+        }
+      </td>
+      <td>{{ order.origQty }}</td>
+      <td>{{ +order.stopPrice === 0 ? '-' : (order.stopPrice | number: '1.0-7') }}</td>
+      <td>{{ order.reduceOnly ? 'Yes' : 'No' }}</td>
+      <td>{{ order.timeInForce }}</td>
 
-        <td>
-          <p-button
-            (onClick)="cancelOrder(order)"
-            icon="pi pi-trash"
-            size="small"
-            severity="secondary"
-            [rounded]="true"
-            [disabled]="isLoadingOpenOrders"
-          />
+      <td>
+        @if (order.executedQty && order.executedQty > 0) {
+          {{ ((order.executedQty / order.origQty) * 100).toFixed(0) }}%
+        } @else {
+          0%
+        }
+      </td>
+
+      <td>
+        <p-button
+          (onClick)="cancelOrder(order)"
+          icon="pi pi-trash"
+          size="small"
+          severity="secondary"
+          [rounded]="true"
+          [disabled]="isLoadingOpenOrders"
+        />
+      </td>
+    </tr>
+  </ng-template>
+
+  @if (basicOrders().length === 0) {
+    <ng-template #footer>
+      <tr>
+        <td
+          colspan="10"
+          class="!text-center !text-gray-400 !jetbrains-regular !text-[10px] !py-5 !bg-green-900/5"
+        >
+          “No basic open orders. Awaiting execution opportunities.”
         </td>
       </tr>
     </ng-template>
-  </p-table>
-}
+  }
+</p-table>

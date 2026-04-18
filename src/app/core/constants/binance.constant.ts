@@ -26,6 +26,15 @@ export const STREAM_NAME = {
   ALL_TICKERS: 'allTickers',
 }
 
+export const USER_STREAM = {
+  NEW: 'NEW',
+  FILLED: 'FILLED',
+  PARTIALLY_FILLED: 'PARTIALLY_FILLED',
+  ACCOUNT_UPDATE: 'ACCOUNT_UPDATE',
+  ORDER_TRADE_UPDATE: 'ORDER_TRADE_UPDATE',
+  ALGO_UPDATE: 'ALGO_UPDATE',
+}
+
 export const STORAGE = {
   TIMEFRAME: 'tf',
   SYMBOL: 'symbol',

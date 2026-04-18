@@ -13,10 +13,11 @@ import { UserWsService } from '../../core/services/user-ws.service';
 import { BinanceWsService } from '../../core/services/binance-ws.service';
 import { ToastMessageService } from '../../core/services/toast-message.service';
 import { ChartService } from '../../core/services/chart/chart.service';
+import { UserService } from '../../core/services/user.service';
 
 // Models
 import { OrderSideEnum, OrderTypeEnum, PositionSideEnum } from '../../core/models/trades.model';
-import { DEFAULT_SYMBOL, STORAGE } from '../../core/constants/binance.constant';
+import { DEFAULT_SYMBOL, STORAGE, USER_STREAM } from '../../core/constants/binance.constant';
 
 // Components
 import { PositionsComponent } from './positions/positions.component';
@@ -30,7 +31,6 @@ import { TabsModule } from 'primeng/tabs';
 import { ConfirmationService } from 'primeng/api';
 import { DialogService, DynamicDialogRef } from 'primeng/dynamicdialog';
 import { SelectButtonModule } from 'primeng/selectbutton';
-import { UserService } from '../../core/services/user.service';
 
 @Component({
   selector: 'app-positions-and-orders',
@@ -119,8 +119,7 @@ export class PositionsAndOrdersComponent implements OnInit {
         const leverage = parseFloat(pos.leverage || '20');
         const sign = pos.positionAmt > 0 ? 1 : -1;
 
-        const currentPrice =
-          this.livePrices()[pos.symbol] || parseFloat(pos.markPrice);
+        const currentPrice = this.livePrices()[pos.symbol] || parseFloat(pos.markPrice);
         const positionAmt = parseFloat(pos.positionAmt);
         const livePnl = (currentPrice - entryPrice) * positionAmt;
         const initialMargin = (Math.abs(positionAmt) * entryPrice) / leverage;
@@ -141,16 +140,6 @@ export class PositionsAndOrdersComponent implements OnInit {
         const fee = parseFloat(pos.commissionRate?.takerCommissionRate || 0.0004);
         pos.breakEvenPrice = this.utilsService.calculateBreakEven(currentPrice, positionAmt, fee);
         pos.markPrice = currentPrice;
-
-        // if (positionAmt > 0 && tpOrder && pos.markPrice >= tpOrder.triggerPrice) {
-        //   this.toastMessageService.success(`${pos.symbol}`, ` Take Profit hit.`);
-        //   console.log('tp hit', pos.symbol);
-        // }
-
-        // if (positionAmt < 0 && slOrder && pos.markPrice <= slOrder.triggerPrice) {
-        //   this.toastMessageService.warn(`${pos.symbol}`, ` Stop Loss hit.`);
-        //   console.log('sl hit', pos.symbol);
-        // }
 
         return {
           ...pos,
@@ -246,7 +235,6 @@ export class PositionsAndOrdersComponent implements OnInit {
       .subscribe({
         next: (isLoading) => {
           if (isLoading) {
-            this.appSettingsService.setIsLoadingPositions(false);
             this.fetchPositions();
           }
         },
@@ -261,7 +249,6 @@ export class PositionsAndOrdersComponent implements OnInit {
       .subscribe({
         next: (isLoading) => {
           if (isLoading) {
-            this.appSettingsService.setIsLoadingOpenOrders(false);
             this.fetchOpenOrders();
           }
         },
@@ -276,13 +263,47 @@ export class PositionsAndOrdersComponent implements OnInit {
       .subscribe({
         next: (isLoading) => {
           if (isLoading) {
-            this.appSettingsService.setIsLoadingPendingTpSl(false);
             this.fetchPendingTpSl();
           }
         },
         error: (err) => {
           console.error(err);
           this.appSettingsService.setIsLoadingPendingTpSl(false);
+        },
+      });
+
+    this.userWsService
+      .getUserDataStream()
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: (update) => {
+          if (update.e === USER_STREAM.ORDER_TRADE_UPDATE) {
+            if (update.o.X === 'NEW') {
+              console.log('NEW: ', update);
+            } else if (update.o.X === 'PARTIALLY_FILLED') {
+              // this.fetchPositions();
+              // this.fetchOpenOrders();
+              console.log('PARTIALLY_FILLED: ', update);
+            } else if (update.o.X === 'FILLED') {
+              // this.fetchPositions();
+              // this.fetchOpenOrders();
+              console.log('FILLED: ', update);
+            } else if (update.o.X === 'CANCELED') {
+              // this.fetchOpenOrders();
+              console.log('CANCELED ORDER_TRADE_UPDATE: ', update);
+            }
+          } else if (update.e === USER_STREAM.ALGO_UPDATE) {
+            if (update.o.X === 'CANCELED') {
+              // this.fetchPositions();
+              // this.fetchPendingTpSl();
+              console.log('CANCELED ALGO_UPDATE: ', update);
+            }
+          } else {
+            console.log('USER_STREAM: ', update);
+          }
+        },
+        error: (err) => {
+          console.log('USER_STREAM ERROR: ', err);
         },
       });
   }
@@ -307,8 +328,12 @@ export class PositionsAndOrdersComponent implements OnInit {
             });
 
           this.positions.set(activePos);
+          this.appSettingsService.setIsLoadingPositions(false);
         },
-        error: (err) => console.error(err),
+        error: (err) => {
+          console.error(err);
+          this.appSettingsService.setIsLoadingPositions(false);
+        },
       });
   }
 
@@ -319,9 +344,11 @@ export class PositionsAndOrdersComponent implements OnInit {
       .subscribe({
         next: (orders) => {
           this.openOrders.set(orders);
+          this.appSettingsService.setIsLoadingOpenOrders(false);
         },
         error: (err) => {
           console.error(err);
+          this.appSettingsService.setIsLoadingOpenOrders(false);
         },
       });
   }
@@ -333,9 +360,11 @@ export class PositionsAndOrdersComponent implements OnInit {
       .subscribe({
         next: (orders) => {
           this.pendingTpSl.set(orders);
+          this.appSettingsService.setIsLoadingPendingTpSl(false);
         },
         error: (err) => {
           console.error(err);
+          this.appSettingsService.setIsLoadingPendingTpSl(false);
         },
       });
   }
@@ -516,7 +545,6 @@ export class PositionsAndOrdersComponent implements OnInit {
             next: (res) => {
               this.toastMessageService.success('Take profit set successfully.');
               this.appSettingsService.setIsLoadingPositions(true);
-              this.appSettingsService.setIsLoadingOpenOrders(true);
               this.appSettingsService.setIsLoadingPendingTpSl(true);
             },
             error: (err) => {
@@ -524,7 +552,6 @@ export class PositionsAndOrdersComponent implements OnInit {
               this.toastMessageService.error(error, details.msg);
 
               this.appSettingsService.setIsLoadingPositions(false);
-              this.appSettingsService.setIsLoadingOpenOrders(false);
               this.appSettingsService.setIsLoadingPendingTpSl(false);
             },
           });

@@ -70,7 +70,6 @@ export class AuthService {
       })
       .pipe(
         tap((res) => {
-          this.userWsService.startUserDataStream();
           this.session.set(true);
           this.appSettingsService.setTestnet(useTestnet);
         }),
@@ -86,7 +85,6 @@ export class AuthService {
       })
       .pipe(
         tap((res) => {
-          this.userWsService.startUserDataStream();
           this.session.set(true);
           this.appSettingsService.setTestnet(useTestnet);
         }),

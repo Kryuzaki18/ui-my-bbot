@@ -1,4 +1,7 @@
-import { Component } from '@angular/core';
+import { Component, inject } from '@angular/core';
+
+// Services
+import { UserWsService } from '../../core/services/user-ws.service';
 
 // Components
 import { TradeFormComponent } from '../../components/trade-form/trades-form.component';
@@ -18,4 +21,10 @@ import { TradingChartComponent } from '../../components/trading-chart/trading-ch
   styleUrl: './dashboard.component.scss',
   standalone: true,
 })
-export class DashboardComponent {}
+export class DashboardComponent {
+  private userWsService = inject(UserWsService);
+
+  constructor() {
+    this.userWsService.startUserDataStream();
+  }
+}

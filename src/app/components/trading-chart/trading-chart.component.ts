@@ -2,7 +2,6 @@ import {
   Component,
   OnInit,
   OnDestroy,
-  AfterViewInit,
   ElementRef,
   ViewChild,
   inject,
@@ -15,7 +14,7 @@ import {
 import { CommonModule } from '@angular/common';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormsModule } from '@angular/forms';
-import { ActivatedRoute, Router } from '@angular/router';
+import { ActivatedRoute } from '@angular/router';
 
 // Lightweight Charts
 import {
@@ -93,7 +92,7 @@ import { DividerModule } from 'primeng/divider';
   styleUrl: './trading-chart.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class TradingChartComponent implements OnInit, AfterViewInit, OnDestroy {
+export class TradingChartComponent implements OnInit, OnDestroy {
   @ViewChild('chartContainer', { static: true }) chartContainerRef!: ElementRef<HTMLDivElement>;
   @ViewChild('volumeContainer', { static: true }) volumeContainerRef!: ElementRef<HTMLDivElement>;
 
@@ -196,24 +195,18 @@ export class TradingChartComponent implements OnInit, AfterViewInit, OnDestroy {
     return [hours, minutes, seconds].map((v) => v.toString().padStart(2, '0')).join(':');
   });
 
-  ngOnInit(): void {
-    this.initAllWs();
-  }
-
-  ngAfterViewInit(): void {
+ ngOnInit(): void {
     this.ngZone.runOutsideAngular(() => {
+      this.initAllWs();
       this.subscribeAllWs();
       this.subscribeAllRest();
+      this.subscribeWsKline();
     });
 
     this.fetchKlines(this.selectedTimeframe);
 
     this.initCharts();
     this.movingTheChart();
-
-    this.ngZone.runOutsideAngular(() => {
-      this.subscribeWsKline();
-    });
   }
 
   ngOnDestroy(): void {

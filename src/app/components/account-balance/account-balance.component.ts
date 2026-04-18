@@ -6,6 +6,9 @@ import { CurrencyPipe, NgClass } from '@angular/common';
 import { UserWsService } from '../../core/services/user-ws.service';
 import { UserService } from '../../core/services/user.service';
 
+// Constants
+import { USER_STREAM } from '../../core/constants/binance.constant';
+
 // Models
 import { UserInfo } from '../../core/models/user-info.model';
 
@@ -21,10 +24,10 @@ import { DynamicDialogConfig, DynamicDialogRef } from 'primeng/dynamicdialog';
   standalone: true,
 })
 export class AccountBalanceComponent implements OnInit {
-  private destroyRef = inject(DestroyRef);
-  private userWsService = inject(UserWsService);
-  private userService = inject(UserService);
-  private dialogRef = inject(DynamicDialogRef, { optional: true });
+  private readonly destroyRef = inject(DestroyRef);
+  private readonly userWsService = inject(UserWsService);
+  private readonly userService = inject(UserService);
+  private readonly dialogRef = inject(DynamicDialogRef, { optional: true });
   readonly dynamicDialogConfig = inject(DynamicDialogConfig, { optional: true });
 
   userInfo = signal<UserInfo | null>(null);
@@ -37,38 +40,8 @@ export class AccountBalanceComponent implements OnInit {
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
         next: (update) => {
-          const balances = update.a?.B;
-          const positions = update.a?.P;
-
-          if (this.userInfo()) {
-            let newWalletBalance = this.userInfo()!.totalWalletBalance;
-            let newAvailableBalance = this.userInfo()!.availableBalance;
-            let newUnrealizedProfit = this.userInfo()!.totalUnrealizedProfit;
-
-            // Update Balances from stream
-            if (balances) {
-              const usdtBalance = balances.find((b: any) => b.a === 'USDT');
-              if (usdtBalance) {
-                newWalletBalance = parseFloat(usdtBalance.wb);
-                newAvailableBalance = parseFloat(usdtBalance.cw);
-              }
-            }
-
-            // Update Unrealized PNL from stream
-            if (positions && positions.length > 0) {
-              let sumPnL = 0;
-              positions.forEach((p: any) => {
-                sumPnL += parseFloat(p.up);
-              });
-              newUnrealizedProfit = sumPnL;
-            }
-
-            this.userInfo.set({
-              ...this.userInfo(),
-              totalWalletBalance: newWalletBalance,
-              availableBalance: newAvailableBalance,
-              totalUnrealizedProfit: newUnrealizedProfit,
-            });
+          if(update.e === USER_STREAM.ACCOUNT_UPDATE) {
+            this.getUserInfo();
           }
         },
       });

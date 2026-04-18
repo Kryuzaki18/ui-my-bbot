@@ -12,7 +12,6 @@ import { filter, startWith, take } from 'rxjs';
 
 // Models
 import {
-  FuturePosition,
   LeverageBracket,
   OrderSideEnum,
   OrderTypeEnum,
@@ -89,7 +88,6 @@ export class TradeFormComponent implements OnInit {
   defaultLeverage = 20;
 
   readonly defaultAmount = 5;
-  readonly futurePos = signal<FuturePosition[]>([]);
   readonly leverageBracket = signal<LeverageBracket | null>(null);
   readonly markPriceData = signal<MarkPriceData | null>(null);
 
@@ -173,7 +171,6 @@ export class TradeFormComponent implements OnInit {
     this.subscribeWsMarkPrice();
     this.createTradeForm();
     this.fetchLeverageBracket();
-    this.getFuturesPositions();
 
     toObservable(this.markPriceData, { injector: this.injector })
       .pipe(
@@ -249,7 +246,6 @@ export class TradeFormComponent implements OnInit {
             takeProfit: null,
             stopLoss: null,
           });
-          this.getFuturesPositions();
         },
         error: (err) => console.error(err),
       });
@@ -317,18 +313,6 @@ export class TradeFormComponent implements OnInit {
           }
         },
         error: (err) => console.error(err),
-      });
-  }
-
-  private getFuturesPositions(): void {
-    this.futureTradeService
-      .getFuturesPositions()
-      .pipe(takeUntilDestroyed(this.destroyRef))
-      .subscribe((res) => {
-        const newPositions = res.filter((pos) => Number(pos.positionAmt) !== 0);
-        if (newPositions.length > 0) {
-          this.futurePos.set(newPositions);
-        }
       });
   }
 }
