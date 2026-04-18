@@ -2,6 +2,9 @@ import { Component, DestroyRef, inject, input, OnInit, output } from '@angular/c
 import { CommonModule } from '@angular/common';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
+// Models
+import { OrderTypeEnum } from '../../../core/models/trades.model';
+
 // Services
 import { ChartService } from '../../../core/services/chart/chart.service';
 import { AppSettingsService } from '../../../core/services/app-settings.service';
@@ -24,6 +27,8 @@ export class OpenOrdersComponent implements OnInit {
   readonly basicOrders = input.required<any[]>();
   readonly onCancelOrder = output<any>();
   readonly onSelectSymbol = output<string>();
+
+  OrderTypeEnum = OrderTypeEnum;
 
   isLoadingOpenOrders: boolean = false;
 

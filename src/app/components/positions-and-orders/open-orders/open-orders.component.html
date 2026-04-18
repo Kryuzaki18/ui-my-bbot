@@ -73,7 +73,13 @@
           </span>
         </td>
         <td>
-          {{ order.type }}
+          {{
+            order.type === OrderTypeEnum.TAKE_PROFIT_MARKET
+              ? 'TAKE PROFIT'
+              : order.type === OrderTypeEnum.STOP_MARKET
+                ? 'STOP LOSS'
+                : order.type
+          }}
         </td>
 
         <td>{{ order.price | number: '1.0-7' }}</td>
