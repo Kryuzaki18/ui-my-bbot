@@ -95,10 +95,7 @@
         </ng-template>
 
         <ng-template #body let-item let-index="rowIndex">
-          <tr
-            class="group cursor-pointer transition-colors"
-            (click)="hide(); selectSymbol(item.symbol)"
-          >
+          <tr class="group cursor-pointer transition-colors" (click)="selectSymbol(item.symbol)">
             <td
               pFrozenColumn
               alignFrozen="left"

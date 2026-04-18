@@ -19,17 +19,20 @@
           pSortableColumn="symbol"
           pFrozenColumn
           alignFrozen="left"
-          class="shadow-[4px_0_12px_-4px_rgba(0,0,0,0.5)] !bg-gray-900 !w-30"
+          class="shadow-[4px_0_12px_-4px_rgba(0,0,0,0.5)] !bg-gray-900 !w-[200px]"
         >
           <span class="flex items-center gap-1 text-gray-400 hover:text-gray-100 transition-colors">
             <span>Symbols</span>
             <p-sortIcon field="symbol"> </p-sortIcon>
           </span>
         </th>
-        <th class="!bg-gray-900 !text-gray-400">Side</th>
-        <th class="!bg-gray-900 !text-gray-400">Type</th>
-        <th class="!bg-gray-900 !text-gray-400">Price</th>
-        <th class="!bg-gray-900 !text-gray-400">Amount</th>
+        <th class="!bg-gray-900 !text-gray-400 !w-[120px]">Side</th>
+        <th class="!bg-gray-900 !text-gray-400 !w-[150px]">Type</th>
+        <th class="!bg-gray-900 !text-gray-400 !w-[120px]">Price</th>
+        <th class="!bg-gray-900 !text-gray-400 !w-[120px]">Amount</th>
+        <th class="!bg-gray-900 !text-gray-400">Trigger Conditions</th>
+        <th class="!bg-gray-900 !text-gray-400">Reduce Only</th>
+        <th class="!bg-gray-900 !text-gray-400">TIF</th>
         <th class="!bg-gray-900 !text-gray-400">Filled</th>
         <th class="!bg-gray-900 !text-gray-400 !w-30">Action</th>
       </tr>
@@ -73,17 +76,26 @@
           </span>
         </td>
         <td>
-          {{
-            order.type === OrderTypeEnum.TAKE_PROFIT_MARKET
-              ? 'TAKE PROFIT'
-              : order.type === OrderTypeEnum.STOP_MARKET
-                ? 'STOP LOSS'
-                : order.type
-          }}
+          @if (order.type === OrderTypeEnum.TAKE_PROFIT_MARKET) {
+            <span class="text-green-500">TAKE PROFIT</span>
+          } @else if (order.type === OrderTypeEnum.STOP_MARKET) {
+            <span class="text-red-500">STOP LOSS</span>
+          } @else {
+            {{ order.type }}
+          }
         </td>
 
-        <td>{{ order.price | number: '1.0-7' }}</td>
+        <td>
+          @if ([OrderTypeEnum.TAKE_PROFIT_MARKET, OrderTypeEnum.STOP_MARKET].includes(order.type)) {
+            Market
+          } @else {
+            {{ order.price | number: '1.0-7' }}
+          }
+        </td>
         <td>{{ order.origQty }}</td>
+        <td>{{ +order.stopPrice === 0 ? '-' : (order.stopPrice | number: '1.0-7') }}</td>
+        <td>{{ order.reduceOnly ? 'Yes' : 'No' }}</td>
+        <td>{{ order.timeInForce }}</td>
 
         <td>
           @if (order.executedQty && order.executedQty > 0) {

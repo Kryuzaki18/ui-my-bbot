@@ -19,7 +19,7 @@
           pSortableColumn="symbol"
           pFrozenColumn
           alignFrozen="left"
-          class="shadow-[4px_0_12px_-4px_rgba(0,0,0,0.5)] !bg-gray-900 !w-30"
+          class="shadow-[4px_0_12px_-4px_rgba(0,0,0,0.5)] !bg-gray-900 !w-[200px]"
         >
           <span class="flex items-center gap-1 text-gray-400 hover:text-gray-100 transition-colors">
             <span>Symbols</span>
@@ -28,27 +28,28 @@
         </th>
         <th class="!bg-gray-900 !text-gray-400">Side</th>
         <th class="!bg-gray-900 !text-gray-400">Type</th>
-        <th class="!bg-gray-900 !text-gray-400">Price</th>
+        <th class="!bg-gray-900 !text-gray-400">Trigger Conditions</th>
+        <th class="!bg-gray-900 !text-gray-400">Reduce Only</th>
         <th class="!bg-gray-900 !text-gray-400 !w-30">Action</th>
       </tr>
     </ng-template>
 
-    <ng-template #body let-tpsl let-index="rowIndex">
+    <ng-template #body let-order let-index="rowIndex">
       <tr>
         <td pFrozenColumn alignFrozen="left" class="shadow-[4px_0_12px_-4px_rgba(0,0,0,0.5)]">
           <div class="flex flex-col gap-2">
             <div>
               <span
                 class="jetbrains-bold text-yellow-500 hover:text-yellow-200 cursor-pointer text-xs bg-yellow-200/10 px-2 py-1 rounded"
-                (click)="selectSymbol(tpsl.symbol)"
+                (click)="selectSymbol(order.symbol)"
               >
-                {{ tpsl.symbol }}
+                {{ order.symbol }}
               </span>
             </div>
 
             <div>
               <span class="text-gray-400 text-[9px]">
-                {{ tpsl.updateTime | date: 'MMMM d h:mma' }}
+                {{ order.updateTime | date: 'MMMM d h:mma' }}
               </span>
             </div>
           </div>
@@ -58,26 +59,27 @@
           <span
             class="jetbrains-bold text-white border text-[9px] py-1 px-2 rounded uppercase tracking-[1px]"
             [ngClass]="{
-              'bg-green-900/30 border-green-700/50': tpsl.side === 'BUY',
-              'bg-red-900/30 border-red-700/50': tpsl.side === 'SELL',
+              'bg-green-900/30 border-green-700/50': order.side === 'BUY',
+              'bg-red-900/30 border-red-700/50': order.side === 'SELL',
             }"
           >
-            {{ tpsl.side }}
+            {{ order.side }}
           </span>
         </td>
         <td>
-          @if (tpsl.orderType === orderTypeEnum.STOP_MARKET) {
+          @if (order.orderType === orderTypeEnum.STOP_MARKET) {
             <span class="text-red-500">STOP LOSS</span>
           } @else {
             <span class="text-green-500">TAKE PROFIT</span>
           }
         </td>
 
-        <td>{{ tpsl.triggerPrice | number: '1.0-7' }}</td>
+        <td>{{ order.triggerPrice | number: '1.0-7' }}</td>
+        <td>{{ order.reduceOnly ? 'Yes' : 'No' }}</td>
 
         <td>
           <p-button
-            (onClick)="removeTPSL(tpsl)"
+            (onClick)="removeTPSL(order)"
             icon="pi pi-trash"
             size="small"
             severity="secondary"

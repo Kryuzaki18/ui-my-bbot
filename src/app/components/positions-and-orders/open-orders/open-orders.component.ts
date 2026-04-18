@@ -29,7 +29,6 @@ export class OpenOrdersComponent implements OnInit {
   readonly onSelectSymbol = output<string>();
 
   OrderTypeEnum = OrderTypeEnum;
-
   isLoadingOpenOrders: boolean = false;
 
   ngOnInit(): void {

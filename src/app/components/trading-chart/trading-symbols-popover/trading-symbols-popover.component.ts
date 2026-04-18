@@ -146,6 +146,7 @@ export class TradingSymbolsPopoverComponent implements OnInit {
       return;
     }
     this.chartService.selectedSymbol.set(symbol);
+    this.hide();
     window.location.reload();
   }
 }
