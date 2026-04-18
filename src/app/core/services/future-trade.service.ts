@@ -19,16 +19,12 @@ export class FutureTradeService {
     return this.appSettingsService.env().apiBaseUrl;
   }
 
-  getPendingTpSl(symbol?: string): Observable<any[]> {
-    let url = `${this.apiBaseUrl}${API_ROUTES.futures.pendingTpSl}`;
-    if (symbol) url += `?symbol=${symbol}`;
-    return this.http.get<any[]>(url);
+  getPendingTpSl(): Observable<any[]> {
+    return this.http.get<any[]>(`${this.apiBaseUrl}${API_ROUTES.futures.pendingTpSl}`);
   }
 
-  getOpenOrders(symbol?: string): Observable<any[]> {
-    let url = `${this.apiBaseUrl}${API_ROUTES.futures.openOrders}`;
-    if (symbol) url += `?symbol=${symbol}`;
-    return this.http.get<any[]>(url);
+  getOpenOrders(): Observable<any[]> {
+    return this.http.get<any[]>(`${this.apiBaseUrl}${API_ROUTES.futures.openOrders}`);
   }
 
   getFuturesPositions(): Observable<any[]> {

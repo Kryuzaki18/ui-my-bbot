@@ -298,8 +298,8 @@ export class PositionsAndOrdersComponent implements OnInit {
               // this.fetchPendingTpSl();
               console.log('CANCELED ALGO_UPDATE: ', update);
             }
-          } else {
-            console.log('USER_STREAM: ', update);
+          } else if (update.e === USER_STREAM.OTOCO_ORDER_UPDATE) {
+            console.log('OTOCO_ORDER_UPDATE: ', update);
           }
         },
         error: (err) => {
