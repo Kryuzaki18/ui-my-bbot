@@ -1,4 +1,4 @@
-import { Component, DestroyRef, inject, OnInit } from '@angular/core';
+import { Component, DestroyRef, inject, OnInit, signal } from '@angular/core';
 import { Router } from '@angular/router';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
@@ -15,9 +15,14 @@ import { DialogService, DynamicDialogModule } from 'primeng/dynamicdialog';
 import { MenuModule } from 'primeng/menu';
 import { MenuItem } from 'primeng/api';
 
+// Constants
+import { STORAGE } from '../../core/constants/binance.constant';
+
 // Services
 import { AppSettingsService } from '../../core/services/app-settings.service';
 import { ChartService } from '../../core/services/chart/chart.service';
+import { BinanceRestService } from '../../core/services/binance-rest.service';
+import { LocalStorageService } from '../../core/services/local-storage.service';
 
 @Component({
   selector: 'app-header',
@@ -29,15 +34,54 @@ import { ChartService } from '../../core/services/chart/chart.service';
 export class HeaderComponent implements OnInit {
   readonly appSettingsService = inject(AppSettingsService);
   readonly chartService = inject(ChartService);
+  readonly binanceRestService = inject(BinanceRestService);
   readonly authService = inject(AuthService);
+  private readonly localStorageService = inject(LocalStorageService);
+
   private readonly router = inject(Router);
   private readonly dialogService = inject(DialogService);
   private readonly destroyRef = inject(DestroyRef);
 
   items: MenuItem[] | undefined;
+  gainers = signal<any[]>([]);
+  losers = signal<any[]>([]);
 
   ngOnInit(): void {
     this.setItems();
+
+    this.binanceRestService
+      .getAllSymbolsWithVolume()
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: (res) => {
+          if (res) {
+            const gainers = res
+              .filter((s) => s.priceChangePercent > 0)
+              .sort((a, b) => b.priceChangePercent - a.priceChangePercent)
+              .map((s) => {
+                return {
+                  symbol: s.symbol,
+                  priceChangePercent: s.priceChangePercent,
+                };
+              })
+              .slice(0, 10);
+
+            const losers = res
+              .filter((s) => s.priceChangePercent < 0)
+              .sort((a, b) => a.priceChangePercent - b.priceChangePercent)
+              .map((s) => {
+                return {
+                  symbol: s.symbol,
+                  priceChangePercent: s.priceChangePercent,
+                };
+              })
+              .slice(0, 10);
+            this.gainers.set(gainers);
+            this.losers.set(losers);
+          }
+        },
+        error: (err) => {},
+      });
   }
 
   setItems(): void {
@@ -125,5 +169,17 @@ export class HeaderComponent implements OnInit {
         isDialog: true,
       },
     });
+  }
+
+  selectSymbol(symbol: string): void {
+    const getSymbol = this.localStorageService.getLocalStorageSignal(
+      STORAGE.SYMBOL,
+      symbol.toLowerCase(),
+    );
+    if (symbol.toLowerCase() === getSymbol().toLowerCase()) {
+      return;
+    }
+    this.chartService.selectedSymbol.set(symbol);
+    window.location.reload();
   }
 }

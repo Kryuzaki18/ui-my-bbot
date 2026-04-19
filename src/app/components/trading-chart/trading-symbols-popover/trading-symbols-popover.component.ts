@@ -16,7 +16,6 @@ import { BinanceRestService } from '../../../core/services/binance-rest.service'
 import { BinanceWsService } from '../../../core/services/binance-ws.service';
 import { UtilsService } from '../../../core/services/utils.service';
 import { ChartService } from '../../../core/services/chart/chart.service';
-import { AppSettingsService } from '../../../core/services/app-settings.service';
 import { LocalStorageService } from '../../../core/services/local-storage.service';
 
 // Models
@@ -54,7 +53,6 @@ export class TradingSymbolsPopoverComponent implements OnInit {
   private readonly binanceRestService = inject(BinanceRestService);
   private readonly binanceWsService = inject(BinanceWsService);
   private readonly chartService = inject(ChartService);
-  private readonly appSettingsService = inject(AppSettingsService);
   private readonly localStorageService = inject(LocalStorageService);
   readonly utilsService = inject(UtilsService);
 
