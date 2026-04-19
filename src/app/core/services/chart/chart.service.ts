@@ -2,7 +2,12 @@ import { inject, Injectable } from '@angular/core';
 import { BehaviorSubject } from 'rxjs';
 
 // Models
-import { ChartTheme, OpenOrderChartLine, PositionChartData, Timeframe } from '../../models/chart.model';
+import {
+  ChartTheme,
+  OpenOrderChartLine,
+  PositionChartData,
+  Timeframe,
+} from '../../models/chart.model';
 
 // Constants
 import { DEFAULT_SYMBOL, DEFAULT_TIMEFRAME, STORAGE } from '../../constants/binance.constant';
@@ -14,6 +19,7 @@ import { LocalStorageService } from '../local-storage.service';
 export class ChartService {
   private readonly localStorageService = inject(LocalStorageService);
   private themeSubject = new BehaviorSubject<ChartTheme>(this.buildTheme());
+
   private positionChartDataSubject = new BehaviorSubject<PositionChartData | null>(null);
   private openOrdersChartDataSubject = new BehaviorSubject<OpenOrderChartLine[]>([]);
 

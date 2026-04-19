@@ -2,6 +2,9 @@ import { Component, DestroyRef, inject, input, OnInit, output } from '@angular/c
 import { CommonModule } from '@angular/common';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
+// Models
+import { PositionSideEnum } from '../../../core/models/trades.model';
+
 // Services
 import { ChartService } from '../../../core/services/chart/chart.service';
 import { AppSettingsService } from '../../../core/services/app-settings.service';
@@ -28,6 +31,7 @@ export class PositionsComponent implements OnInit {
   readonly onOpenTPSLDialog = output<any>();
   readonly onRemoveTPSL = output<any>();
 
+  readonly positionSideEnum = PositionSideEnum;
   isLoadingPositions: boolean = false;
 
   ngOnInit(): void {

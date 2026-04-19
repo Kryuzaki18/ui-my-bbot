@@ -1,5 +1,5 @@
 export interface UserInfo {
-  availableBalance: number;
-  totalUnrealizedProfit: number;
-  totalWalletBalance: number;
+  availableBalance?: number;
+  totalUnrealizedProfit?: number;
+  totalWalletBalance?: number;
 }

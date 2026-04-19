@@ -17,7 +17,7 @@
         <div class="text-xs text-gray-500">Margin Balance:</div>
         <div class="text-xs text-emerald-400">
           @if (userInfo()?.availableBalance) {
-            {{ userInfo()?.availableBalance | currency: 'USD' : 'symbol' : '1.1-2' }}
+            {{ userInfo()?.availableBalance | currency: 'USD' : 'symbol' : '1.0-2' }}
           } @else {
             <p-skeleton></p-skeleton>
           }
@@ -25,9 +25,13 @@
       </div>
       <div class="flex flex-col jetbrains-thin">
         <div class="text-xs text-gray-500">Unrealized PnL:</div>
-        <div class="text-xs text-emerald-400">
-          @if (userInfo()?.totalUnrealizedProfit) {
-            {{ userInfo()?.totalUnrealizedProfit | currency: 'USD' : 'symbol' : '1.1-10' }}
+        <div class="text-xs">
+          @if (userService.totalLivePnl$ | async; as totalLivePnl) {
+            <span
+              [ngClass]="{ 'text-red-400': totalLivePnl < 0, 'text-emerald-400': totalLivePnl > 0 }"
+            >
+              {{ totalLivePnl | currency: 'USD' : 'symbol' : '1.0-2' }}
+            </span>
           } @else {
             <p-skeleton></p-skeleton>
           }
@@ -39,7 +43,7 @@
       <div class="text-xs text-gray-500">Balance:</div>
       <div class="text-xs text-emerald-400">
         @if (userInfo()?.totalWalletBalance) {
-          {{ userInfo()?.totalWalletBalance | currency: 'USD' : 'symbol' : '1.1-2' }}
+          {{ userInfo()?.totalWalletBalance | currency: 'USD' : 'symbol' : '1.0-2' }}
         } @else {
           <p-skeleton></p-skeleton>
         }

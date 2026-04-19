@@ -31,7 +31,6 @@ import {
 
 // Constants
 import {
-  DEFAULT_TIMEFRAME,
   STORAGE,
   STREAM_NAME,
   TIMEFRAMES,
@@ -52,6 +51,7 @@ import {
   OpenOrderChartLine,
   WsStatus,
 } from '../../core/models/chart.model';
+import { OrderSideEnum } from '../../core/models/trades.model';
 
 // Components
 import { TradingSymbolsPopoverComponent } from './trading-symbols-popover/trading-symbols-popover.component';
@@ -492,8 +492,8 @@ export class TradingChartComponent implements OnInit, OnDestroy {
     this.openOrderLines = [];
 
     for (const order of orders) {
-      const isBuy = order.side === 'BUY';
-      const label = `${order.type} ${isBuy ? 'BUY' : 'SELL'} ${order.qty}`;
+      const isBuy = order.side === OrderSideEnum.BUY;
+      const label = `${order.type} ${isBuy ? OrderSideEnum.BUY : OrderSideEnum.SELL} ${order.qty}`;
       const line = this.candleSeries.createPriceLine({
         price: order.price,
         color: isBuy ? '#3fb950' : '#f85149',

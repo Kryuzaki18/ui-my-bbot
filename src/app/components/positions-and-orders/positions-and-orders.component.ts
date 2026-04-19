@@ -166,6 +166,17 @@ export class PositionsAndOrdersComponent implements OnInit {
     return mapList;
   });
 
+  private readonly syncPositionToAccountBalance= effect(() => {
+    const pos = this.enrichedPositions();
+
+    if (!pos) {
+      return;
+    }
+
+    const totalBalance = pos.reduce((acc, p) => acc + p.livePnl, 0);
+    this.userService.setTotalLivePnl(totalBalance);
+  });
+
   private readonly syncPositionToChart = effect(() => {
     const sym = this.currentSymbol().toLowerCase();
     const pos = this.enrichedPositions().find((p) => p.symbol.toLowerCase() === sym);

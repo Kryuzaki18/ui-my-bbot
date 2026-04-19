@@ -79,12 +79,16 @@
         <span
           class="jetbrains-bold text-white border text-[9px] py-1 px-2 rounded uppercase tracking-[1px]"
           [ngClass]="
-            pos.positionSide === 'LONG' || pos.positionAmt > 0
+            pos.positionSide === positionSideEnum.LONG || pos.positionAmt > 0
               ? 'bg-green-900/30 border-green-700/50'
               : 'bg-red-900/30  border-red-700/50'
           "
         >
-          {{ pos.positionSide === 'LONG' || pos.positionAmt > 0 ? 'Buy/Long' : 'Sell/Short' }}
+          {{
+            pos.positionSide === positionSideEnum.LONG || pos.positionAmt > 0
+              ? 'Buy/Long'
+              : 'Sell/Short'
+          }}
         </span>
       </td>
 

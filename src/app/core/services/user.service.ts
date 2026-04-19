@@ -1,6 +1,9 @@
 import { inject, Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { Observable } from 'rxjs';
+import { BehaviorSubject, Observable } from 'rxjs';
+
+// Models
+import { UserInfo } from '../models/user-info.model';
 
 // Environments
 import { API_ROUTES } from '../../../environments/environment';
@@ -14,6 +17,13 @@ import { AppSettingsService } from './app-settings.service';
 export class UserService {
   private readonly http = inject(HttpClient);
   private readonly appSettingsService = inject(AppSettingsService);
+  
+  private readonly totalLivePnl = new BehaviorSubject<number>(0);
+  readonly totalLivePnl$ = this.totalLivePnl.asObservable();
+
+  setTotalLivePnl(data: number): void {
+    this.totalLivePnl.next(data);
+  }
 
   private get apiBaseUrl(): string {
     return this.appSettingsService.env().apiBaseUrl;

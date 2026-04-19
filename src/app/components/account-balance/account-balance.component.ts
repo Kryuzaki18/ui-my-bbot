@@ -1,6 +1,6 @@
 import { Component, OnInit, inject, DestroyRef, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { CurrencyPipe, NgClass } from '@angular/common';
+import { AsyncPipe, CurrencyPipe, NgClass } from '@angular/common';
 
 // Services
 import { UserWsService } from '../../core/services/user-ws.service';
@@ -18,7 +18,7 @@ import { DynamicDialogConfig, DynamicDialogRef } from 'primeng/dynamicdialog';
 
 @Component({
   selector: 'app-account-balance',
-  imports: [CurrencyPipe, Skeleton, NgClass],
+  imports: [AsyncPipe, CurrencyPipe, NgClass, Skeleton],
   templateUrl: './account-balance.component.html',
   styleUrl: './account-balance.component.scss',
   standalone: true,
@@ -26,7 +26,8 @@ import { DynamicDialogConfig, DynamicDialogRef } from 'primeng/dynamicdialog';
 export class AccountBalanceComponent implements OnInit {
   private readonly destroyRef = inject(DestroyRef);
   private readonly userWsService = inject(UserWsService);
-  private readonly userService = inject(UserService);
+  readonly userService = inject(UserService);
+
   private readonly dialogRef = inject(DynamicDialogRef, { optional: true });
   readonly dynamicDialogConfig = inject(DynamicDialogConfig, { optional: true });
 
@@ -35,12 +36,25 @@ export class AccountBalanceComponent implements OnInit {
   ngOnInit(): void {
     this.getUserInfo();
 
+    this.userService.totalLivePnl$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
+      next: (pnl) => {
+        const absPnl = Math.abs(pnl);
+        this.userInfo.update((prev) => ({
+          ...prev,
+          availableBalance:
+            pnl > 0
+              ? (prev?.totalWalletBalance || 0) + absPnl
+              : (prev?.totalWalletBalance || 0) - absPnl,
+        }));
+      },
+    });
+
     this.userWsService
       .getUserDataStream()
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
         next: (update) => {
-          if(update.e === USER_STREAM.ACCOUNT_UPDATE) {
+          if (update.e === USER_STREAM.ACCOUNT_UPDATE) {
             this.getUserInfo();
           }
         },

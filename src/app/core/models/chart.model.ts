@@ -1,4 +1,5 @@
 import { Subject } from "rxjs";
+import { OrderSideEnum, PositionSideEnum } from "./trades.model";
 
 export type Timeframe =
   | '1m'
@@ -199,12 +200,12 @@ export interface PositionChartData {
   entryPrice: number | null;
   takeProfit: number | null;
   stopLoss: number | null;
-  positionSide: 'LONG' | 'SHORT' | string;
+  positionSide: PositionSideEnum;
 }
 
 export interface OpenOrderChartLine {
   price: number;
-  side: 'BUY' | 'SELL' | string;
+  side: OrderSideEnum;
   type: string;
   qty: number;
   orderId: number | string;
