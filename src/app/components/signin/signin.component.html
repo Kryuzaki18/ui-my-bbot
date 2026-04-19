@@ -115,6 +115,11 @@
             (ngSubmit)="signInBinanceKey()"
             class="flex flex-col gap-4"
           >
+            <p-message severity="warn" size="small" icon="pi pi-exclamation-triangle"
+              >Testing mode only. Use your demo account. Do NOT use your main Binance API Key and
+              Secret.</p-message
+            >
+
             <p-floatlabel variant="on">
               <p-password
                 inputId="apiKey"
