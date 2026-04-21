@@ -28,7 +28,10 @@
         <div class="overflow-hidden flex-1">
           <div class="ticker-animate">
             @for (item of gainers(); track $index) {
-              <span class="mx-4 flex gap-1">
+              <span class="mx-3 flex gap-1 items-center">
+                <div class="flex">
+                  <span class="text-[9px] bg-green-600 px-1 rounded">{{ $index + 1 }}</span>
+                </div>
                 <span
                   class="text-xs font-semibold text-emerald-500 hover:text-yellow-500 cursor-pointer"
                   (click)="selectSymbol(item.symbol)"
@@ -51,7 +54,10 @@
         <div class="overflow-hidden flex-1">
           <div class="ticker-animate">
             @for (item of losers(); track $index) {
-              <span class="mx-4 flex gap-1">
+              <span class="mx-3 flex gap-1 items-center">
+                <div class="flex">
+                  <span class="text-[9px] bg-red-600 px-1 rounded">{{ $index + 1 }}</span>
+                </div>
                 <span
                   class="text-xs font-semibold text-red-500 hover:text-yellow-500 cursor-pointer"
                   (click)="selectSymbol(item.symbol)"
@@ -82,6 +88,18 @@
           </div>
         </p-button>
       </div>
+
+      <div class="block min-[769px]:hidden px-2">
+        <p-button
+          icon="pi pi-user"
+          [rounded]="true"
+          variant="outlined"
+          size="small"
+          (onClick)="menuProfile.toggle($event)"
+        ></p-button>
+
+        <p-menu #menuProfile [model]="items" [popup]="true" styleClass="text-xs" />
+      </div>
     } @else {
       <div class="flex items-center px-2">
         <p-button
@@ -96,20 +114,6 @@
             <span class="pi pi-sign-in !text-xs"></span>
           </div>
         </p-button>
-      </div>
-    }
-
-    @if (authService.isLoggedIn()) {
-      <div class="block min-[769px]:hidden px-2">
-        <p-button
-          icon="pi pi-user"
-          [rounded]="true"
-          variant="outlined"
-          size="small"
-          (onClick)="menuProfile.toggle($event)"
-        ></p-button>
-
-        <p-menu #menuProfile [model]="items" [popup]="true" styleClass="text-xs" />
       </div>
     }
   </div>

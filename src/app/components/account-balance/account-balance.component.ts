@@ -58,6 +58,9 @@ export class AccountBalanceComponent implements OnInit {
             this.getUserInfo();
           }
         },
+        error: (err) => {
+          console.error(err);
+        },
       });
   }
 

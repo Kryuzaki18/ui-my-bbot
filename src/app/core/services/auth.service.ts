@@ -19,9 +19,12 @@ export class AuthService {
   private readonly http = inject(HttpClient);
   private readonly userWsService = inject(UserWsService);
   private readonly appSettingsService = inject(AppSettingsService)
-  private readonly apiBaseUrl = this.appSettingsService.env().apiBaseUrl;
+
+  private get apiBaseUrl() {
+    return this.appSettingsService.env().apiBaseUrl;
+  }
+
   private readonly session = signal<boolean>(false);
-  
   private checkAuth$?: Observable<boolean>;
   private hasChecked = false;
 

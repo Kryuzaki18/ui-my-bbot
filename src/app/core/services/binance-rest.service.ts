@@ -3,7 +3,7 @@ import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable, map, catchError, throwError, forkJoin, ReplaySubject, take } from 'rxjs';
 
 // Environments
-import { API_ROUTES, BINANCE_PUBLIC_API_ROUTES } from '../../../environments/environment';
+import { BINANCE_PUBLIC_API_ROUTES } from '../../../environments/environment';
 
 // Models
 import {
