@@ -167,17 +167,16 @@
       size="small"
       variant="outlined"
       severity="secondary"
-      styleClass="w-38"
+      styleClass="w-34"
       (click)="indicatorsPopover.toggle($event)"
     >
       <div class="flex items-center justify-between gap-2 w-full">
-        <div class="flex items-center">
-          <span class="pi pi-chart-line !text-xs"></span>
-          <span class="text-xs ml-3 mr-1">Indicators</span>
+        <div class="flex items-center gap-2">
+          <span class="text-xs">Indicators</span>
           @if (activeIndicatorCount() > 0) {
-            <div class="bg-blue-600 text-white text-[9px] h-3 w-3 rounded">
+            <span class="bg-blue-600 text-white text-[9px] h-3 w-3 rounded">
               {{ activeIndicatorCount() }}
-            </div>
+            </span>
           }
         </div>
 
@@ -236,14 +235,14 @@
 
 <div class="flex flex-col relative">
   <div
-    class="flex items-center gap-2 absolute left-0 top-0 ml-2 mt-2 border-1 border-gray-700 rounded z-20"
+    class="flex items-center gap-2 absolute left-0 ml-14 mt-2 top-0 border-1 border-gray-700 rounded z-20"
   >
     <div class="flex items-center px-2">
       <span class="ws-dot" [class.ws-dot--live]="wsStatus() === 'live'"></span>
       <span class="text-sm text-blue-400">{{ wsStatusLabel() }}</span>
     </div>
     @if (ohlc(); as o) {
-      <div class="flex gap-2 text-[10px] px-2 jetbrains-light hidden min-[769px]:flex">
+      <div class="flex gap-2 text-[10px] pr-2 jetbrains-light hidden min-[769px]:flex">
         <div class="flex items-center gap-1">
           <span class="text-gray-400">O</span><span>{{ o.o }}</span>
         </div>
@@ -272,9 +271,8 @@
   </div>
 
   <div class="flex h-full w-full relative">
-    <!-- Trendline Editor Sidebar -->
     <div
-      class="flex flex-col w-12 border-r border-gray-800 bg-gray-950 items-center gap-2 flex-none z-10 pt-16"
+      class="flex flex-col w-12 border-r border-gray-800 bg-gray-950 items-center gap-2 flex-none z-10 pt-3"
     >
       <p-button
         variant="text"
@@ -318,7 +316,6 @@
       </p-button>
     </div>
 
-    <!-- Chart Wrapper -->
     <div class="flex flex-col flex-auto chart-wrapper overflow-hidden pb-1">
       <div #chartContainer class="chart-container flex-auto min-h-0 w-full relative z-0"></div>
 
@@ -340,6 +337,7 @@
         <div #volumeContainer class="w-full h-full"></div>
       </div>
     </div>
+
     <div class="hidden min-[600px]:flex">
       <div class="min-w-[200px] flex flex-col border-x border-gray-800">
         <div class="text-center bg-gray-900 mb-1">

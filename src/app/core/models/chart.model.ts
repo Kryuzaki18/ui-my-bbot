@@ -1,4 +1,5 @@
 import { Subject } from "rxjs";
+import { IPriceLine, ISeriesApi, Time } from "lightweight-charts";
 import { OrderSideEnum, PositionSideEnum } from "./trades.model";
 
 export type Timeframe =
@@ -209,4 +210,12 @@ export interface OpenOrderChartLine {
   type: string;
   qty: number;
   orderId: number | string;
+}
+
+export interface DrawnItem {
+  id: string;
+  type: 'trendline' | 'horizontal';
+  series?: ISeriesApi<'Line'>;
+  priceLine?: IPriceLine;
+  data?: { time1: Time; price1: number; time2?: Time; price2?: number };
 }

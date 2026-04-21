@@ -50,16 +50,9 @@ import {
   PositionChartData,
   OpenOrderChartLine,
   WsStatus,
+  DrawnItem,
 } from '../../core/models/chart.model';
 import { OrderSideEnum } from '../../core/models/trades.model';
-
-export interface DrawnItem {
-  id: string;
-  type: 'trendline' | 'horizontal';
-  series?: ISeriesApi<'Line'>;
-  priceLine?: IPriceLine;
-  data?: { time1: Time; price1: number; time2?: Time; price2?: number };
-}
 
 // Components
 import { TradingSymbolsPopoverComponent } from './trading-symbols-popover/trading-symbols-popover.component';
@@ -190,7 +183,7 @@ export class TradingChartComponent implements OnInit, OnDestroy {
 
   readonly wsStatusLabel = computed(() => {
     const s = this.wsStatus();
-    if (s === 'live') return `${this.selectedSymbol.toUpperCase()} Perpetual`;
+    if (s === 'live') return this.selectedSymbol.toUpperCase();
     if (s === 'connecting') return 'Connecting…';
     if (s === 'error') return 'Error — retrying…';
     return 'Reconnecting…';
@@ -572,7 +565,6 @@ export class TradingChartComponent implements OnInit, OnDestroy {
         priceLine,
         data: { time1: time, price1: price },
       });
-      this.setDrawingTool('cursor');
     } else if (tool === 'trendline') {
       if (!this.isDrawingTrendline) {
         this.isDrawingTrendline = true;
@@ -601,7 +593,6 @@ export class TradingChartComponent implements OnInit, OnDestroy {
         }
         this.isDrawingTrendline = false;
         this.currentTrendline = null;
-        this.setDrawingTool('cursor');
       }
     } else if (tool === 'eraser') {
       this.eraseNearestItem(param);
@@ -617,7 +608,6 @@ export class TradingChartComponent implements OnInit, OnDestroy {
 
       const p1 = this.currentTrendline.data!;
       if (p1.time1 !== time) {
-        // Prevent recursive 'setData' loop since setting data triggers another crosshairMove
         if (p1.time2 === time && p1.price2 === price) return;
         p1.time2 = time;
         p1.price2 = price;
@@ -627,11 +617,9 @@ export class TradingChartComponent implements OnInit, OnDestroy {
           { time, value: price },
         ].sort((a, b) => (a.time as number) - (b.time as number));
         
-        requestAnimationFrame(() => {
-          if (this.currentTrendline?.series) {
-            this.currentTrendline.series.setData(dataPoints);
-          }
-        });
+        if (this.currentTrendline?.series) {
+          this.currentTrendline.series.setData(dataPoints);
+        }
       }
     }
   }
