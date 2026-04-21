@@ -142,6 +142,7 @@ export class TradingChartComponent implements OnInit, OnDestroy {
   private drawnItems: DrawnItem[] = [];
   private isDrawingTrendline = false;
   private currentTrendline: DrawnItem | null = null;
+  private editingPoint: { item: DrawnItem; pointIndex: 1 | 2 | 'horizontal' } | null = null;
 
   private readonly initCandles = signal<CandleData[]>([]);
   readonly aggTrades = signal<AggTradeWsMessage[]>([]);
@@ -297,6 +298,9 @@ export class TradingChartComponent implements OnInit, OnDestroy {
 
   setDrawingTool(tool: 'cursor' | 'trendline' | 'horizontal' | 'eraser'): void {
     this.activeDrawingTool.set(tool);
+    if (tool !== 'cursor') {
+      this.editingPoint = null;
+    }
   }
 
   isIndicatorEnabled(type: IndicatorType): boolean {
@@ -543,12 +547,50 @@ export class TradingChartComponent implements OnInit, OnDestroy {
 
   private handleChartClick(param: any): void {
     const tool = this.activeDrawingTool();
-    if (tool === 'cursor') return;
     if (!param.point) return;
 
     const price = this.candleSeries.coordinateToPrice(param.point.y);
     const time = this.getTimeFromParam(param);
     if (price === null || time === undefined) return;
+
+    if (tool === 'cursor') {
+      if (this.editingPoint) {
+        this.editingPoint = null;
+        return;
+      }
+      
+      const clickX = param.point.x;
+      const clickY = param.point.y;
+      
+      for (const item of this.drawnItems) {
+        if (item.type === 'trendline' && item.data && item.data.time2) {
+          const x1 = this.chart.timeScale().timeToCoordinate(item.data.time1);
+          const y1 = this.candleSeries.priceToCoordinate(item.data.price1);
+          const x2 = this.chart.timeScale().timeToCoordinate(item.data.time2);
+          const y2 = this.candleSeries.priceToCoordinate(item.data.price2!);
+          
+          if (x1 !== null && y1 !== null) {
+            if (Math.sqrt((x1 - clickX) ** 2 + (y1 - clickY) ** 2) < 15) {
+               this.editingPoint = { item, pointIndex: 1 };
+               return;
+            }
+          }
+          if (x2 !== null && y2 !== null) {
+            if (Math.sqrt((x2 - clickX) ** 2 + (y2 - clickY) ** 2) < 15) {
+               this.editingPoint = { item, pointIndex: 2 };
+               return;
+            }
+          }
+        } else if (item.type === 'horizontal' && item.data) {
+          const lineY = this.candleSeries.priceToCoordinate(item.data.price1);
+          if (lineY !== null && Math.abs(lineY - clickY) < 15) {
+            this.editingPoint = { item, pointIndex: 'horizontal' };
+            return;
+          }
+        }
+      }
+      return;
+    }
 
     if (tool === 'horizontal') {
       const priceLine = this.candleSeries.createPriceLine({
@@ -600,7 +642,53 @@ export class TradingChartComponent implements OnInit, OnDestroy {
   }
 
   private handleChartMouseMove(param: any): void {
-    if (this.activeDrawingTool() === 'trendline' && this.isDrawingTrendline && this.currentTrendline?.series) {
+    const tool = this.activeDrawingTool();
+    if (tool === 'cursor' && this.editingPoint) {
+      if (!param.point) return;
+      const price = this.candleSeries.coordinateToPrice(param.point.y);
+      const time = this.getTimeFromParam(param);
+      if (price === null || time === undefined) return;
+
+      const item = this.editingPoint.item;
+      const p = item.data!;
+      let changed = false;
+
+      if (this.editingPoint.pointIndex === 1) {
+        if (p.time1 !== time || p.price1 !== price) {
+          p.time1 = time;
+          p.price1 = price;
+          changed = true;
+        }
+      } else if (this.editingPoint.pointIndex === 2) {
+        if (p.time2 !== time || p.price2 !== price) {
+          p.time2 = time;
+          p.price2 = price;
+          changed = true;
+        }
+      } else if (this.editingPoint.pointIndex === 'horizontal') {
+        if (p.price1 !== price) {
+          p.price1 = price;
+          if (item.priceLine) {
+            item.priceLine.applyOptions({ price });
+          }
+        }
+      }
+
+      if (changed && p.time2 && item.series) {
+        const dataPoints = [
+          { time: p.time1, value: p.price1 },
+          { time: p.time2, value: p.price2 },
+        ].sort((a, b) => {
+          if(a.time > b.time) return 1;
+          if(a.time < b.time) return -1;
+          return 0;
+        });
+        item.series.setData(dataPoints);
+      }
+      return;
+    }
+
+    if (tool === 'trendline' && this.isDrawingTrendline && this.currentTrendline?.series) {
       if (!param.point) return;
       const price = this.candleSeries.coordinateToPrice(param.point.y);
       const time = this.getTimeFromParam(param);
@@ -615,7 +703,11 @@ export class TradingChartComponent implements OnInit, OnDestroy {
         const dataPoints = [
           { time: p1.time1, value: p1.price1 },
           { time, value: price },
-        ].sort((a, b) => (a.time as number) - (b.time as number));
+        ].sort((a, b) => {
+          if(a.time > b.time) return 1;
+          if(a.time < b.time) return -1;
+          return 0;
+        });
         
         if (this.currentTrendline?.series) {
           this.currentTrendline.series.setData(dataPoints);
