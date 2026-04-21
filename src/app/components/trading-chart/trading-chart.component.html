@@ -271,9 +271,56 @@
     }
   </div>
 
-  <div class="flex h-full">
-    <div class="flex flex-col flex-auto chart-wrapper overflow-hidden">
-      <div #chartContainer class="chart-container flex-auto min-h-0 w-full"></div>
+  <div class="flex h-full w-full relative">
+    <!-- Trendline Editor Sidebar -->
+    <div
+      class="flex flex-col w-12 border-r border-gray-800 bg-gray-950 items-center gap-2 flex-none z-10 pt-16"
+    >
+      <p-button
+        variant="text"
+        size="small"
+        [severity]="activeDrawingTool() === 'cursor' ? 'primary' : 'secondary'"
+        (click)="setDrawingTool('cursor')"
+        pTooltip="Cursor"
+        tooltipPosition="right"
+      >
+        <span class="pi pi-arrows-alt text-lg"></span>
+      </p-button>
+      <p-button
+        variant="text"
+        size="small"
+        [severity]="activeDrawingTool() === 'trendline' ? 'primary' : 'secondary'"
+        (click)="setDrawingTool('trendline')"
+        pTooltip="Trend Line"
+        tooltipPosition="right"
+      >
+        <span class="pi pi-chart-line text-lg"></span>
+      </p-button>
+      <p-button
+        variant="text"
+        size="small"
+        [severity]="activeDrawingTool() === 'horizontal' ? 'primary' : 'secondary'"
+        (click)="setDrawingTool('horizontal')"
+        pTooltip="Horizontal Line"
+        tooltipPosition="right"
+      >
+        <span class="pi pi-minus text-lg font-bold"></span>
+      </p-button>
+      <p-button
+        variant="text"
+        size="small"
+        [severity]="activeDrawingTool() === 'eraser' ? 'primary' : 'secondary'"
+        (click)="setDrawingTool('eraser')"
+        pTooltip="Eraser"
+        tooltipPosition="right"
+      >
+        <span class="pi pi-eraser text-lg"></span>
+      </p-button>
+    </div>
+
+    <!-- Chart Wrapper -->
+    <div class="flex flex-col flex-auto chart-wrapper overflow-hidden pb-1">
+      <div #chartContainer class="chart-container flex-auto min-h-0 w-full relative z-0"></div>
 
       <div
         class="h-1 w-full bg-gray-800 cursor-row-resize hover:bg-gray-500 transition-colors flex-none select-none relative"

@@ -53,6 +53,14 @@ import {
 } from '../../core/models/chart.model';
 import { OrderSideEnum } from '../../core/models/trades.model';
 
+export interface DrawnItem {
+  id: string;
+  type: 'trendline' | 'horizontal';
+  series?: ISeriesApi<'Line'>;
+  priceLine?: IPriceLine;
+  data?: { time1: Time; price1: number; time2?: Time; price2?: number };
+}
+
 // Components
 import { TradingSymbolsPopoverComponent } from './trading-symbols-popover/trading-symbols-popover.component';
 
@@ -74,6 +82,7 @@ import { SkeletonModule } from 'primeng/skeleton';
 import { ScrollPanelModule } from 'primeng/scrollpanel';
 import { PopoverModule } from 'primeng/popover';
 import { DividerModule } from 'primeng/divider';
+import { TooltipModule } from 'primeng/tooltip';
 
 @Component({
   selector: 'app-trading-chart',
@@ -86,6 +95,7 @@ import { DividerModule } from 'primeng/divider';
     ScrollPanelModule,
     PopoverModule,
     DividerModule,
+    TooltipModule,
     TradingSymbolsPopoverComponent,
   ],
   templateUrl: './trading-chart.component.html',
@@ -126,6 +136,7 @@ export class TradingChartComponent implements OnInit, OnDestroy {
   private macdSignalSeries: ISeriesApi<'Line'> | null = null;
   private macdHistSeries: ISeriesApi<'Histogram'> | null = null;
   private rsiSeries: ISeriesApi<'Line'> | null = null;
+  private timelineExtensionSeries: ISeriesApi<'Line'> | null = null;
 
   // Position price lines
   private entryPriceLine: IPriceLine | null = null;
@@ -133,6 +144,11 @@ export class TradingChartComponent implements OnInit, OnDestroy {
   private stopLossLine: IPriceLine | null = null;
   // Open order price lines
   private openOrderLines: IPriceLine[] = [];
+
+  // Drawing state
+  private drawnItems: DrawnItem[] = [];
+  private isDrawingTrendline = false;
+  private currentTrendline: DrawnItem | null = null;
 
   private readonly initCandles = signal<CandleData[]>([]);
   readonly aggTrades = signal<AggTradeWsMessage[]>([]);
@@ -145,6 +161,8 @@ export class TradingChartComponent implements OnInit, OnDestroy {
   readonly currentPrice = signal(0);
   readonly previousPrice = signal(0);
   readonly volumeHeight = signal(100);
+
+  readonly activeDrawingTool = signal<'cursor' | 'trendline' | 'horizontal' | 'eraser'>('cursor');
 
   get selectedSymbol() {
     return this.chartService.selectedSymbol();
@@ -284,6 +302,10 @@ export class TradingChartComponent implements OnInit, OnDestroy {
     this.renderAllIndicators();
   }
 
+  setDrawingTool(tool: 'cursor' | 'trendline' | 'horizontal' | 'eraser'): void {
+    this.activeDrawingTool.set(tool);
+  }
+
   isIndicatorEnabled(type: IndicatorType): boolean {
     return this.indicators().find((i) => i.type === type)?.enabled ?? false;
   }
@@ -366,7 +388,13 @@ export class TradingChartComponent implements OnInit, OnDestroy {
       if (range) this.volumeChart.timeScale().setVisibleLogicalRange(range);
     });
 
+    this.chart.subscribeClick((param) => {
+      this.handleChartClick(param);
+    });
+
     this.chart.subscribeCrosshairMove((param) => {
+      this.handleChartMouseMove(param);
+
       if (!param.time || !param.seriesData) return;
 
       const d = param.seriesData.get(this.candleSeries) as any;
@@ -520,6 +548,212 @@ export class TradingChartComponent implements OnInit, OnDestroy {
     timeScale.scrollToRealTime();
   }
 
+  private handleChartClick(param: any): void {
+    const tool = this.activeDrawingTool();
+    if (tool === 'cursor') return;
+    if (!param.point) return;
+
+    const price = this.candleSeries.coordinateToPrice(param.point.y);
+    const time = this.getTimeFromParam(param);
+    if (price === null || time === undefined) return;
+
+    if (tool === 'horizontal') {
+      const priceLine = this.candleSeries.createPriceLine({
+        price,
+        color: '#3b82f6',
+        lineWidth: 1,
+        lineStyle: 0, // Solid
+        axisLabelVisible: true,
+      });
+
+      this.drawnItems.push({
+        id: Math.random().toString(36).substring(2, 11),
+        type: 'horizontal',
+        priceLine,
+        data: { time1: time, price1: price },
+      });
+      this.setDrawingTool('cursor');
+    } else if (tool === 'trendline') {
+      if (!this.isDrawingTrendline) {
+        this.isDrawingTrendline = true;
+        const series = this.chart.addSeries(LineSeries, {
+          color: '#3b82f6',
+          lineWidth: 1,
+          crosshairMarkerVisible: false,
+          lastValueVisible: false,
+          priceLineVisible: false,
+          autoscaleInfoProvider: () => null, // Prevent scale jumping and resize logic loops
+        });
+
+        this.currentTrendline = {
+          id: Math.random().toString(36).substring(2, 11),
+          type: 'trendline',
+          series,
+          data: { time1: time, price1: price },
+        };
+      } else {
+        if (this.currentTrendline && this.currentTrendline.data && this.currentTrendline.data.time1 !== time) {
+          this.currentTrendline.data.time2 = time;
+          this.currentTrendline.data.price2 = price;
+          this.drawnItems.push(this.currentTrendline);
+        } else if (this.currentTrendline?.series) {
+          this.chart.removeSeries(this.currentTrendline.series);
+        }
+        this.isDrawingTrendline = false;
+        this.currentTrendline = null;
+        this.setDrawingTool('cursor');
+      }
+    } else if (tool === 'eraser') {
+      this.eraseNearestItem(param);
+    }
+  }
+
+  private handleChartMouseMove(param: any): void {
+    if (this.activeDrawingTool() === 'trendline' && this.isDrawingTrendline && this.currentTrendline?.series) {
+      if (!param.point) return;
+      const price = this.candleSeries.coordinateToPrice(param.point.y);
+      const time = this.getTimeFromParam(param);
+      if (price === null || time === undefined) return;
+
+      const p1 = this.currentTrendline.data!;
+      if (p1.time1 !== time) {
+        // Prevent recursive 'setData' loop since setting data triggers another crosshairMove
+        if (p1.time2 === time && p1.price2 === price) return;
+        p1.time2 = time;
+        p1.price2 = price;
+
+        const dataPoints = [
+          { time: p1.time1, value: p1.price1 },
+          { time, value: price },
+        ].sort((a, b) => (a.time as number) - (b.time as number));
+        
+        requestAnimationFrame(() => {
+          if (this.currentTrendline?.series) {
+            this.currentTrendline.series.setData(dataPoints);
+          }
+        });
+      }
+    }
+  }
+
+  private eraseNearestItem(param: any): void {
+    const clickX = param.point.x;
+    const clickY = param.point.y;
+
+    let toDeleteIdx = -1;
+    let minDistance = Infinity;
+
+    for (let i = 0; i < this.drawnItems.length; i++) {
+      const item = this.drawnItems[i];
+      if (item.type === 'horizontal') {
+        const lineY = this.candleSeries.priceToCoordinate(item.data!.price1);
+        if (lineY !== null) {
+          const diff = Math.abs(lineY - clickY);
+          if (diff < minDistance) {
+            minDistance = diff;
+            toDeleteIdx = i;
+          }
+        }
+      } else if (item.type === 'trendline') {
+        const d = item.data!;
+        if (d.time2) {
+          const x1 = this.chart.timeScale().timeToCoordinate(d.time1);
+          const y1 = this.candleSeries.priceToCoordinate(d.price1);
+          const x2 = this.chart.timeScale().timeToCoordinate(d.time2);
+          const y2 = this.candleSeries.priceToCoordinate(d.price2!);
+
+          if (x1 !== null && y1 !== null && x2 !== null && y2 !== null) {
+            const dist = this.distanceToSegment(clickX, clickY, x1 as number, y1, x2 as number, y2);
+            if (dist < minDistance) {
+              minDistance = dist;
+              toDeleteIdx = i;
+            }
+          }
+        }
+      }
+    }
+
+    if (toDeleteIdx !== -1 && minDistance < 15) {
+      const item = this.drawnItems[toDeleteIdx];
+      if (item.type === 'horizontal' && item.priceLine) {
+        this.candleSeries.removePriceLine(item.priceLine);
+      } else if (item.type === 'trendline' && item.series) {
+        this.chart.removeSeries(item.series);
+      }
+      this.drawnItems.splice(toDeleteIdx, 1);
+    }
+  }
+
+  private getOffsetByTimeframe(tf: Timeframe): number {
+    const map: Record<string, number> = {
+      '1m': 60,
+      '3m': 3 * 60,
+      '5m': 5 * 60,
+      '15m': 15 * 60,
+      '30m': 30 * 60,
+      '1h': 60 * 60,
+      '2h': 2 * 60 * 60,
+      '4h': 4 * 60 * 60,
+      '6h': 6 * 60 * 60,
+      '8h': 8 * 60 * 60,
+      '12h': 12 * 60 * 60,
+      '1d': 24 * 60 * 60,
+      '3d': 3 * 24 * 60 * 60,
+      '1w': 7 * 24 * 60 * 60,
+      '1M': 30 * 24 * 60 * 60,
+    };
+    return map[tf] ?? 60;
+  }
+
+  private getTimeFromParam(param: any): Time | undefined {
+    if (param.time) return param.time as Time;
+    if (param.point) {
+      const logical = param.logical ?? this.chart.timeScale().coordinateToLogical(param.point.x);
+      if (logical !== null) {
+        const candles = this.initCandles();
+        if (candles.length > 0) {
+          const anchorLogical = candles.length - 1;
+          const anchorTime = Math.floor(candles[anchorLogical].time); 
+          
+          const step = this.getOffsetByTimeframe(this.selectedTimeframe);
+          const extrapolated = (anchorTime + Math.round(logical - anchorLogical) * step) as Time;
+          
+          return extrapolated;
+        }
+      }
+    }
+    return undefined;
+  }
+
+  private distanceToSegment(x: number, y: number, x1: number, y1: number, x2: number, y2: number): number {
+    const A = x - x1;
+    const B = y - y1;
+    const C = x2 - x1;
+    const D = y2 - y1;
+
+    const dot = A * C + B * D;
+    const lenSq = C * C + D * D;
+    let paramArg = -1;
+    if (lenSq !== 0) paramArg = dot / lenSq;
+
+    let xx, yy;
+
+    if (paramArg < 0) {
+      xx = x1;
+      yy = y1;
+    } else if (paramArg > 1) {
+      xx = x2;
+      yy = y2;
+    } else {
+      xx = x1 + paramArg * C;
+      yy = y1 + paramArg * D;
+    }
+
+    const dx = x - xx;
+    const dy = y - yy;
+    return Math.sqrt(dx * dx + dy * dy);
+  }
+
   private fetchKlines(tf: Timeframe): void {
     this.binanceRestService
       .getKlines(this.selectedSymbol, tf, 1500)
@@ -539,7 +773,7 @@ export class TradingChartComponent implements OnInit, OnDestroy {
     const theme = this.chartService.currentTheme;
 
     const history = this.initCandles().map((d) => ({
-      time: Math.floor(d.time) as Time, // Start time of the candle in seconds
+      time: Math.floor(d.time) as Time,
       open: d.open,
       high: d.high,
       low: d.low,
@@ -548,9 +782,32 @@ export class TradingChartComponent implements OnInit, OnDestroy {
 
     this.candleSeries.setData(history);
 
+    if (!this.timelineExtensionSeries) {
+      this.timelineExtensionSeries = this.chart.addSeries(LineSeries, {
+        color: 'transparent',
+        crosshairMarkerVisible: false,
+        lastValueVisible: false,
+        priceLineVisible: false,
+        autoscaleInfoProvider: () => null,
+      });
+    }
+
+    if (history.length > 0) {
+      const step = this.getOffsetByTimeframe(this.selectedTimeframe);
+      const lastTime = history[history.length - 1].time as number;
+      const oneMonthSeconds = 30 * 24 * 60 * 60; // Month Added
+      const barsToAdd = Math.min(Math.floor(oneMonthSeconds / step), 5000); 
+
+      const futureSpaces = [];
+      for (let i = 1; i <= barsToAdd; i++) {
+        futureSpaces.push({ time: (lastTime + i * step) as Time });
+      }
+      this.timelineExtensionSeries.setData(futureSpaces as any);
+    }
+
     this.volumeSeries.setData(
       this.initCandles().map((c) => ({
-        time: Math.floor(c.time) as Time, // Start time of the candle in seconds
+        time: Math.floor(c.time) as Time,
         value: c.volume,
         color: c.close >= c.open ? theme.up + '55' : theme.dn + '55',
       })),
