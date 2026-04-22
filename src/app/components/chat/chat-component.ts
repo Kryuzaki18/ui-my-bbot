@@ -52,7 +52,7 @@ export class ChatComponent {
   conversation: ChatResponse[] = [
     {
       sender: 'bot',
-      message: 'Hi! 👋 Thanks for reaching out. How can I help you with your trades today?',
+      message: 'Hi! 👋 Thanks for reaching out. How can I help you?',
       timestamp: new Date().toLocaleTimeString(),
       isError: false,
     },

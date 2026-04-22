@@ -22,7 +22,7 @@
     </div>
 
     <div class="flex items-stretch overflow-auto hidden min-[768px]:flex jetbrains-bold rounded">
-      <div class="flex items-center w-1/2 overflow-hidden py-2 gap-2 bg-green-950/50">
+      <div class="flex items-center w-1/2 overflow-hidden py-2 gap-2 bg-green-950/20">
         <span class="text-[10px] text-emerald-500 uppercase tracking-widest shrink-0 px-2"
           >Gainers</span
         >
@@ -37,8 +37,11 @@
                     <span class="text-[8px]">{{ $index < 10 ? $index + 1 : $index - 9 }}</span>
                   </div>
                   <span
-                    class="text-xs text-yellow-500 cursor-pointer"
+                    class="text-xs text-yellow-500 hover:text-yellow-400 cursor-pointer"
                     (click)="selectSymbol(item.symbol)"
+                    [pTooltip]="'Last Price: ' + item.lastPrice"
+                    tooltipPosition="bottom"
+                    tooltipStyleClass="text-xs"
                     >{{ item.symbol }}</span
                   >
                   <span class="self-end text-[9px] text-emerald-500"
@@ -59,7 +62,7 @@
         }
       </div>
 
-      <div class="flex items-center w-1/2 overflow-hidden py-2 gap-2 bg-red-950/50">
+      <div class="flex items-center w-1/2 overflow-hidden py-2 gap-2 bg-red-950/20">
         <span class="text-[10px] text-red-500 uppercase tracking-widest shrink-0 px-2">Losers</span>
 
         @if (!isLoading()) {
@@ -73,8 +76,11 @@
                     <span class="text-[8px]">{{ $index < 10 ? $index + 1 : $index - 9 }}</span>
                   </div>
                   <span
-                    class="text-xs text-yellow-500 cursor-pointer"
+                    class="text-xs text-yellow-500 hover:text-yellow-400 cursor-pointer"
                     (click)="selectSymbol(item.symbol)"
+                    [pTooltip]="'Last Price: ' + item.lastPrice"
+                    tooltipPosition="bottom"
+                    tooltipStyleClass="text-xs"
                     >{{ item.symbol }}</span
                   >
                   <span class="self-end text-[9px] text-red-500"

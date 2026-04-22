@@ -24,10 +24,11 @@ import { DialogService, DynamicDialogModule } from 'primeng/dynamicdialog';
 import { MenuModule } from 'primeng/menu';
 import { MenuItem } from 'primeng/api';
 import { SkeletonModule } from 'primeng/skeleton';
+import { TooltipModule } from 'primeng/tooltip';
 
 @Component({
   selector: 'app-header',
-  imports: [ButtonModule, DynamicDialogModule, DialogModule, MenuModule, SkeletonModule],
+  imports: [ButtonModule, DynamicDialogModule, DialogModule, MenuModule, SkeletonModule, TooltipModule],
   templateUrl: './header.component.html',
   styleUrl: './header.component.scss',
   standalone: true,
@@ -66,6 +67,7 @@ export class HeaderComponent implements OnInit {
                 return {
                   symbol: s.symbol,
                   priceChangePercent: s.priceChangePercent,
+                  lastPrice: s.lastPrice,
                 };
               })
               .slice(0, 10);
@@ -77,6 +79,7 @@ export class HeaderComponent implements OnInit {
                 return {
                   symbol: s.symbol,
                   priceChangePercent: s.priceChangePercent,
+                  lastPrice: s.lastPrice,
                 };
               })
               .slice(0, 10);
