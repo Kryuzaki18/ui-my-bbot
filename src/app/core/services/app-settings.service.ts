@@ -26,6 +26,8 @@ export class AppSettingsService implements OnDestroy {
   readonly isTestnet = this.localStorageService.getLocalStorageSignal<boolean>(STORAGE.IS_TESTNET, false);
   readonly env = computed(() => this.isTestnet() ? testnetEnv : prodEnv);
 
+  readonly appName = "TBbot";
+
   setTestnet(value: boolean): void {
     this.localStorageService.updateLocalStorageSignal(STORAGE.IS_TESTNET, value);
   }

@@ -1,10 +1,12 @@
-<header class="bg-gray-900 flex items-center justify-center sticky top-0 z-[100] w-full shadow-lg">
+<header
+  class="bg-gray-900 flex items-center justify-center sticky top-0 z-[100] w-full border-b border-gray-700"
+>
   <div
     class="flex items-center justify-between container max-w-[1440px] w-full mx-auto px-2 gap-2 md:px-0"
   >
-    <div class="flex items-center gap-2 px-2">
+    <div class="flex items-center gap-2 px-2 mr-5">
       <img src="/binance_logo.svg" alt="binance" width="20px" />
-      <h1 class="text-emerald-500 text-md font-bold">BBot.v1</h1>
+      <h1 class="text-emerald-500 text-md font-bold">{{ appSettingsService.appName }}</h1>
       <h1
         class="flex items-center gap-1 text-gray-800 text-[10px] font-bold px-1.5 py-0.5 bg-yellow-500 rounded"
       >
@@ -19,57 +21,78 @@
       </h1>
     </div>
 
-    <div class="flex items-stretch max-w-[900px] overflow-auto hidden min-[768px]:flex px-2 gap-2">
-      <div class="flex items-center w-1/2 overflow-hidden py-2 gap-2 bg-green-950/40">
-        <span
-          class="text-xs font-semibold text-emerald-500 uppercase tracking-widest whitespace-nowrap shrink-0 px-3"
+    <div class="flex items-stretch overflow-auto hidden min-[768px]:flex jetbrains-bold rounded">
+      <div class="flex items-center w-1/2 overflow-hidden py-2 gap-2 bg-green-950/50">
+        <span class="text-[10px] text-emerald-500 uppercase tracking-widest shrink-0 px-2"
           >Gainers</span
         >
-        <div class="overflow-hidden flex-1">
-          <div class="ticker-animate">
-            @for (item of gainers(); track $index) {
-              <span class="mx-3 flex gap-1 items-center">
-                <div class="flex">
-                  <span class="text-[9px] bg-green-600 px-1 rounded">{{ $index + 1 }}</span>
-                </div>
-                <span
-                  class="text-xs font-semibold text-emerald-500 hover:text-yellow-500 cursor-pointer"
-                  (click)="selectSymbol(item.symbol)"
-                  >{{ item.symbol }}</span
+        @if (!isLoading()) {
+          <div class="overflow-hidden flex-1">
+            <div class="ticker-animate">
+              @for (item of gainers(); track $index) {
+                <span class="mx-3 flex items-center gap-1">
+                  <div
+                    class="flex items-center justify-center leading-none h-3 w-3 bg-gray-700 rounded"
+                  >
+                    <span class="text-[8px]">{{ $index < 10 ? $index + 1 : $index - 9 }}</span>
+                  </div>
+                  <span
+                    class="text-xs text-yellow-500 cursor-pointer"
+                    (click)="selectSymbol(item.symbol)"
+                    >{{ item.symbol }}</span
+                  >
+                  <span class="self-end text-[9px] text-emerald-500"
+                    >+{{ item.priceChangePercent }}%</span
+                  ></span
                 >
-                <span class="text-[11px] text-emerald-400 font-medium"
-                  >+{{ item.priceChangePercent }}%</span
-                ></span
-              >
-            }
+              }
+            </div>
           </div>
-        </div>
+        } @else {
+          <div class="overflow-hidden flex-1">
+            <div class="flex items-center justify-between gap-2 pr-2">
+              @for (item of [1, 2, 3, 4, 5]; track $index) {
+                <p-skeleton size="small" class="h-4 w-[120px]"></p-skeleton>
+              }
+            </div>
+          </div>
+        }
       </div>
 
-      <div class="flex items-center w-1/2 overflow-hidden py-2 gap-2 bg-red-950/40">
-        <span
-          class="text-xs font-semibold text-red-500 uppercase tracking-widest whitespace-nowrap shrink-0 px-3"
-          >Losers</span
-        >
-        <div class="overflow-hidden flex-1">
-          <div class="ticker-animate">
-            @for (item of losers(); track $index) {
-              <span class="mx-3 flex gap-1 items-center">
-                <div class="flex">
-                  <span class="text-[9px] bg-red-600 px-1 rounded">{{ $index + 1 }}</span>
-                </div>
-                <span
-                  class="text-xs font-semibold text-red-500 hover:text-yellow-500 cursor-pointer"
-                  (click)="selectSymbol(item.symbol)"
-                  >{{ item.symbol }}</span
+      <div class="flex items-center w-1/2 overflow-hidden py-2 gap-2 bg-red-950/50">
+        <span class="text-[10px] text-red-500 uppercase tracking-widest shrink-0 px-2">Losers</span>
+
+        @if (!isLoading()) {
+          <div class="overflow-hidden flex-1">
+            <div class="ticker-animate">
+              @for (item of losers(); track $index) {
+                <span class="mx-3 flex items-center gap-1">
+                  <div
+                    class="flex items-center justify-center leading-none h-3 w-3 bg-gray-700 rounded"
+                  >
+                    <span class="text-[8px]">{{ $index < 10 ? $index + 1 : $index - 9 }}</span>
+                  </div>
+                  <span
+                    class="text-xs text-yellow-500 cursor-pointer"
+                    (click)="selectSymbol(item.symbol)"
+                    >{{ item.symbol }}</span
+                  >
+                  <span class="self-end text-[9px] text-red-500"
+                    >{{ item.priceChangePercent }}%</span
+                  ></span
                 >
-                <span class="text-[11px] text-red-400 font-medium"
-                  >{{ item.priceChangePercent }}%</span
-                ></span
-              >
-            }
+              }
+            </div>
           </div>
-        </div>
+        } @else {
+          <div class="overflow-hidden flex-1">
+            <div class="flex items-center justify-between gap-2 pr-2">
+              @for (item of [1, 2, 3, 4, 5]; track $index) {
+                <p-skeleton size="small" class="h-4 w-[120px]"></p-skeleton>
+              }
+            </div>
+          </div>
+        }
       </div>
     </div>
 

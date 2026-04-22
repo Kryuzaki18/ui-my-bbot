@@ -8,14 +8,22 @@
       <p-iconfield>
         <p-inputicon class="pi pi-search text-gray-500" />
         <input
+          #searchSymbol
           pInputText
           type="text"
           pSize="small"
           class="w-full bg-gray-900 border-gray-700 hover:border-gray-600 focus:border-blue-500 transition-colors placeholder:text-gray-600"
           fluid
-          placeholder="Search pair eg. BTC"
+          placeholder="Search Symbol"
+          [maxLength]="30"
           (input)="dtSymbols.filterGlobal($any($event.target).value, 'contains')"
         />
+        @if (searchSymbol.value) {
+          <p-inputicon
+            class="pi pi-times hover:cursor-pointer"
+            (click)="searchSymbol.value = ''; dtSymbols.filterGlobal('', 'contains')"
+          />
+        }
       </p-iconfield>
     </div>
 
@@ -161,7 +169,7 @@
             <td colspan="5" class="py-12">
               <div class="flex flex-col items-center justify-center text-gray-500 gap-3 py-2">
                 <i class="pi pi-box text-3xl opacity-50"></i>
-                <span class="text-sm">No market pairs found matching your criteria.</span>
+                <span class="text-sm">No market pairs found.</span>
               </div>
             </td>
           </tr>

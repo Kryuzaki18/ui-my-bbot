@@ -7,14 +7,6 @@ import { SigninComponent } from '../../components/signin/signin.component';
 import { AccountBalanceComponent } from '../../components/account-balance/account-balance.component';
 import { TradeFormComponent } from '../../components/trade-form/trades-form.component';
 
-//PrimeNG Modules
-import { ButtonModule } from 'primeng/button';
-import { DialogModule } from 'primeng/dialog';
-import { AuthService } from '../../core/services/auth.service';
-import { DialogService, DynamicDialogModule } from 'primeng/dynamicdialog';
-import { MenuModule } from 'primeng/menu';
-import { MenuItem } from 'primeng/api';
-
 // Constants
 import { STORAGE } from '../../core/constants/binance.constant';
 
@@ -24,9 +16,18 @@ import { ChartService } from '../../core/services/chart/chart.service';
 import { BinanceRestService } from '../../core/services/binance-rest.service';
 import { LocalStorageService } from '../../core/services/local-storage.service';
 
+//PrimeNG Modules
+import { ButtonModule } from 'primeng/button';
+import { DialogModule } from 'primeng/dialog';
+import { AuthService } from '../../core/services/auth.service';
+import { DialogService, DynamicDialogModule } from 'primeng/dynamicdialog';
+import { MenuModule } from 'primeng/menu';
+import { MenuItem } from 'primeng/api';
+import { SkeletonModule } from 'primeng/skeleton';
+
 @Component({
   selector: 'app-header',
-  imports: [ButtonModule, DynamicDialogModule, DialogModule, MenuModule],
+  imports: [ButtonModule, DynamicDialogModule, DialogModule, MenuModule, SkeletonModule],
   templateUrl: './header.component.html',
   styleUrl: './header.component.scss',
   standalone: true,
@@ -42,9 +43,12 @@ export class HeaderComponent implements OnInit {
   private readonly dialogService = inject(DialogService);
   private readonly destroyRef = inject(DestroyRef);
 
+  appName = this.appSettingsService.appName;
+
   items: MenuItem[] | undefined;
   gainers = signal<any[]>([]);
   losers = signal<any[]>([]);
+  isLoading = signal<boolean>(true);
 
   ngOnInit(): void {
     this.setItems();
@@ -76,11 +80,19 @@ export class HeaderComponent implements OnInit {
                 };
               })
               .slice(0, 10);
-            this.gainers.set(gainers);
-            this.losers.set(losers);
+            this.gainers.set([...gainers, ...gainers]);
+            this.losers.set([...losers, ...losers]);
           }
+
+          setTimeout(() => {
+            this.isLoading.set(false);
+          }, 1000);
         },
-        error: (err) => {},
+        error: (err) => {
+          setTimeout(() => {
+            this.isLoading.set(false);
+          }, 1000);
+        },
       });
   }
 
