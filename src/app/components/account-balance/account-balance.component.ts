@@ -32,6 +32,7 @@ export class AccountBalanceComponent implements OnInit {
   readonly dynamicDialogConfig = inject(DynamicDialogConfig, { optional: true });
 
   userInfo = signal<UserInfo | null>(null);
+  isLoading = signal<boolean>(true);
 
   ngOnInit(): void {
     this.getUserInfo();
@@ -39,12 +40,14 @@ export class AccountBalanceComponent implements OnInit {
     this.userService.totalLivePnl$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
       next: (pnl) => {
         const absPnl = Math.abs(pnl);
+
         this.userInfo.update((prev) => ({
           ...prev,
-          availableBalance:
-            pnl > 0
-              ? (prev?.totalWalletBalance || 0) + absPnl
-              : (prev?.totalWalletBalance || 0) - absPnl,
+          availableBalance: prev?.totalWalletBalance
+            ? pnl > 0
+              ? +prev.totalWalletBalance + absPnl
+              : +prev.totalWalletBalance - absPnl
+            : 0,
         }));
       },
     });
@@ -65,15 +68,19 @@ export class AccountBalanceComponent implements OnInit {
   }
 
   getUserInfo(): void {
+    this.isLoading.set(true);
     this.userService
       .getUserInfo()
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
         next: (res) => {
           this.userInfo.set(res);
+          console.log(res);
+          this.isLoading.set(false);
         },
         error: (err) => {
           console.error(err);
+          this.isLoading.set(false);
         },
       });
   }

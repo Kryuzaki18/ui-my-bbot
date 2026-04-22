@@ -13,17 +13,13 @@
       <p-tab value="0">
         <div class="flex items-center text-xs">
           <span> Positions </span>
-          @if (enrichedPositions().length > 0) {
-            <span> ({{ enrichedPositions().length }}) </span>
-          }
+          <span> ({{ enrichedPositions().length }}) </span>
         </div>
       </p-tab>
       <p-tab value="1">
         <div class="flex items-center text-xs">
           <span> Open Orders </span>
-          @if (openOrders().length > 0 || conditionalOrders().length > 0) {
-            <span> ({{ openOrders().length + conditionalOrders().length }}) </span>
-          }
+          <span> ({{ openOrders().length + conditionalOrders().length }}) </span>
         </div>
       </p-tab>
     </p-tablist>
