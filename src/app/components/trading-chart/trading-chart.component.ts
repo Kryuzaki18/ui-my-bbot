@@ -311,6 +311,15 @@ export class TradingChartComponent implements OnInit, OnDestroy {
     return this.indicators().find((i) => i.type === type)?.color ?? '#fff';
   }
 
+  saveScreenshot(): void {
+    if (!this.chart) return;
+    const canvas = this.chart.takeScreenshot();
+    const link = document.createElement('a');
+    link.download = `${this.selectedSymbol}-chart.png`;
+    link.href = canvas.toDataURL('image/png');
+    link.click();
+  }
+
   private initCharts(): void {
     const theme = this.chartService.currentTheme;
 

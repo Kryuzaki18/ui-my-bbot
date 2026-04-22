@@ -75,7 +75,6 @@ export class AccountBalanceComponent implements OnInit {
       .subscribe({
         next: (res) => {
           this.userInfo.set(res);
-          console.log(res);
           this.isLoading.set(false);
         },
         error: (err) => {
