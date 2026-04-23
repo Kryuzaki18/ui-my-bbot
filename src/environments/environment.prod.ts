@@ -2,22 +2,22 @@
 const binanceWSBaseUrl = 'wss://fstream.binance.com/ws';
 const binanceTestnetWSBaseUrl = 'wss://fstream.binancefuture.com/ws';
 
-export const environment = {
+export const prodEnv = {
   binanceFutureRestBaseUrl: 'https://fapi.binance.com',
   binanceWSBaseUrl: binanceWSBaseUrl,
   binancePublicWSBaseUrl: `${binanceWSBaseUrl}/public`, // Public (high-frequency public market data)
   binanceMarketWSBaseUrl: `${binanceWSBaseUrl}/market`, // Market (regular market data)
   binancePrivateWSBaseUrl: `${binanceWSBaseUrl}/private`, // Private (user data)
-  apiTradingBotUrl: 'http://localhost:3000',
+  apiBaseUrl: 'http://localhost:3000',
 };
 
-export const testnetEnvironment = {
+export const testnetEnv = {
   binanceFutureRestBaseUrl: 'https://demo-fapi.binance.com',
   binanceWSBaseUrl: binanceTestnetWSBaseUrl,
   binancePublicWSBaseUrl: `${binanceTestnetWSBaseUrl}/public`,
   binanceMarketWSBaseUrl: `${binanceTestnetWSBaseUrl}/market`,
   binancePrivateWSBaseUrl: `${binanceTestnetWSBaseUrl}/private`,
-  apiTradingBotUrl: 'http://localhost:3000',
+  apiBaseUrl: 'http://localhost:3000',
 };
 
 export const BINANCE_PUBLIC_API_ROUTES = {

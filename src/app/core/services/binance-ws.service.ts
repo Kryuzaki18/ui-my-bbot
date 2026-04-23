@@ -128,10 +128,13 @@ export class BinanceWsService {
 
     this.statusSubject.next({ key, status: 'connecting' });
 
-    const ws = new WebSocket(`${this.binanceMarketWSBaseUrl}/${stream}`);
+    const url = `${this.binanceMarketWSBaseUrl}/${stream}`;
+    // console.log(`[WS] Connecting [${key}] → ${url}`);
+    const ws = new WebSocket(url);
     this.marketWSconnections.set(key, ws);
 
     ws.onopen = () => {
+      // console.log(`[WS] Connected [${key}]`);
       this.retryAttempts.set(key, 0);
       this.statusSubject.next({ key, status: 'live' });
     };
@@ -141,15 +144,18 @@ export class BinanceWsService {
         const data = JSON.parse(event.data);
         onMessage(data);
       } catch (e) {
-        // console.error('[BinanceWs] Parse error:', e);
+        console.error('[WS] Parse error:', e);
       }
     };
 
-    ws.onerror = () => {
+    ws.onerror = (event) => {
+      console.error(`[WS] Error [${key}]`, event);
       this.statusSubject.next({ key, status: 'error' });
     };
 
-    ws.onclose = () => {
+    ws.onclose = (event) => {
+      console.warn(`[WS] Closed [${key}] code=${event.code} reason="${event.reason}"`);
+      this.marketWSconnections.delete(key);
       this.statusSubject.next({ key, status: 'closed' });
       this.scheduleReconnect(key, stream, onMessage);
     };

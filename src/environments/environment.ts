@@ -1,22 +1,22 @@
 //https://developers.binance.com/docs/derivatives/usds-margined-futures/websocket-market-streams/Important-WebSocket-Change-Notice
-const binanceWSBaseUrl = 'wss://fstream.binance.com/ws';
-const binanceTestnetWSBaseUrl = 'wss://fstream.binancefuture.com/ws';
+const binanceWSBaseUrl = 'wss://fstream.binance.com';
+const binanceTestnetWSBaseUrl = 'wss://fstream.binancefuture.com';
 
 export const prodEnv = {
   binanceFutureRestBaseUrl: 'https://fapi.binance.com',
-  binanceWSBaseUrl: binanceWSBaseUrl,
-  binancePublicWSBaseUrl: `${binanceWSBaseUrl}/public`, // Public (high-frequency public market data)
-  binanceMarketWSBaseUrl: `${binanceWSBaseUrl}/market`, // Market (regular market data)
-  binancePrivateWSBaseUrl: `${binanceWSBaseUrl}/private`, // Private (user data)
+  binanceWSBaseUrl: `${binanceWSBaseUrl}/ws`,
+  binancePublicWSBaseUrl: `${binanceWSBaseUrl}/public/ws`, // Public (high-frequency public market data)
+  binanceMarketWSBaseUrl: `${binanceWSBaseUrl}/market/ws`, // Market (regular market data)
+  binancePrivateWSBaseUrl: `${binanceWSBaseUrl}/private/ws`, // Private (user data)
   apiBaseUrl: 'http://localhost:3000',
 };
 
 export const testnetEnv = {
   binanceFutureRestBaseUrl: 'https://demo-fapi.binance.com',
-  binanceWSBaseUrl: binanceTestnetWSBaseUrl,
-  binancePublicWSBaseUrl: `${binanceTestnetWSBaseUrl}/public`,
-  binanceMarketWSBaseUrl: `${binanceTestnetWSBaseUrl}/market`,
-  binancePrivateWSBaseUrl: `${binanceTestnetWSBaseUrl}/private`,
+  binanceWSBaseUrl: `${binanceTestnetWSBaseUrl}/ws`,
+  binancePublicWSBaseUrl: `${binanceTestnetWSBaseUrl}/public/ws`,
+  binanceMarketWSBaseUrl: `${binanceTestnetWSBaseUrl}/market/ws`,
+  binancePrivateWSBaseUrl: `${binanceTestnetWSBaseUrl}/private/ws`,
   apiBaseUrl: 'http://localhost:3000',
 };
 
