@@ -47,8 +47,8 @@ export class ChatComponent {
 
   chatOpen: boolean = false;
   isMaximized: boolean = false;
-  isLoading: boolean = false;
-  isAnalyzing: boolean = false;
+  isLoading = signal(false);
+  isAnalyzing = signal(false);
   message: string = '';
   conversation: ChatResponse[] = [
     {
@@ -60,7 +60,7 @@ export class ChatComponent {
   ];
 
   ngOnInit(): void {
-    this.sampleConversation();
+    // this.sampleConversation();
   }
 
   sampleConversation(): void {
@@ -210,7 +210,7 @@ export class ChatComponent {
   }
 
   analyze(): void {
-    this.isAnalyzing = true;
+    this.isAnalyzing.set(true);
 
     this.aiService
       .analyzeMarket(this.selectedSymbol, this.selectedTimeframe)
@@ -235,8 +235,8 @@ export class ChatComponent {
           }
 
           this.message = '';
-          this.isLoading = false;
-          this.isAnalyzing = false;
+          this.isLoading.set(false);
+          this.isAnalyzing.set(false);
           this.scrollToBottom();
         },
 
@@ -249,8 +249,8 @@ export class ChatComponent {
             isError: true,
           });
           console.error(err);
-          this.isLoading = false;
-          this.isAnalyzing = false;
+          this.isLoading.set(false);
+          this.isAnalyzing.set(false);
           this.scrollToBottom();
         },
       });
@@ -258,7 +258,7 @@ export class ChatComponent {
 
   chatBot(): void {
     if (!this.message || this.message.length < 3) return;
-    this.isLoading = true;
+    this.isLoading.set(true);
 
     this.conversation.push({
       sender: 'user',
@@ -306,18 +306,20 @@ export class ChatComponent {
 
   reset(): void {
     this.message = '';
-    this.isLoading = false;
-    this.isAnalyzing = false;
+    this.isLoading.set(false);
+    this.isAnalyzing.set(false);
     this.scrollToBottom();
   }
 
   scrollToBottom(): void {
-    const container = this.chatScrollPanel?.contentViewChild?.nativeElement;
-    if (container) {
-      container.scrollTo({
-        top: container.scrollHeight,
-        behavior: 'smooth',
-      });
-    }
+    setTimeout(() => {
+      const container = this.chatScrollPanel?.contentViewChild?.nativeElement;
+      if (container) {
+        container.scrollTo({
+          top: container.scrollHeight,
+          behavior: 'smooth',
+        });
+      }
+    }, 0);
   }
 }
