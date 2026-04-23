@@ -1,0 +1,117 @@
+{{
+    (1776533967245 | date: 'dd/MM/yyyy HH:mm:ss') ===
+    (1776533967250 | date: 'dd/MM/yyyy HH:mm:ss')
+}}
+
+if pending order not hit with tp sl, then it will be save in db.
+
+OTOCO_ORDER_UPDATE event type -  ------------------------------------
+
+{
+    "e": "OTOCO_ORDER_UPDATE",
+    "E": 1776533967251,
+    "T": 1776533967250,
+    "su": {
+        "c": "lhGmcIZOvP2dTfuTtQOxRu",
+        "s": "SOLUSDT",
+        "si": "592105678",
+        "slp": "",
+        "sltp": "93",
+        "st": "OTOCO",
+        "tpp": "",
+        "tptp": "88"
+    }
+}
+
+
+Symbol Specific -------------------------------------
+
+[
+    {
+        "orderId": 209689595211,
+        "symbol": "SOLUSDT",
+        "status": "NEW",
+        "clientOrderId": "ios_st_805tL7FbC9ThpDL",
+        "price": "92",
+        "avgPrice": "0",
+        "origQty": "10.86",
+        "executedQty": "0",
+        "cumQuote": "0.000000",
+        "timeInForce": "GTC",
+        "type": "LIMIT",
+        "reduceOnly": false,
+        "closePosition": false,
+        "side": "SELL",
+        "positionSide": "BOTH",
+        "stopPrice": "0",
+        "workingType": "CONTRACT_PRICE",
+        "priceProtect": false,
+        "origType": "LIMIT",
+        "priceMatch": "NONE",
+        "selfTradePreventionMode": "EXPIRE_MAKER",
+        "goodTillDate": 0,
+        "time": 1776533967245,
+        "strategyType": "OTOCO",
+        "updateTime": 1776533967245
+    }
+]
+
+
+
+ALLL -------------------------------------
+[
+    {
+        "orderId": 49052333265,
+        "symbol": "LINKUSDT",
+        "status": "NEW",
+        "clientOrderId": "CwtFENZl7RiAjty9YqOFXF",
+        "price": "9.200",
+        "avgPrice": "0",
+        "origQty": "40.76",
+        "executedQty": "0",
+        "cumQuote": "0.00000",
+        "timeInForce": "GTC",
+        "type": "LIMIT",
+        "reduceOnly": false,
+        "closePosition": false,
+        "side": "BUY",
+        "positionSide": "BOTH",
+        "stopPrice": "0",
+        "workingType": "CONTRACT_PRICE",
+        "priceProtect": false,
+        "origType": "LIMIT",
+        "priceMatch": "NONE",
+        "selfTradePreventionMode": "EXPIRE_MAKER",
+        "goodTillDate": 0,
+        "time": 1776534424882,
+        "strategyType": "",
+        "updateTime": 1776534424882
+    },
+    {
+        "orderId": 209689595211,
+        "symbol": "SOLUSDT",
+        "status": "NEW",
+        "clientOrderId": "ios_st_805tL7FbC9ThpDL",
+        "price": "92",
+        "avgPrice": "0",
+        "origQty": "10.86",
+        "executedQty": "0",
+        "cumQuote": "0.000000",
+        "timeInForce": "GTC",
+        "type": "LIMIT",
+        "reduceOnly": false,
+        "closePosition": false,
+        "side": "SELL",
+        "positionSide": "BOTH",
+        "stopPrice": "0",
+        "workingType": "CONTRACT_PRICE",
+        "priceProtect": false,
+        "origType": "LIMIT",
+        "priceMatch": "NONE",
+        "selfTradePreventionMode": "EXPIRE_MAKER",
+        "goodTillDate": 0,
+        "time": 1776533967245,
+        "strategyType": "OTOCO",
+        "updateTime": 1776533967245
+    }
+]

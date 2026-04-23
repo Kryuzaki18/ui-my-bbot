@@ -46,6 +46,7 @@ export class ChatComponent {
   }
 
   chatOpen: boolean = false;
+  isMaximized: boolean = false;
   isLoading: boolean = false;
   isAnalyzing: boolean = false;
   message: string = '';
@@ -202,6 +203,10 @@ export class ChatComponent {
   openChat(): void {
     this.chatOpen = !this.chatOpen;
     this.scrollToBottom();
+  }
+
+  toggleMaximize(): void {
+    this.isMaximized = !this.isMaximized;
   }
 
   analyze(): void {
