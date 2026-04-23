@@ -60,7 +60,7 @@ export class ChatComponent {
   ];
 
   ngOnInit(): void {
-    // this.sampleConversation();
+    this.sampleConversation();
   }
 
   sampleConversation(): void {
