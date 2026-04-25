@@ -10,14 +10,29 @@
     'border-b': dynamicDialogConfig?.data?.isDialog,
   }"
 >
-  <div class="text-center text-xs jetbrains-medium">Account</div>
+  <div class="flex justify-center items-center gap-1">
+    <span class="text-xs jetbrains-medium">Account</span>
+    <span
+      class="pi !text-xs"
+      (click)="isHideAssets.set(!isHideAssets())"
+      [ngClass]="{
+        'pi-eye': !isHideAssets(),
+        'pi-eye-slash': isHideAssets(),
+        'cursor-pointer': !dynamicDialogConfig?.data?.isDialog,
+      }"
+    ></span>
+  </div>
   <div class="flex justify-between jetbrains-thin gap-2">
     <div class="w-1/2 flex flex-col gap-2">
       <div class="flex flex-col">
         <div class="text-[10px] text-gray-500">Margin Balance:</div>
         <div class="text-xs text-emerald-400">
           @if (userInfo()?.availableBalance && !isLoading()) {
-            {{ userInfo()?.availableBalance | currency: 'USD' : 'symbol' : '1.0-2' }}
+            {{
+              isHideAssets()
+                ? '*******'
+                : (userInfo()?.availableBalance | currency: 'USD' : 'symbol' : '1.0-2')
+            }}
           } @else {
             <p-skeleton></p-skeleton>
           }
@@ -32,10 +47,16 @@
             <span
               [ngClass]="{ 'text-red-400': totalLivePnl < 0, 'text-emerald-400': totalLivePnl > 0 }"
             >
-              {{ totalLivePnl | currency: 'USD' : 'symbol' : '1.0-2' }}
+              {{
+                isHideAssets() ? '*******' : (totalLivePnl | currency: 'USD' : 'symbol' : '1.0-2')
+              }}
             </span>
           } @else {
-            {{ userInfo()?.totalUnrealizedProfit | currency: 'USD' : 'symbol' : '1.0-2' }}
+            {{
+              isHideAssets()
+                ? '*******'
+                : (userInfo()?.totalUnrealizedProfit | currency: 'USD' : 'symbol' : '1.0-2')
+            }}
           }
         </div>
       </div>
@@ -45,7 +66,11 @@
       <div class="text-[10px] text-gray-500">Balance:</div>
       <div class="text-xs text-emerald-400 w-full text-right">
         @if (userInfo()?.totalWalletBalance && !isLoading()) {
-          {{ userInfo()?.totalWalletBalance | currency: 'USD' : 'symbol' : '1.0-2' }}
+          {{
+            isHideAssets()
+              ? '*******'
+              : (userInfo()?.totalWalletBalance | currency: 'USD' : 'symbol' : '1.0-2')
+          }}
         } @else {
           <p-skeleton></p-skeleton>
         }

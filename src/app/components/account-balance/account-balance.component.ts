@@ -33,6 +33,7 @@ export class AccountBalanceComponent implements OnInit {
 
   userInfo = signal<UserInfo | null>(null);
   isLoading = signal<boolean>(true);
+  isHideAssets = signal<boolean>(false);
 
   ngOnInit(): void {
     this.getUserInfo();
