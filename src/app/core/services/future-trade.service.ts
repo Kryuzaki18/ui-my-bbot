@@ -7,6 +7,7 @@ import { API_ROUTES } from '../../../environments/environment';
 
 // Services
 import { AppSettingsService } from './app-settings.service';
+import { TradeBotPayload, TradeBotResponse } from '../models/trades.model';
 
 @Injectable({
   providedIn: 'root',
@@ -33,6 +34,10 @@ export class FutureTradeService {
 
   placeOrder(body: any): Observable<any> {
     return this.http.post(`${this.apiBaseUrl}${API_ROUTES.futures.order}`, body);
+  }
+
+  activateBot(body: TradeBotPayload): Observable<TradeBotResponse> {
+    return this.http.post<TradeBotResponse>(`${this.apiBaseUrl}${API_ROUTES.futures.tradeBot}`, body);
   }
 
   takeProfit(body: any): Observable<any> {

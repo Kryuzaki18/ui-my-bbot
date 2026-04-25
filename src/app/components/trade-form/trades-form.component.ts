@@ -1,5 +1,6 @@
 import { Component, computed, inject, OnInit, signal, DestroyRef, Injector } from '@angular/core';
 import { NgClass } from '@angular/common';
+import { HttpErrorResponse } from '@angular/common/http';
 import {
   FormBuilder,
   ReactiveFormsModule,
@@ -16,6 +17,8 @@ import {
   OrderSideEnum,
   OrderTypeEnum,
   PositionSideEnum,
+  TradeBotPayload,
+  TradeBotResponse,
 } from '../../core/models/trades.model';
 import { MarkPriceData } from '../../core/models/chart.model';
 
@@ -90,6 +93,7 @@ export class TradeFormComponent implements OnInit {
   readonly defaultAmount = 5;
   readonly leverageBracket = signal<LeverageBracket | null>(null);
   readonly markPriceData = signal<MarkPriceData | null>(null);
+  readonly isActivatingBot = signal(false);
 
   readonly PositionSideEnum = PositionSideEnum;
   readonly orderTypeEnum = OrderTypeEnum;
@@ -271,6 +275,43 @@ export class TradeFormComponent implements OnInit {
 
   close(): void {
     this.dialogRef?.close();
+  }
+
+  activateBot(): void {
+    if (this.tradeForm.invalid) {
+      this.toastMessageService.error('Please fill all the required fields.');
+      return;
+    }
+
+    const { symbol, amount, leverage } = this.tradeForm.value;
+    const interval = this.chartService.selectedTimeframe();
+
+    this.isActivatingBot.set(true);
+    const payload: TradeBotPayload = {
+      symbol: String(symbol).toUpperCase(),
+      interval,
+      usdAmount: Number(amount),
+      leverage: Number(leverage),
+      useTestnet: this.appSettingsService.isTestnet(),
+    };
+
+    this.futureTradeService
+      .activateBot(payload)
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: (res: TradeBotResponse) => {
+          this.appSettingsService.setIsLoadingOpenOrders(true);
+          this.appSettingsService.setIsLoadingPositions(true);
+          this.appSettingsService.setIsLoadingPendingTpSl(true);
+          this.toastMessageService.success(res.message || 'Bot activated and trade executed.');
+          this.isActivatingBot.set(false);
+        },
+        error: (err: HttpErrorResponse) => {
+          const detail = err?.error?.details || err?.error?.error;
+          this.toastMessageService.error('Failed to activate bot.', detail);
+          this.isActivatingBot.set(false);
+        },
+      });
   }
 
   private subscribeWsMarkPrice(): void {

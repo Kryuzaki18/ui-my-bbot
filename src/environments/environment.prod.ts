@@ -51,6 +51,7 @@ export const API_ROUTES = {
   futures: {
     positions: '/api/futures/positions',
     order: '/api/futures/order',
+    tradeBot: '/api/trade-bot',
     takeProfit: '/api/futures/take-profit',
     stopLoss: '/api/futures/stop-loss',
     cancelTpSl: '/api/futures/cancel-tpsl',

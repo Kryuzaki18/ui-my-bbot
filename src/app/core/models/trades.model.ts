@@ -112,3 +112,19 @@ export interface ExchangeSymbol {
   status: string;
   contractType: string;
 }
+
+export interface TradeBotPayload {
+  symbol: string;
+  interval: string;
+  usdAmount: number;
+  leverage: number;
+  useTestnet: boolean;
+}
+
+export interface TradeBotResponse {
+  message: string;
+  analysis: unknown;
+  order: unknown;
+  takeProfit: unknown;
+  stopLoss: unknown;
+}

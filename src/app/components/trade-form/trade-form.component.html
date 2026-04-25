@@ -152,22 +152,33 @@
       }
     </div>
 
-    <div class="flex items-center gap-2 w-full jetbrains-medium">
+    <div class="flex items-center flex-col gap-2 w-full jetbrains-medium">
+      <div class="flex items-center gap-2 w-full">
+        <button
+          (click)="placeOrder(orderSideEnum.BUY)"
+          type="button"
+          class="w-1/2 bg-green-700 text-white cursor-pointer rounded text-xs py-2 hover:bg-green-600 disabled:bg-green-950 disabled:cursor-not-allowed"
+          [disabled]="tradeForm.invalid"
+        >
+          Buy/Long
+        </button>
+        <button
+          (click)="placeOrder(orderSideEnum.SELL)"
+          type="button"
+          class="w-1/2 bg-red-700 text-white cursor-pointer rounded text-xs py-2 hover:bg-red-600 disabled:bg-red-950 disabled:cursor-not-allowed"
+          [disabled]="tradeForm.invalid"
+        >
+          Sell/Short
+        </button>
+      </div>
+
       <button
-        (click)="placeOrder(orderSideEnum.BUY)"
+        (click)="activateBot()"
         type="button"
-        class="w-1/2 bg-green-700 text-white cursor-pointer rounded text-xs py-2 hover:bg-green-600 disabled:bg-green-950 disabled:cursor-not-allowed"
-        [disabled]="tradeForm.invalid"
+        class="w-full bg-yellow-700 text-white cursor-pointer rounded text-xs py-2 hover:bg-yellow-600 disabled:bg-yellow-950 disabled:cursor-not-allowed"
+        [disabled]="tradeForm.invalid || isActivatingBot()"
       >
-        Buy/Long
-      </button>
-      <button
-        (click)="placeOrder(orderSideEnum.SELL)"
-        type="button"
-        class="w-1/2 bg-red-700 text-white cursor-pointer rounded text-xs py-2 hover:bg-red-600 disabled:bg-red-950 disabled:cursor-not-allowed"
-        [disabled]="tradeForm.invalid"
-      >
-        Sell/Short
+        {{ isActivatingBot() ? 'Activating Bot...' : 'Activate Bot' }}
       </button>
     </div>
   </div>
