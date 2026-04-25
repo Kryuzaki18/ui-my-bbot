@@ -103,7 +103,7 @@
     </div>
 
     @if (authService.isLoggedIn()) {
-      <div class="px-2">
+      <div class="px-2 relative">
         <p-button
           icon="pi pi-user"
           [rounded]="true"
@@ -112,7 +112,13 @@
           (onClick)="menuProfile.toggle($event)"
         ></p-button>
 
-        <p-menu #menuProfile [model]="items" [popup]="true" styleClass="text-xs" />
+        <p-menu
+          #menuProfile
+          [model]="items"
+          [popup]="true"
+          appendTo="self"
+          styleClass="text-xs !left-auto !right-0 !top-8"
+        />
       </div>
     } @else {
       <div class="flex items-center px-2">

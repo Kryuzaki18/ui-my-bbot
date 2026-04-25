@@ -1,4 +1,4 @@
-import { Component, DestroyRef, inject, OnInit, signal } from '@angular/core';
+import { Component, DestroyRef, HostListener, inject, OnInit, signal } from '@angular/core';
 import { Router } from '@angular/router';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
@@ -102,30 +102,41 @@ export class HeaderComponent implements OnInit {
       });
   }
 
+  @HostListener('window:resize')
+  onResize(): void {
+    this.setItems();
+  }
+
   setItems(): void {
-    this.items = [
-      {
+    const isMobile = window.innerWidth <= 768;
+    const items: MenuItem[] = [];
+
+    if (isMobile) {
+      items.push({
         label: 'Account Balance',
         icon: 'pi pi-wallet',
         command: () => this.showAccountBalanceDialog(),
-      },
-      {
+      });
+      items.push({
         label: 'Trade Form',
         icon: 'pi pi-pencil',
         command: () => this.showTradeInputDialog(),
-      },
-      {
+      });
+    }
+
+    items.push({
         label: 'Switch to ' + (this.appSettingsService.isTestnet() ? 'Live' : 'Demo'),
         icon: 'pi pi-verified',
         command: () => this.switchBotMode(),
-      },
-      {
-        label: 'Signout',
-        icon: 'pi pi-sign-out',
-        severity: 'danger',
-        command: () => this.signout(),
-      },
-    ];
+    });
+    items.push({
+      label: 'Signout',
+      icon: 'pi pi-sign-out',
+      severity: 'danger',
+      command: () => this.signout(),
+    });
+
+    this.items = items;
   }
 
   switchBotMode(): void {
