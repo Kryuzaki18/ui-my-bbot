@@ -205,6 +205,11 @@ export class ChatComponent {
     this.scrollToBottom();
   }
 
+  closeChat(): void {
+    this.chatOpen = false;
+    this.isMaximized = false;
+  }
+
   toggleMaximize(): void {
     this.isMaximized = !this.isMaximized;
   }
