@@ -103,22 +103,7 @@
     </div>
 
     @if (authService.isLoggedIn()) {
-      <div class="hidden min-[769px]:flex items-center px-2">
-        <p-button
-          size="small"
-          [rounded]="true"
-          severity="contrast"
-          (onClick)="signout()"
-          class="shadow-md"
-        >
-          <div class="flex items-center gap-1">
-            <span class="pi pi-sign-out !text-xs"></span>
-            <span class="text-xs jetbrains-bold">Signout</span>
-          </div>
-        </p-button>
-      </div>
-
-      <div class="block min-[769px]:hidden px-2">
+      <div class="px-2">
         <p-button
           icon="pi pi-user"
           [rounded]="true"

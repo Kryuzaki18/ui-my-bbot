@@ -25,6 +25,7 @@ import { MenuModule } from 'primeng/menu';
 import { MenuItem } from 'primeng/api';
 import { SkeletonModule } from 'primeng/skeleton';
 import { TooltipModule } from 'primeng/tooltip';
+import { ToastMessageService } from '../../core/services/toast-message.service';
 
 @Component({
   selector: 'app-header',
@@ -38,6 +39,7 @@ export class HeaderComponent implements OnInit {
   readonly chartService = inject(ChartService);
   readonly binanceRestService = inject(BinanceRestService);
   readonly authService = inject(AuthService);
+  readonly toastMessageService = inject(ToastMessageService);
   private readonly localStorageService = inject(LocalStorageService);
 
   private readonly router = inject(Router);
@@ -50,6 +52,7 @@ export class HeaderComponent implements OnInit {
   gainers = signal<any[]>([]);
   losers = signal<any[]>([]);
   isLoading = signal<boolean>(true);
+  isSwitchingMode = signal<boolean>(false);
 
   ngOnInit(): void {
     this.setItems();
@@ -112,12 +115,44 @@ export class HeaderComponent implements OnInit {
         command: () => this.showTradeInputDialog(),
       },
       {
+        label: 'Switch to ' + (this.appSettingsService.isTestnet() ? 'Live' : 'Demo'),
+        icon: 'pi pi-verified',
+        command: () => this.switchBotMode(),
+      },
+      {
         label: 'Signout',
         icon: 'pi pi-sign-out',
         severity: 'danger',
         command: () => this.signout(),
       },
     ];
+  }
+
+  switchBotMode(): void {
+    if (this.isSwitchingMode()) {
+      return;
+    }
+
+    const nextUseTestnet = !this.appSettingsService.isTestnet();
+    this.isSwitchingMode.set(true);
+
+    this.authService
+      .switchModeSilently(nextUseTestnet)
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: () => {
+          this.setItems();
+          this.isSwitchingMode.set(false);
+          window.location.reload();
+        },
+        error: (err) => {
+          this.isSwitchingMode.set(false);
+          this.toastMessageService.error(
+            'Failed to switch mode.',
+            err?.error?.error || err?.message || 'Please sign in again.',
+          );
+        },
+      });
   }
 
   signout(): void {
@@ -134,7 +169,7 @@ export class HeaderComponent implements OnInit {
           this.chartService.setOpenOrdersChartData([]);
           this.router.navigate(['/home']);
         },
-        error: (err) => {},
+        error: (err) => { },
       });
   }
 

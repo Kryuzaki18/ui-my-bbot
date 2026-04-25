@@ -42,6 +42,7 @@ export const API_ROUTES = {
     me: '/api/auth/me',
     signIn: '/api/auth/signin',
     signInWithEmail: '/api/auth/signin-email',
+    switchMode: '/api/auth/switch-mode',
     signOut: '/api/auth/signout',
   },
   user: {

@@ -12,13 +12,17 @@ interface IAuth {
   message: string;
 }
 
+interface ISwitchModeResponse extends IAuth {
+  useTestnet: boolean;
+}
+
 @Injectable({
   providedIn: 'root',
 })
 export class AuthService {
   private readonly http = inject(HttpClient);
   private readonly userWsService = inject(UserWsService);
-  private readonly appSettingsService = inject(AppSettingsService)
+  private readonly appSettingsService = inject(AppSettingsService);
 
   private get apiBaseUrl() {
     return this.appSettingsService.env().apiBaseUrl;
@@ -72,7 +76,7 @@ export class AuthService {
         useTestnet,
       })
       .pipe(
-        tap((res) => {
+        tap(() => {
           this.session.set(true);
           this.appSettingsService.setTestnet(useTestnet);
         }),
@@ -87,9 +91,22 @@ export class AuthService {
         useTestnet,
       })
       .pipe(
-        tap((res) => {
+        tap(() => {
           this.session.set(true);
           this.appSettingsService.setTestnet(useTestnet);
+        }),
+      );
+  }
+
+  switchModeSilently(nextUseTestnet: boolean): Observable<IAuth> {
+    return this.http
+      .post<ISwitchModeResponse>(`${this.apiBaseUrl}${API_ROUTES.auth.switchMode}`, {
+        useTestnet: nextUseTestnet,
+      })
+      .pipe(
+        tap((res) => {
+          this.session.set(true);
+          this.appSettingsService.setTestnet(res.useTestnet);
         }),
       );
   }
