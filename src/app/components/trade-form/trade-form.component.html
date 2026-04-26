@@ -20,19 +20,19 @@
     />
 
     <div class="flex flex-col gap-2">
-      <span class="text-xs">
-        Leverage
+      <div class="text-xs">
+        <span> Leverage </span>
         <span
-          class="text-xs"
+          class="font-bold"
           [ngClass]="{
             'text-emerald-300': tradeForm.get('leverage')?.value <= 50,
             'text-red-300':
               tradeForm.get('leverage')?.value > 50 && tradeForm.get('leverage')?.value <= 75,
-            'text-red-700': tradeForm.get('leverage')?.value > 75,
+            'text-red-600': tradeForm.get('leverage')?.value > 75,
           }"
           >{{ tradeForm.get('leverage')?.value + 'x' }}</span
         >
-      </span>
+      </div>
 
       <div class="flex items-center gap-2">
         <p-button size="small" variant="outlined" class="w-7" (click)="updateLeverage(-1)"
@@ -95,9 +95,8 @@
                 autocomplete="off"
                 mode="decimal"
                 [inputSize]="17"
-                [placeholder]="selectedTpType().label"
               />
-              <label for="takeProfit">Take Profit</label>
+              <label for="takeProfit">Take Profit({{ selectedTpType().label }})</label>
 
               <p-inputgroup-addon>
                 <span
@@ -126,9 +125,8 @@
                 autocomplete="off"
                 mode="decimal"
                 [inputSize]="17"
-                [placeholder]="selectedSlType().label"
               />
-              <label for="stopLoss">Stop loss</label>
+              <label for="stopLoss">Stop loss({{ selectedSlType().label }})</label>
 
               <p-inputgroup-addon>
                 <span
