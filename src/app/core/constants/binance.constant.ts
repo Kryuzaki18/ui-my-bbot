@@ -24,6 +24,7 @@ export const STREAM_NAME = {
   MARK_PRICE_UPDATE: 'markPriceUpdate',
   TICKER_24HR: '24hrTicker',
   ALL_TICKERS: 'allTickers',
+  DEPTH_UPDATE: 'depthUpdate',
 }
 
 export const USER_STREAM = {

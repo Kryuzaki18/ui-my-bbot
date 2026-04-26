@@ -14,5 +14,9 @@ $chart-height: calc(
 }
 
 :host ::ng-deep app-trading-chart .trades-scroll-panel {
-  height: calc(#{$chart-height} + #{$volume-chart-height} - 45px);
+  height: calc((#{$chart-height} + #{$volume-chart-height} - 45px) / 2);
+}
+
+:host ::ng-deep app-trading-chart .order-book-scroll-panel {
+  height: calc((#{$chart-height} + #{$volume-chart-height} - 45px) / 2);
 }

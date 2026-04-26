@@ -15,6 +15,11 @@ export type Timeframe =
   | '3d'
   | '1w';
 
+export enum OrderBookType {
+  BID = 'bid',
+  ASK = 'ask',
+}
+
 export interface CandleData {
   time: number;
   open: number;
@@ -22,6 +27,20 @@ export interface CandleData {
   low: number;
   close: number;
   volume: number;
+}
+
+export interface OrderBookItem {
+  price: number;
+  volume: number;
+  orderBookType: OrderBookType;
+  timestamp: number;
+}
+
+export interface OrderBookData {
+  lastUpdateId: number;
+  timestamp: number;  
+  bids: OrderBookItem[];
+  asks: OrderBookItem[];
 }
 
 export interface Ticker24hrData {
@@ -67,6 +86,16 @@ export interface Ticker24hrWsMessage {
   l: string;
   v: string;
   q: string;
+}
+
+export interface DepthWsMessage {
+  e: string;
+  E: number;
+  s: string;
+  U: number;
+  u: number;
+  b: string[][];
+  a: string[][];
 }
 
 export interface KlineWsMessage {
@@ -198,7 +227,7 @@ export interface RsiPoint {
 }
 
 export interface PositionChartData {
-  entryPrice: number | null;
+  price: number;
   takeProfit: number | null;
   stopLoss: number | null;
   positionSide: PositionSideEnum;

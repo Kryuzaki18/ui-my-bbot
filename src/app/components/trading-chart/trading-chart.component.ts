@@ -51,6 +51,8 @@ import {
   OpenOrderChartLine,
   WsStatus,
   DrawnItem,
+  OrderBookData,
+  OrderBookType,
 } from '../../core/models/chart.model';
 import { OrderSideEnum } from '../../core/models/trades.model';
 
@@ -147,6 +149,7 @@ export class TradingChartComponent implements OnInit, OnDestroy {
   private readonly initCandles = signal<CandleData[]>([]);
   readonly aggTrades = signal<AggTradeWsMessage[]>([]);
   readonly wsStatus = signal<WsStatus>('connecting');
+  readonly orderBook = signal<OrderBookData | null>(null);
   readonly ticker = signal<TickerData | null>(null);
   readonly ticker24hr = signal<Ticker24hrData | null>(null);
   readonly markPriceData = signal<MarkPriceData | null>(null);
@@ -234,6 +237,7 @@ export class TradingChartComponent implements OnInit, OnDestroy {
     this.binanceWsService.wsKline(this.selectedSymbol, this.selectedTimeframe);
     this.binanceWsService.wsMarkPrice(this.selectedSymbol);
     this.binanceWsService.wsTicker24h(this.selectedSymbol);
+    this.binanceWsService.wsDepth(this.selectedSymbol);
   }
 
   private subscribeAllWs(): void {
@@ -241,9 +245,11 @@ export class TradingChartComponent implements OnInit, OnDestroy {
     this.subscribeWsAggTrades();
     this.subscribeWsMarkPrice();
     this.subscribeWsTicker24h();
+    this.subscribeWsDepth();
   }
 
   private subscribeAllRest(): void {
+    this.getDepth();
     this.subscribeRestTicker24hr();
     this.subscribeRestOpenInterest();
   }
@@ -482,9 +488,9 @@ export class TradingChartComponent implements OnInit, OnDestroy {
 
     if (!data) return;
 
-    if (data.entryPrice) {
+    if (data.price) {
       this.entryPriceLine = this.candleSeries.createPriceLine({
-        price: data.entryPrice,
+        price: data.price,
         color: '#f0a500',
         lineWidth: 1,
         lineStyle: 1, // Dotted
@@ -958,6 +964,28 @@ export class TradingChartComponent implements OnInit, OnDestroy {
     });
   }
 
+  private subscribeWsDepth(): void {
+    this.binanceWsService.depth$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((msg) => {
+      if (!msg) return;
+      this.orderBook.set({
+        lastUpdateId: msg.u,
+        timestamp: Date.now(),
+        bids: msg.b.map((d: string[]) => ({
+          price: parseFloat(d[0]),
+          volume: parseFloat(d[1]),
+          orderBookType: OrderBookType.BID,
+          timestamp: Date.now(),
+        })).sort((a, b) => a.price - b.price),
+        asks: msg.a.map((d: string[]) => ({
+          price: parseFloat(d[0]),
+          volume: parseFloat(d[1]),
+          orderBookType: OrderBookType.ASK,
+          timestamp: Date.now(),
+        })).sort((a, b) => b.price - a.price),
+      });
+    }); 
+  }
+
   private subscribeWsKline(): void {
     this.binanceWsService.kline$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((msg) => {
       if (!msg) return;
@@ -993,6 +1021,27 @@ export class TradingChartComponent implements OnInit, OnDestroy {
         c: close.toFixed(7),
         v: this.utilsService.fmtVol(volume),
         isUp: close >= open,
+      });
+    });
+  }
+
+  private getDepth(): void {
+    this.binanceRestService.getDepth(this.selectedSymbol).subscribe((res) => {
+      this.orderBook.set({
+        lastUpdateId: res.lastUpdateId,
+        timestamp: Date.now(),
+        bids: res.bids.map((d: string[]) => ({
+          price: parseFloat(d[0]),
+          volume: parseFloat(d[1]),
+          orderBookType: OrderBookType.BID,
+          timestamp: Date.now(),
+        })),
+        asks: res.asks.map((d: string[]) => ({
+          price: parseFloat(d[0]),
+          volume: parseFloat(d[1]),
+          orderBookType: OrderBookType.ASK,
+          timestamp: Date.now(),
+        })),
       });
     });
   }

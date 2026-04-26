@@ -9,7 +9,14 @@ import {
   FormGroup,
 } from '@angular/forms';
 import { takeUntilDestroyed, toObservable } from '@angular/core/rxjs-interop';
-import { filter, startWith, take } from 'rxjs';
+import {
+  combineLatest,
+  distinctUntilChanged,
+  filter,
+  map,
+  startWith,
+  take,
+} from 'rxjs';
 
 // Models
 import {
@@ -96,6 +103,7 @@ export class TradeFormComponent implements OnInit {
   readonly leverageBracket = signal<LeverageBracket | null>(null);
   readonly markPriceData = signal<MarkPriceData | null>(null);
   readonly isActivatingBot = signal(false);
+  readonly hasPositionOrTPOrSLOrders = signal(false);
 
   readonly PositionSideEnum = PositionSideEnum;
   readonly orderTypeEnum = OrderTypeEnum;
@@ -204,6 +212,29 @@ export class TradeFormComponent implements OnInit {
           this.tradeForm.get('leverage')?.addValidators([Validators.max(leverage)]);
         },
         error: () => {},
+      });
+
+    combineLatest([
+      this.chartService.positionChartData$.pipe(startWith(null)),
+      this.chartService.openOrdersChartData$.pipe(startWith(null)),
+    ])
+      .pipe(
+        map(([positionData, openOrdersData]) => positionData || openOrdersData),
+        distinctUntilChanged(),
+        takeUntilDestroyed(this.destroyRef),
+      )
+      .subscribe((hasPositionOrTPOrSL) => {
+        if (Array.isArray(hasPositionOrTPOrSL)) {
+          if (hasPositionOrTPOrSL.length > 0) {
+            this.hasPositionOrTPOrSLOrders.set(true);
+          } else {
+            this.hasPositionOrTPOrSLOrders.set(false);
+          }
+        } else if (hasPositionOrTPOrSL?.price) {
+          this.hasPositionOrTPOrSLOrders.set(true);
+        } else {
+          this.hasPositionOrTPOrSLOrders.set(false);
+        }
       });
   }
 

@@ -176,7 +176,7 @@ export class BinanceRestService {
       );
   }
 
-  getDepth(symbol: string, limit = 20): Observable<any> {
+  getDepth(symbol: string, limit: number = 10): Observable<any> {
     const params = new HttpParams()
       .set('symbol', symbol.toUpperCase())
       .set('limit', limit.toString());

@@ -5,6 +5,7 @@ import { Observable, Subject } from 'rxjs';
 import {
   AggTradeWs,
   AggTradeWsMessage,
+  DepthWsMessage,
   KlineWsMessage,
   Ticker24hrWsMessage,
   Timeframe,
@@ -25,6 +26,10 @@ export class BinanceWsService {
 
   private get binanceMarketWSBaseUrl(): string {
     return this.appSettingsService.env().binanceMarketWSBaseUrl;
+  }
+
+  private get binancePublicWSBaseUrl(): string {
+    return this.appSettingsService.env().binancePublicWSBaseUrl;
   }
 
   private aggTradeConnections: Record<string, AggTradeWs> = {};
@@ -53,6 +58,19 @@ export class BinanceWsService {
   // ── All Tickers stream ──────────────────────────────────────────────
   private allTickersSubject = new Subject<Ticker24hrWsMessage[]>();
   readonly allTickers$ = this.allTickersSubject.asObservable();
+
+  // ── Depth stream ────────────────────────────────────────────────────────
+  private depthSubject = new Subject<DepthWsMessage>();
+  readonly depth$ = this.depthSubject.asObservable();
+
+  wsDepth(symbol: string): void {
+    const stream = `${symbol.toLowerCase()}@depth10@500ms`;
+    this.connectWs(STREAM_NAME.DEPTH_UPDATE, stream, (data) => {
+      if (data.e === STREAM_NAME.DEPTH_UPDATE) {
+        this.depthSubject.next(data as DepthWsMessage);
+      }
+    }, this.binancePublicWSBaseUrl);
+  }
 
   wsKline(symbol: string, interval: Timeframe): void {
     const stream = `${symbol.toLowerCase()}@kline_${interval}`;
@@ -123,12 +141,17 @@ export class BinanceWsService {
     this.retryAttempts.clear();
   }
 
-  private connectWs(key: string, stream: string, onMessage: (data: any) => void): void {
+  private connectWs(
+    key: string,
+    stream: string,
+    onMessage: (data: any) => void,
+    baseUrl: string = this.binanceMarketWSBaseUrl
+  ): void {
     this.unsubscribeWs(key);
 
     this.statusSubject.next({ key, status: 'connecting' });
 
-    const url = `${this.binanceMarketWSBaseUrl}/${stream}`;
+    const url = `${baseUrl}/${stream}`;
     // console.log(`[WS] Connecting [${key}] → ${url}`);
     const ws = new WebSocket(url);
     this.marketWSconnections.set(key, ws);

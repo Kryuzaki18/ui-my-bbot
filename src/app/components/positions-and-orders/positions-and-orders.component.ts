@@ -191,7 +191,7 @@ export class PositionsAndOrdersComponent implements OnInit {
     const slPrice = pos.stopLoss?.triggerPrice ? parseFloat(pos.stopLoss.triggerPrice) : null;
 
     this.chartService.setPositionChartData({
-      entryPrice: isNaN(entryPrice) ? null : entryPrice,
+      price: entryPrice,
       takeProfit: tpPrice && !isNaN(tpPrice) ? tpPrice : null,
       stopLoss: slPrice && !isNaN(slPrice) ? slPrice : null,
       positionSide: pos.positionSide ?? '',
