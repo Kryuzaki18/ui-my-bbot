@@ -5,9 +5,10 @@ import { AsyncPipe, CurrencyPipe, NgClass } from '@angular/common';
 // Services
 import { UserWsService } from '../../core/services/user-ws.service';
 import { UserService } from '../../core/services/user.service';
+import { LocalStorageService } from '../../core/services/local-storage.service';
 
 // Constants
-import { USER_STREAM } from '../../core/constants/binance.constant';
+import { STORAGE, USER_STREAM } from '../../core/constants/binance.constant';
 
 // Models
 import { UserInfo } from '../../core/models/user-info.model';
@@ -27,13 +28,18 @@ export class AccountBalanceComponent implements OnInit {
   private readonly destroyRef = inject(DestroyRef);
   private readonly userWsService = inject(UserWsService);
   readonly userService = inject(UserService);
+  readonly localStorageService = inject(LocalStorageService);
 
   private readonly dialogRef = inject(DynamicDialogRef, { optional: true });
   readonly dynamicDialogConfig = inject(DynamicDialogConfig, { optional: true });
 
+  readonly isMaskAssets = this.localStorageService.getLocalStorageSignal<boolean>(
+    STORAGE.MASK_ASSETS,
+    false,
+  );
+
   userInfo = signal<UserInfo | null>(null);
   isLoading = signal<boolean>(true);
-  isHideAssets = signal<boolean>(false);
 
   ngOnInit(): void {
     this.getUserInfo();

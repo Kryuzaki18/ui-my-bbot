@@ -14,10 +14,10 @@
     <span class="text-xs jetbrains-medium">Account</span>
     <span
       class="pi !text-xs"
-      (click)="isHideAssets.set(!isHideAssets())"
+      (click)="isMaskAssets.set(!isMaskAssets())"
       [ngClass]="{
-        'pi-eye': !isHideAssets(),
-        'pi-eye-slash': isHideAssets(),
+        'pi-eye': !isMaskAssets(),
+        'pi-eye-slash': isMaskAssets(),
         'cursor-pointer': !dynamicDialogConfig?.data?.isDialog,
       }"
     ></span>
@@ -29,7 +29,7 @@
         <div class="text-xs text-emerald-400">
           @if (userInfo()?.availableBalance && !isLoading()) {
             {{
-              isHideAssets()
+              isMaskAssets()
                 ? '*******'
                 : (userInfo()?.availableBalance | currency: 'USD' : 'symbol' : '1.0-2')
             }}
@@ -48,12 +48,12 @@
               [ngClass]="{ 'text-red-400': totalLivePnl < 0, 'text-emerald-400': totalLivePnl > 0 }"
             >
               {{
-                isHideAssets() ? '*******' : (totalLivePnl | currency: 'USD' : 'symbol' : '1.0-2')
+                isMaskAssets() ? '*******' : (totalLivePnl | currency: 'USD' : 'symbol' : '1.0-2')
               }}
             </span>
           } @else {
             {{
-              isHideAssets()
+              isMaskAssets()
                 ? '*******'
                 : (userInfo()?.totalUnrealizedProfit | currency: 'USD' : 'symbol' : '1.0-2')
             }}
@@ -67,7 +67,7 @@
       <div class="text-xs text-emerald-400 w-full text-right">
         @if (userInfo()?.totalWalletBalance && !isLoading()) {
           {{
-            isHideAssets()
+            isMaskAssets()
               ? '*******'
               : (userInfo()?.totalWalletBalance | currency: 'USD' : 'symbol' : '1.0-2')
           }}
