@@ -57,7 +57,7 @@ export class BinanceRestService {
     return forkJoin({
       info: this.exchangeInfo$.pipe(take(1)),
       stats: this.http.get<Ticker24hrData[]>(
-        `${this.binanceFutureRestBaseUrl}${BINANCE_PUBLIC_API_ROUTES.chart.ticker}`,
+        `${this.binanceFutureRestBaseUrl}${BINANCE_PUBLIC_API_ROUTES.ticker24hr}`,
       ),
     }).pipe(
       map(({ info, stats }) => {
@@ -93,7 +93,7 @@ export class BinanceRestService {
     return this.http
       .get<
         any[][]
-      >(`${this.binanceFutureRestBaseUrl}${BINANCE_PUBLIC_API_ROUTES.chart.klines}`, { params })
+      >(`${this.binanceFutureRestBaseUrl}${BINANCE_PUBLIC_API_ROUTES.klines}`, { params })
       .pipe(
         map((raw) =>
           raw.map((k) => ({
@@ -109,11 +109,26 @@ export class BinanceRestService {
       );
   }
 
-  getTicker(symbol: string): Observable<TickerData> {
+  getTickerPrice(symbol: string) {
     const params = new HttpParams().set('symbol', symbol.toLowerCase());
 
     return this.http
-      .get<any>(`${this.binanceFutureRestBaseUrl}${BINANCE_PUBLIC_API_ROUTES.chart.ticker}`, {
+      .get<any>(`${this.binanceFutureRestBaseUrl}${BINANCE_PUBLIC_API_ROUTES.tickerPrice}`, {
+        params,
+      })
+      .pipe(
+        map((d) => {
+          return d
+        }),
+        catchError((err) => throwError(() => err)),
+      );
+  }
+
+  getTicker24hr(symbol: string): Observable<TickerData> {
+    const params = new HttpParams().set('symbol', symbol.toLowerCase());
+
+    return this.http
+      .get<any>(`${this.binanceFutureRestBaseUrl}${BINANCE_PUBLIC_API_ROUTES.ticker24hr}`, {
         params,
       })
       .pipe(

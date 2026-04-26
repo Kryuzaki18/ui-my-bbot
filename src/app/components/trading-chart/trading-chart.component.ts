@@ -244,7 +244,7 @@ export class TradingChartComponent implements OnInit, OnDestroy {
   }
 
   private subscribeAllRest(): void {
-    this.subscribeRestTicker();
+    this.subscribeRestTicker24hr();
     this.subscribeRestOpenInterest();
   }
 
@@ -997,9 +997,9 @@ export class TradingChartComponent implements OnInit, OnDestroy {
     });
   }
 
-  private subscribeRestTicker(): void {
+  private subscribeRestTicker24hr(): void {
     this.binanceRestService
-      .getTicker(this.selectedSymbol)
+      .getTicker24hr(this.selectedSymbol)
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe((res) => {
         this.ticker.set(res);

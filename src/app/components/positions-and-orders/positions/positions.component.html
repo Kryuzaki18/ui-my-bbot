@@ -3,7 +3,7 @@
   class="jetbrains-light text-[11px]"
   size="small"
   [scrollable]="true"
-  scrollHeight="350px"
+  scrollHeight="400px"
   [virtualScroll]="true"
   [virtualScrollItemSize]="48"
 >
@@ -55,18 +55,18 @@
     >
       <td pFrozenColumn alignFrozen="left" class="shadow-[4px_0_12px_-4px_rgba(0,0,0,0.5)]">
         <div class="flex flex-col gap-2 text-gray-400">
-          <span>
+          <div>
             <span
               class="jetbrains-bold text-yellow-500 hover:text-yellow-200 cursor-pointer text-xs bg-yellow-200/10 px-2 py-1 rounded tracking-[1px]"
               (click)="selectSymbol(pos.symbol)"
             >
               {{ pos.symbol }}
             </span>
-          </span>
-          <span class="flex items-center gap-1">
+          </div>
+          <div class="flex items-center gap-1">
             <span class="text-gray-200 bg-gray-700 px-1 rounded">{{ pos.leverage || '20' }}x</span>
             <span class="uppercase text-[10px] text-gray-200">{{ pos.marginType || 'cross' }}</span>
-          </span>
+          </div>
         </div>
       </td>
 

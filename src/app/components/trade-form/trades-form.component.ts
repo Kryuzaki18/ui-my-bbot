@@ -29,6 +29,7 @@ import { BinanceWsService } from '../../core/services/binance-ws.service';
 import { UserService } from '../../core/services/user.service';
 import { ToastMessageService } from '../../core/services/toast-message.service';
 import { AppSettingsService } from '../../core/services/app-settings.service';
+import { AIService } from '../../core/services/ai.service';
 
 // PrimeNG Modules
 import { SliderModule } from 'primeng/slider';
@@ -80,6 +81,7 @@ export class TradeFormComponent implements OnInit {
   private readonly userService = inject(UserService);
   private readonly binanceWsService = inject(BinanceWsService);
   private readonly futureTradeService = inject(FutureTradeService);
+  private readonly aiService = inject(AIService);
   private readonly toastMessageService = inject(ToastMessageService);
   private readonly appSettingsService = inject(AppSettingsService);
   private readonly destroyRef = inject(DestroyRef);
@@ -295,7 +297,7 @@ export class TradeFormComponent implements OnInit {
       useTestnet: this.appSettingsService.isTestnet(),
     };
 
-    this.futureTradeService
+    this.aiService
       .activateBot(payload)
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({

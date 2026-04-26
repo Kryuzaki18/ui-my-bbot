@@ -21,22 +21,22 @@ export const testnetEnv = {
 };
 
 export const BINANCE_PUBLIC_API_ROUTES = {
+  tickerPrice: '/fapi/v2/ticker/price',
   leverageBracket: '/fapi/v1/leverageBracket',
   exchangeInfo: '/fapi/v1/exchangeInfo',
   markPrice: '/fapi/v1/premiumIndex',
   openInterest: '/fapi/v1/openInterest',
   depth: '/fapi/v1/depth',
   aggTrades: '/fapi/v1/aggTrades',
-  chart: {
-    klines: '/fapi/v1/klines',
-    ticker: '/fapi/v1/ticker/24hr',
-  },
+  klines: '/fapi/v1/klines',
+  ticker24hr: '/fapi/v1/ticker/24hr',
 };
 
 export const API_ROUTES = {
   ai: {
-    chat: '/api/ai/chat',
-    analyzeMarket: '/api/ai/analyze-market',
+    chat: '/api/chat',
+    analyzeMarket: '/api/analyze-market',
+    tradeBot: '/api/trade-bot',
   },
   auth: {
     me: '/api/auth/me',
@@ -52,7 +52,6 @@ export const API_ROUTES = {
   futures: {
     positions: '/api/futures/positions',
     order: '/api/futures/order',
-    tradeBot: '/api/trade-bot',
     takeProfit: '/api/futures/take-profit',
     stopLoss: '/api/futures/stop-loss',
     cancelTpSl: '/api/futures/cancel-tpsl',
