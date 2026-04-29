@@ -11,7 +11,7 @@ import {
   DestroyRef,
   NgZone,
 } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import { CommonModule, formatDate } from '@angular/common';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute } from '@angular/router';
@@ -30,11 +30,7 @@ import {
 } from 'lightweight-charts';
 
 // Constants
-import {
-  STORAGE,
-  STREAM_NAME,
-  TIMEFRAMES,
-} from '../../core/constants/binance.constant';
+import { STORAGE, STREAM_NAME, TIMEFRAMES } from '../../core/constants/binance.constant';
 
 // Models
 import {
@@ -54,7 +50,7 @@ import {
   OrderBookData,
   OrderBookType,
 } from '../../core/models/chart.model';
-import { OrderSideEnum } from '../../core/models/trades.model';
+import { DrawingToolsEnum, OrderSideEnum } from '../../core/models/trades.model';
 
 // Components
 import { TradingSymbolsPopoverComponent } from './trading-symbols-popover/trading-symbols-popover.component';
@@ -159,7 +155,8 @@ export class TradingChartComponent implements OnInit, OnDestroy {
   readonly previousPrice = signal(0);
   readonly volumeHeight = signal(100);
 
-  readonly activeDrawingTool = signal<'cursor' | 'trendline' | 'horizontal' | 'eraser'>('cursor');
+  readonly activeDrawingTool = signal<DrawingToolsEnum>(DrawingToolsEnum.CURSOR);
+  readonly drawingTools = DrawingToolsEnum;
 
   get selectedSymbol() {
     return this.chartService.selectedSymbol();
@@ -210,7 +207,7 @@ export class TradingChartComponent implements OnInit, OnDestroy {
     return [hours, minutes, seconds].map((v) => v.toString().padStart(2, '0')).join(':');
   });
 
- ngOnInit(): void {
+  ngOnInit(): void {
     this.ngZone.runOutsideAngular(() => {
       this.initAllWs();
       this.subscribeAllWs();
@@ -302,9 +299,9 @@ export class TradingChartComponent implements OnInit, OnDestroy {
     this.renderAllIndicators();
   }
 
-  setDrawingTool(tool: 'cursor' | 'trendline' | 'horizontal' | 'eraser'): void {
+  setDrawingTool(tool: DrawingToolsEnum): void {
     this.activeDrawingTool.set(tool);
-    if (tool !== 'cursor') {
+    if (tool !== DrawingToolsEnum.CURSOR) {
       this.editingPoint = null;
     }
   }
@@ -321,7 +318,8 @@ export class TradingChartComponent implements OnInit, OnDestroy {
     if (!this.chart) return;
     const canvas = this.chart.takeScreenshot();
     const link = document.createElement('a');
-    link.download = `${this.selectedSymbol}-chart.png`;
+    const formattedDate = formatDate(new Date(), 'MMMM d, yyyy - h.mm.ss a', 'en-US')
+    link.download = `${this.selectedSymbol}@${this.selectedTimeframe} (${formattedDate}).png`;
     link.href = canvas.toDataURL('image/png');
     link.click();
   }
@@ -568,38 +566,38 @@ export class TradingChartComponent implements OnInit, OnDestroy {
     const time = this.getTimeFromParam(param);
     if (price === null || time === undefined) return;
 
-    if (tool === 'cursor') {
+    if (tool === DrawingToolsEnum.CURSOR) {
       if (this.editingPoint) {
         this.editingPoint = null;
         return;
       }
-      
+
       const clickX = param.point.x;
       const clickY = param.point.y;
-      
+
       for (const item of this.drawnItems) {
-        if (item.type === 'trendline' && item.data && item.data.time2) {
+        if (item.type === DrawingToolsEnum.TRENDLINE && item.data && item.data.time2) {
           const x1 = this.chart.timeScale().timeToCoordinate(item.data.time1);
           const y1 = this.candleSeries.priceToCoordinate(item.data.price1);
           const x2 = this.chart.timeScale().timeToCoordinate(item.data.time2);
           const y2 = this.candleSeries.priceToCoordinate(item.data.price2!);
-          
+
           if (x1 !== null && y1 !== null) {
             if (Math.sqrt((x1 - clickX) ** 2 + (y1 - clickY) ** 2) < 15) {
-               this.editingPoint = { item, pointIndex: 1 };
-               return;
+              this.editingPoint = { item, pointIndex: 1 };
+              return;
             }
           }
           if (x2 !== null && y2 !== null) {
             if (Math.sqrt((x2 - clickX) ** 2 + (y2 - clickY) ** 2) < 15) {
-               this.editingPoint = { item, pointIndex: 2 };
-               return;
+              this.editingPoint = { item, pointIndex: 2 };
+              return;
             }
           }
-        } else if (item.type === 'horizontal' && item.data) {
+        } else if (item.type === DrawingToolsEnum.HORIZONTAL && item.data) {
           const lineY = this.candleSeries.priceToCoordinate(item.data.price1);
           if (lineY !== null && Math.abs(lineY - clickY) < 15) {
-            this.editingPoint = { item, pointIndex: 'horizontal' };
+            this.editingPoint = { item, pointIndex: DrawingToolsEnum.HORIZONTAL };
             return;
           }
         }
@@ -607,7 +605,7 @@ export class TradingChartComponent implements OnInit, OnDestroy {
       return;
     }
 
-    if (tool === 'horizontal') {
+    if (tool === DrawingToolsEnum.HORIZONTAL) {
       const priceLine = this.candleSeries.createPriceLine({
         price,
         color: '#3b82f6',
@@ -622,7 +620,7 @@ export class TradingChartComponent implements OnInit, OnDestroy {
         priceLine,
         data: { time1: time, price1: price },
       });
-    } else if (tool === 'trendline') {
+    } else if (tool === DrawingToolsEnum.TRENDLINE) {
       if (!this.isDrawingTrendline) {
         this.isDrawingTrendline = true;
         const series = this.chart.addSeries(LineSeries, {
@@ -636,12 +634,16 @@ export class TradingChartComponent implements OnInit, OnDestroy {
 
         this.currentTrendline = {
           id: Math.random().toString(36).substring(2, 11),
-          type: 'trendline',
+          type: DrawingToolsEnum.TRENDLINE,
           series,
           data: { time1: time, price1: price },
         };
       } else {
-        if (this.currentTrendline && this.currentTrendline.data && this.currentTrendline.data.time1 !== time) {
+        if (
+          this.currentTrendline &&
+          this.currentTrendline.data &&
+          this.currentTrendline.data.time1 !== time
+        ) {
           this.currentTrendline.data.time2 = time;
           this.currentTrendline.data.price2 = price;
           this.drawnItems.push(this.currentTrendline);
@@ -651,14 +653,14 @@ export class TradingChartComponent implements OnInit, OnDestroy {
         this.isDrawingTrendline = false;
         this.currentTrendline = null;
       }
-    } else if (tool === 'eraser') {
+    } else if (tool === DrawingToolsEnum.ERASER) {
       this.eraseNearestItem(param);
     }
   }
 
   private handleChartMouseMove(param: any): void {
     const tool = this.activeDrawingTool();
-    if (tool === 'cursor' && this.editingPoint) {
+    if (tool === DrawingToolsEnum.CURSOR && this.editingPoint) {
       if (!param.point) return;
       const price = this.candleSeries.coordinateToPrice(param.point.y);
       const time = this.getTimeFromParam(param);
@@ -680,7 +682,7 @@ export class TradingChartComponent implements OnInit, OnDestroy {
           p.price2 = price;
           changed = true;
         }
-      } else if (this.editingPoint.pointIndex === 'horizontal') {
+      } else if (this.editingPoint.pointIndex === DrawingToolsEnum.HORIZONTAL) {
         if (p.price1 !== price) {
           p.price1 = price;
           if (item.priceLine) {
@@ -694,8 +696,8 @@ export class TradingChartComponent implements OnInit, OnDestroy {
           { time: p.time1, value: p.price1 },
           { time: p.time2, value: p.price2 },
         ].sort((a, b) => {
-          if(a.time > b.time) return 1;
-          if(a.time < b.time) return -1;
+          if (a.time > b.time) return 1;
+          if (a.time < b.time) return -1;
           return 0;
         });
         item.series.setData(dataPoints);
@@ -703,7 +705,11 @@ export class TradingChartComponent implements OnInit, OnDestroy {
       return;
     }
 
-    if (tool === 'trendline' && this.isDrawingTrendline && this.currentTrendline?.series) {
+    if (
+      tool === DrawingToolsEnum.TRENDLINE &&
+      this.isDrawingTrendline &&
+      this.currentTrendline?.series
+    ) {
       if (!param.point) return;
       const price = this.candleSeries.coordinateToPrice(param.point.y);
       const time = this.getTimeFromParam(param);
@@ -719,11 +725,11 @@ export class TradingChartComponent implements OnInit, OnDestroy {
           { time: p1.time1, value: p1.price1 },
           { time, value: price },
         ].sort((a, b) => {
-          if(a.time > b.time) return 1;
-          if(a.time < b.time) return -1;
+          if (a.time > b.time) return 1;
+          if (a.time < b.time) return -1;
           return 0;
         });
-        
+
         if (this.currentTrendline?.series) {
           this.currentTrendline.series.setData(dataPoints);
         }
@@ -740,7 +746,7 @@ export class TradingChartComponent implements OnInit, OnDestroy {
 
     for (let i = 0; i < this.drawnItems.length; i++) {
       const item = this.drawnItems[i];
-      if (item.type === 'horizontal') {
+      if (item.type === DrawingToolsEnum.HORIZONTAL) {
         const lineY = this.candleSeries.priceToCoordinate(item.data!.price1);
         if (lineY !== null) {
           const diff = Math.abs(lineY - clickY);
@@ -749,7 +755,7 @@ export class TradingChartComponent implements OnInit, OnDestroy {
             toDeleteIdx = i;
           }
         }
-      } else if (item.type === 'trendline') {
+      } else if (item.type === DrawingToolsEnum.TRENDLINE) {
         const d = item.data!;
         if (d.time2) {
           const x1 = this.chart.timeScale().timeToCoordinate(d.time1);
@@ -770,9 +776,9 @@ export class TradingChartComponent implements OnInit, OnDestroy {
 
     if (toDeleteIdx !== -1 && minDistance < 15) {
       const item = this.drawnItems[toDeleteIdx];
-      if (item.type === 'horizontal' && item.priceLine) {
+      if (item.type === DrawingToolsEnum.HORIZONTAL && item.priceLine) {
         this.candleSeries.removePriceLine(item.priceLine);
-      } else if (item.type === 'trendline' && item.series) {
+      } else if (item.type === DrawingToolsEnum.TRENDLINE && item.series) {
         this.chart.removeSeries(item.series);
       }
       this.drawnItems.splice(toDeleteIdx, 1);
@@ -789,13 +795,13 @@ export class TradingChartComponent implements OnInit, OnDestroy {
       '1h': 60 * 60,
       '2h': 2 * 60 * 60,
       '4h': 4 * 60 * 60,
-      '6h': 6 * 60 * 60,
-      '8h': 8 * 60 * 60,
-      '12h': 12 * 60 * 60,
+      // '6h': 6 * 60 * 60,
+      // '8h': 8 * 60 * 60,
+      // '12h': 12 * 60 * 60,
       '1d': 24 * 60 * 60,
       '3d': 3 * 24 * 60 * 60,
       '1w': 7 * 24 * 60 * 60,
-      '1M': 30 * 24 * 60 * 60,
+      // '1M': 30 * 24 * 60 * 60,
     };
     return map[tf] ?? 60;
   }
@@ -808,11 +814,11 @@ export class TradingChartComponent implements OnInit, OnDestroy {
         const candles = this.initCandles();
         if (candles.length > 0) {
           const anchorLogical = candles.length - 1;
-          const anchorTime = Math.floor(candles[anchorLogical].time); 
-          
+          const anchorTime = Math.floor(candles[anchorLogical].time);
+
           const step = this.getOffsetByTimeframe(this.selectedTimeframe);
           const extrapolated = (anchorTime + Math.round(logical - anchorLogical) * step) as Time;
-          
+
           return extrapolated;
         }
       }
@@ -820,7 +826,14 @@ export class TradingChartComponent implements OnInit, OnDestroy {
     return undefined;
   }
 
-  private distanceToSegment(x: number, y: number, x1: number, y1: number, x2: number, y2: number): number {
+  private distanceToSegment(
+    x: number,
+    y: number,
+    x1: number,
+    y1: number,
+    x2: number,
+    y2: number,
+  ): number {
     const A = x - x1;
     const B = y - y1;
     const C = x2 - x1;
@@ -891,7 +904,7 @@ export class TradingChartComponent implements OnInit, OnDestroy {
       const step = this.getOffsetByTimeframe(this.selectedTimeframe);
       const lastTime = history[history.length - 1].time as number;
       const oneMonthSeconds = 30 * 24 * 60 * 60; // Month Added
-      const barsToAdd = Math.min(Math.floor(oneMonthSeconds / step), 5000); 
+      const barsToAdd = Math.min(Math.floor(oneMonthSeconds / step), 5000);
 
       const futureSpaces = [];
       for (let i = 1; i <= barsToAdd; i++) {
@@ -970,20 +983,24 @@ export class TradingChartComponent implements OnInit, OnDestroy {
       this.orderBook.set({
         lastUpdateId: msg.u,
         timestamp: Date.now(),
-        bids: msg.b.map((d: string[]) => ({
-          price: parseFloat(d[0]),
-          volume: parseFloat(d[1]),
-          orderBookType: OrderBookType.BID,
-          timestamp: Date.now(),
-        })).sort((a, b) => a.price - b.price),
-        asks: msg.a.map((d: string[]) => ({
-          price: parseFloat(d[0]),
-          volume: parseFloat(d[1]),
-          orderBookType: OrderBookType.ASK,
-          timestamp: Date.now(),
-        })).sort((a, b) => b.price - a.price),
+        bids: msg.b
+          .map((d: string[]) => ({
+            price: parseFloat(d[0]),
+            volume: parseFloat(d[1]),
+            orderBookType: OrderBookType.BID,
+            timestamp: Date.now(),
+          }))
+          .sort((a, b) => a.price - b.price),
+        asks: msg.a
+          .map((d: string[]) => ({
+            price: parseFloat(d[0]),
+            volume: parseFloat(d[1]),
+            orderBookType: OrderBookType.ASK,
+            timestamp: Date.now(),
+          }))
+          .sort((a, b) => b.price - a.price),
       });
-    }); 
+    });
   }
 
   private subscribeWsKline(): void {

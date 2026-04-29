@@ -1,5 +1,12 @@
 import { Ticker24hrData } from "./chart.model";
 
+export enum DrawingToolsEnum {
+  CURSOR = 'cursor',
+  TRENDLINE = 'trendline',
+  HORIZONTAL = 'horizontal',
+  ERASER = 'eraser',
+}
+
 export enum OrderSideEnum {
   BUY = 'BUY',
   SELL = 'SELL',

@@ -277,8 +277,8 @@
       <p-button
         variant="text"
         size="small"
-        [severity]="activeDrawingTool() === 'cursor' ? 'primary' : 'secondary'"
-        (click)="setDrawingTool('cursor')"
+        [severity]="activeDrawingTool() === drawingTools.CURSOR ? 'primary' : 'secondary'"
+        (click)="setDrawingTool(drawingTools.CURSOR)"
         pTooltip="Cursor"
         tooltipPosition="right"
       >
@@ -287,8 +287,8 @@
       <p-button
         variant="text"
         size="small"
-        [severity]="activeDrawingTool() === 'trendline' ? 'primary' : 'secondary'"
-        (click)="setDrawingTool('trendline')"
+        [severity]="activeDrawingTool() === drawingTools.TRENDLINE ? 'primary' : 'secondary'"
+        (click)="setDrawingTool(drawingTools.TRENDLINE)"
         pTooltip="Trend Line"
         tooltipPosition="right"
       >
@@ -297,8 +297,8 @@
       <p-button
         variant="text"
         size="small"
-        [severity]="activeDrawingTool() === 'horizontal' ? 'primary' : 'secondary'"
-        (click)="setDrawingTool('horizontal')"
+        [severity]="activeDrawingTool() === drawingTools.HORIZONTAL ? 'primary' : 'secondary'"
+        (click)="setDrawingTool(drawingTools.HORIZONTAL)"
         pTooltip="Horizontal Line"
         tooltipPosition="right"
       >
@@ -307,8 +307,8 @@
       <p-button
         variant="text"
         size="small"
-        [severity]="activeDrawingTool() === 'eraser' ? 'primary' : 'secondary'"
-        (click)="setDrawingTool('eraser')"
+        [severity]="activeDrawingTool() === drawingTools.ERASER ? 'primary' : 'secondary'"
+        (click)="setDrawingTool(drawingTools.ERASER)"
         pTooltip="Eraser"
         tooltipPosition="right"
       >

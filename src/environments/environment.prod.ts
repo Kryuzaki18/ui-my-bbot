@@ -8,7 +8,7 @@ export const prodEnv = {
   binancePublicWSBaseUrl: `${binanceWSBaseUrl}/public`, // Public (high-frequency public market data)
   binanceMarketWSBaseUrl: `${binanceWSBaseUrl}/market`, // Market (regular market data)
   binancePrivateWSBaseUrl: `${binanceWSBaseUrl}/private`, // Private (user data)
-  apiBaseUrl: 'http://localhost:3000',
+  apiBaseUrl: 'http://localhost:5555',
 };
 
 export const testnetEnv = {
@@ -17,7 +17,7 @@ export const testnetEnv = {
   binancePublicWSBaseUrl: `${binanceTestnetWSBaseUrl}/public`,
   binanceMarketWSBaseUrl: `${binanceTestnetWSBaseUrl}/market`,
   binancePrivateWSBaseUrl: `${binanceTestnetWSBaseUrl}/private`,
-  apiBaseUrl: 'http://localhost:3000',
+  apiBaseUrl: 'http://localhost:5555',
 };
 
 export const BINANCE_PUBLIC_API_ROUTES = {
