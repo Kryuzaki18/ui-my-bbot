@@ -1,6 +1,7 @@
 import { Component, OnInit, inject, DestroyRef, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { AsyncPipe, CurrencyPipe, NgClass } from '@angular/common';
+import { debounceTime } from 'rxjs';
 
 // Services
 import { UserWsService } from '../../core/services/user-ws.service';
@@ -44,20 +45,20 @@ export class AccountBalanceComponent implements OnInit {
   ngOnInit(): void {
     this.getUserInfo();
 
-    this.userService.totalLivePnl$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
+    this.userService.totalLivePnl$.pipe(
+      debounceTime(1000),
+      takeUntilDestroyed(this.destroyRef)).subscribe({
       next: (pnl) => {
         const absPnl = Math.abs(pnl);
 
-        if (Number(this.userInfo()?.totalWalletBalance) !== 0 && absPnl) {
-          this.userInfo.update((prev) => ({
-            ...prev,
-            availableBalance: prev?.totalWalletBalance
-              ? pnl > 0
-                ? +prev.totalWalletBalance + absPnl
-                : +prev.totalWalletBalance - absPnl
-              : 0,
-          }));
-        }
+        this.userInfo.update((prev) => ({
+          ...prev,
+          availableBalance: prev?.totalWalletBalance
+            ? pnl > 0
+              ? +prev.totalWalletBalance + absPnl
+              : +prev.totalWalletBalance - absPnl
+            : 0,
+        }));
       },
     });
 
@@ -83,7 +84,12 @@ export class AccountBalanceComponent implements OnInit {
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
         next: (res) => {
-          this.userInfo.set(res);
+          this.userInfo.set({
+            totalWalletBalance: +res.totalWalletBalance,
+            availableBalance: +res.availableBalance,
+            totalUnrealizedProfit: +res.totalUnrealizedProfit,
+          });
+
           this.isLoading.set(false);
         },
         error: (err) => {

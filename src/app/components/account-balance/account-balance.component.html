@@ -26,15 +26,23 @@
     <div class="w-1/2 flex flex-col gap-2">
       <div class="flex flex-col">
         <div class="text-[10px] text-gray-500">Margin Balance:</div>
-        <div class="text-xs text-emerald-400">
-          @if (userInfo()?.availableBalance && !isLoading()) {
-            {{
-              isMaskAssets()
-                ? '*******'
-                : (userInfo()?.availableBalance | currency: 'USD' : 'symbol' : '1.0-2')
-            }}
-          } @else {
+        <div class="text-xs">
+          @if (isLoading()) {
             <p-skeleton></p-skeleton>
+          } @else {
+            @if (userInfo()?.totalWalletBalance !== 0) {
+              <span class="text-emerald-400">
+                {{
+                  isMaskAssets()
+                    ? '*******'
+                    : (userInfo()?.availableBalance | currency: 'USD' : 'symbol' : '1.0-2')
+                }}
+              </span>
+            } @else {
+              <span class="text-gray-400">
+                {{ isMaskAssets() ? '*******' : '-' }}
+              </span>
+            }
           }
         </div>
       </div>
@@ -43,20 +51,24 @@
         <div class="text-xs">
           @if (isLoading()) {
             <p-skeleton></p-skeleton>
-          } @else if (userService.totalLivePnl$ | async; as totalLivePnl) {
-            <span
-              [ngClass]="{ 'text-red-400': totalLivePnl < 0, 'text-emerald-400': totalLivePnl > 0 }"
-            >
-              {{
-                isMaskAssets() ? '*******' : (totalLivePnl | currency: 'USD' : 'symbol' : '1.0-2')
-              }}
-            </span>
           } @else {
-            {{
-              isMaskAssets()
-                ? '*******'
-                : (userInfo()?.totalUnrealizedProfit | currency: 'USD' : 'symbol' : '1.0-2')
-            }}
+            @if (userInfo()?.totalWalletBalance !== 0) {
+              @let totalLivePnl = (userService.totalLivePnl$ | async) || 0;
+              <span
+                [ngClass]="{
+                  'text-red-400': totalLivePnl < 0,
+                  'text-emerald-400': totalLivePnl > 0,
+                }"
+              >
+                {{
+                  isMaskAssets() ? '*******' : (totalLivePnl | currency: 'USD' : 'symbol' : '1.0-2')
+                }}
+              </span>
+            } @else {
+              <span class="text-gray-400">
+                {{ isMaskAssets() ? '*******' : '-' }}
+              </span>
+            }
           }
         </div>
       </div>
@@ -64,15 +76,23 @@
 
     <div class="w-1/2 flex flex-col items-end">
       <div class="text-[10px] text-gray-500">Balance:</div>
-      <div class="text-xs text-emerald-400 w-full text-right">
-        @if (userInfo()?.totalWalletBalance && !isLoading()) {
-          {{
-            isMaskAssets()
-              ? '*******'
-              : (userInfo()?.totalWalletBalance | currency: 'USD' : 'symbol' : '1.0-2')
-          }}
-        } @else {
+      <div class="text-xs w-full text-right">
+        @if (isLoading()) {
           <p-skeleton></p-skeleton>
+        } @else {
+          @if (userInfo()?.totalWalletBalance !== 0) {
+            <span class="text-emerald-400">
+              {{
+                isMaskAssets()
+                  ? '*******'
+                  : (userInfo()?.totalWalletBalance | currency: 'USD' : 'symbol' : '1.0-2')
+              }}
+            </span>
+          } @else {
+            <span class="text-gray-400">
+              {{ isMaskAssets() ? '*******' : '0' }}
+            </span>
+          }
         }
       </div>
     </div>

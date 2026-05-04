@@ -19,3 +19,46 @@ body {
 .p-scrollpanel-bar {
   display: none;
 }
+
+/* Chrome, Safari, Edge (WebKit-based) */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: #1a1a1a;
+  border-radius: 10px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: linear-gradient(180deg, #444444, #222222);
+  border-radius: 10px;
+  border: 2px solid #1a1a1a;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(180deg, #666666, #333333);
+}
+
+::-webkit-scrollbar-thumb:active {
+  background: linear-gradient(180deg, #888888, #444444);
+}
+
+::-webkit-scrollbar-corner {
+  background: #1a1a1a;
+}
+
+/* Firefox */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: #444444 #1a1a1a;
+}
+
+/* IE / older Edge - limited support */
+* {
+  scrollbar-face-color: #444444;
+  scrollbar-track-color: #1a1a1a;
+  scrollbar-arrow-color: #222222;
+  scrollbar-shadow-color: #222222;
+}
