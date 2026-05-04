@@ -1,5 +1,5 @@
 <div class="fixed inset-0 pointer-events-none z-100 flex justify-center">
-  <div class="relative w-full max-w-[1440px] chat-boundary-limit">
+  <div class="relative w-full chat-boundary-limit">
     <div
       cdkDrag
       cdkDragBoundary=".chat-boundary-limit"
@@ -10,7 +10,7 @@
         [ngClass]="{
           'opacity-100 scale-100 pointer-events-auto translate-y-0': chatOpen,
           'opacity-0 scale-75 pointer-events-none translate-y-8': !chatOpen,
-          'w-[80vw] h-[80vh] max-w-[1200px] max-h-[900px]': isMaximized,
+          'w-[80dvw] h-[80dvh] max-w-[1200px] max-h-[900px]': isMaximized,
           'w-[350px] h-[520px]': !isMaximized,
         }"
       >

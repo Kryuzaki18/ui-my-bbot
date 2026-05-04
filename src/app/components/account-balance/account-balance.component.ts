@@ -48,14 +48,16 @@ export class AccountBalanceComponent implements OnInit {
       next: (pnl) => {
         const absPnl = Math.abs(pnl);
 
-        this.userInfo.update((prev) => ({
-          ...prev,
-          availableBalance: prev?.totalWalletBalance
-            ? pnl > 0
-              ? +prev.totalWalletBalance + absPnl
-              : +prev.totalWalletBalance - absPnl
-            : 0,
-        }));
+        if (Number(this.userInfo()?.totalWalletBalance) !== 0 && absPnl) {
+          this.userInfo.update((prev) => ({
+            ...prev,
+            availableBalance: prev?.totalWalletBalance
+              ? pnl > 0
+                ? +prev.totalWalletBalance + absPnl
+                : +prev.totalWalletBalance - absPnl
+              : 0,
+          }));
+        }
       },
     });
 

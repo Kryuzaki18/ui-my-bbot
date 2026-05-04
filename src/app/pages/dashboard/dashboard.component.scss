@@ -1,7 +1,7 @@
 @use 'variables' as *;
 
 $chart-height: calc(
-  100vh - #{$header-height} - #{$volume-chart-height} - #{$timeframe-height} -
+  100dvh - #{$header-height} - #{$volume-chart-height} - #{$timeframe-height} -
     #{$symbol-info-height} - #{$open-orders-height} - #{$volume-maximize-height}
 );
 
