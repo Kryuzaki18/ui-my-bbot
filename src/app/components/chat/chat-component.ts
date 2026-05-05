@@ -45,10 +45,10 @@ export class ChatComponent {
     return this.chartService.selectedTimeframe();
   }
 
-  chatOpen: boolean = false;
-  isMaximized: boolean = false;
-  isLoading = signal(false);
-  isAnalyzing = signal(false);
+  chatOpen = signal<boolean>(false);
+  isMaximized = signal<boolean>(false);
+  isLoading = signal<boolean>(false);
+  isAnalyzing = signal<boolean>(false);
   message: string = '';
   conversation: ChatResponse[] = [
     {
@@ -201,17 +201,17 @@ export class ChatComponent {
   }
 
   openChat(): void {
-    this.chatOpen = !this.chatOpen;
+    this.chatOpen.set(!this.chatOpen());
     this.scrollToBottom();
   }
 
   closeChat(): void {
-    this.chatOpen = false;
-    this.isMaximized = false;
+    this.chatOpen.set(false);
+    this.isMaximized.set(false);
   }
 
   toggleMaximize(): void {
-    this.isMaximized = !this.isMaximized;
+    this.isMaximized.set(!this.isMaximized());
   }
 
   analyze(): void {
@@ -244,7 +244,6 @@ export class ChatComponent {
           this.isAnalyzing.set(false);
           this.scrollToBottom();
         },
-
         error: (err: any) => {
           this.message = '';
           this.conversation.push({
