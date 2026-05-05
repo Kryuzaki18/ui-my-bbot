@@ -17,7 +17,7 @@ export const testnetEnv = {
   binancePublicWSBaseUrl: `${binanceTestnetWSBaseUrl}/public`,
   binanceMarketWSBaseUrl: `${binanceTestnetWSBaseUrl}/market`,
   binancePrivateWSBaseUrl: `${binanceTestnetWSBaseUrl}/private`,
-  apiBaseUrl: 'http://localhost:5555',
+  apiBaseUrl: 'https://api-trading-bot.onrender.com',
 };
 
 export const BINANCE_PUBLIC_API_ROUTES = {

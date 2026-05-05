@@ -8,7 +8,7 @@ export const prodEnv = {
   binancePublicWSBaseUrl: `${binanceWSBaseUrl}/public/ws`, // Public (high-frequency public market data)
   binanceMarketWSBaseUrl: `${binanceWSBaseUrl}/market/ws`, // Market (regular market data)
   binancePrivateWSBaseUrl: `${binanceWSBaseUrl}/private/ws`, // Private (user data)
-  apiBaseUrl: 'https://api-trading-bot.onrender.com',
+  apiBaseUrl: 'http://localhost:5555',
 };
 
 export const testnetEnv = {
