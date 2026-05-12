@@ -1,5 +1,5 @@
 import { Component, DestroyRef, inject, signal, ViewChild } from '@angular/core';
-import { DragDropModule } from '@angular/cdk/drag-drop'; // Import this
+import { DragDropModule } from '@angular/cdk/drag-drop';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
@@ -16,6 +16,7 @@ import { OrderSideEnum } from '../../core/models/trades.model';
 import { InputTextModule } from 'primeng/inputtext';
 import { ButtonModule } from 'primeng/button';
 import { ScrollPanel, ScrollPanelModule } from 'primeng/scrollpanel';
+import { TabsModule } from 'primeng/tabs';
 
 @Component({
   selector: 'app-chat',
@@ -27,11 +28,13 @@ import { ScrollPanel, ScrollPanelModule } from 'primeng/scrollpanel';
     InputTextModule,
     ButtonModule,
     ScrollPanelModule,
+    TabsModule,
   ],
   standalone: true,
 })
 export class ChatComponent {
   @ViewChild('chatScrollPanel') chatScrollPanel!: ScrollPanel;
+  @ViewChild('analyzeScrollPanel') analyzeScrollPanel!: ScrollPanel;
 
   private readonly aiService = inject(AIService);
   private readonly chartService = inject(ChartService);
@@ -49,6 +52,7 @@ export class ChatComponent {
   isMaximized = signal<boolean>(false);
   isLoading = signal<boolean>(false);
   isAnalyzing = signal<boolean>(false);
+  chatTabIndex: number = 0;
   message: string = '';
   conversation: ChatResponse[] = [
     {
@@ -59,8 +63,97 @@ export class ChatComponent {
     },
   ];
 
+  analyzeSignals: AIResponse[] = [];
+
   ngOnInit(): void {
     // this.sampleConversation();
+    // this.sampleSignals();
+  }
+
+  sampleSignals(): void {
+    this.analyzeSignals = [
+      {
+        status: 'accepted',
+        message:
+          'BTCUSDT exhibits strong bullish momentum on the daily timeframe, maintaining price discovery above the $75,000 threshold. The 15m timeframe shows an impulsive expansion to $76,350 followed by a healthy corrective consolidation. Market structure remains bullish as price forms higher lows above previous resistance turned support. Confluence is established through the 20-period EMA providing dynamic support and the RSI cooling from overbought levels, suggesting a trend continuation. Key liquidity resides at $75,400. A break above $76,350 targets Fibonacci extension levels near $77,500.',
+        timestamp: new Date().toLocaleTimeString(),
+        response: {
+          indicators: ['EMA 50', 'RSI'],
+          pattern: ['Bullish Flag'],
+          type: OrderSideEnum.BUY,
+          entryZone: [75500, 75700],
+          sl: 74950,
+          tp: 77200,
+          leverage: 35,
+          riskReward: 2.46,
+          reasoning:
+            'Strong bullish expansion past $76k followed by high-volume consolidation. Retest of the breakout zone coincides with the 15m 50-EMA and structural support. Confidence is high due to the alignment of daily and intraday trends.',
+          confidence: {
+            score: 86,
+            components: {
+              trend: 92,
+              momentum: 85,
+              volume: 80,
+              structure: 88,
+            },
+          },
+        },
+      },
+      {
+        status: 'accepted',
+        message:
+          'BTCUSDT exhibits strong bullish momentum on the daily timeframe, maintaining price discovery above the $75,000 threshold. The 15m timeframe shows an impulsive expansion to $76,350 followed by a healthy corrective consolidation. Market structure remains bullish as price forms higher lows above previous resistance turned support. Confluence is established through the 20-period EMA providing dynamic support and the RSI cooling from overbought levels, suggesting a trend continuation. Key liquidity resides at $75,400. A break above $76,350 targets Fibonacci extension levels near $77,500.',
+        timestamp: new Date().toLocaleTimeString(),
+        response: {
+          indicators: ['EMA 50', 'RSI'],
+          pattern: ['Bullish Flag'],
+          type: OrderSideEnum.BUY,
+          entryZone: [75500, 75700],
+          sl: 74950,
+          tp: 77200,
+          leverage: 35,
+          riskReward: 2.46,
+          reasoning:
+            'Strong bullish expansion past $76k followed by high-volume consolidation. Retest of the breakout zone coincides with the 15m 50-EMA and structural support. Confidence is high due to the alignment of daily and intraday trends.',
+          confidence: {
+            score: 86,
+            components: {
+              trend: 92,
+              momentum: 85,
+              volume: 80,
+              structure: 88,
+            },
+          },
+        },
+      },
+      {
+        status: 'accepted',
+        message:
+          'BTCUSDT exhibits strong bullish momentum on the daily timeframe, maintaining price discovery above the $75,000 threshold. The 15m timeframe shows an impulsive expansion to $76,350 followed by a healthy corrective consolidation. Market structure remains bullish as price forms higher lows above previous resistance turned support. Confluence is established through the 20-period EMA providing dynamic support and the RSI cooling from overbought levels, suggesting a trend continuation. Key liquidity resides at $75,400. A break above $76,350 targets Fibonacci extension levels near $77,500.',
+        timestamp: new Date().toLocaleTimeString(),
+        response: {
+          indicators: ['EMA 50', 'RSI'],
+          pattern: ['Bullish Flag'],
+          type: OrderSideEnum.BUY,
+          entryZone: [75500, 75700],
+          sl: 74950,
+          tp: 77200,
+          leverage: 35,
+          riskReward: 2.46,
+          reasoning:
+            'Strong bullish expansion past $76k followed by high-volume consolidation. Retest of the breakout zone coincides with the 15m 50-EMA and structural support. Confidence is high due to the alignment of daily and intraday trends.',
+          confidence: {
+            score: 86,
+            components: {
+              trend: 92,
+              momentum: 85,
+              volume: 80,
+              structure: 88,
+            },
+          },
+        },
+      },
+    ];
   }
 
   sampleConversation(): void {
@@ -103,97 +196,6 @@ export class ChatComponent {
         timestamp: new Date().toLocaleTimeString(),
         isError: false,
       },
-      {
-        sender: 'bot',
-        message:
-          'BTCUSDT exhibits strong bullish momentum on the daily timeframe, maintaining price discovery above the $75,000 threshold. The 15m timeframe shows an impulsive expansion to $76,350 followed by a healthy corrective consolidation. Market structure remains bullish as price forms higher lows above previous resistance turned support. Confluence is established through the 20-period EMA providing dynamic support and the RSI cooling from overbought levels, suggesting a trend continuation. Key liquidity resides at $75,400. A break above $76,350 targets Fibonacci extension levels near $77,500.',
-        timestamp: new Date().toLocaleTimeString(),
-        isError: false,
-        data: {
-          status: 'accepted',
-          message:
-            'BTCUSDT exhibits strong bullish momentum on the daily timeframe, maintaining price discovery above the $75,000 threshold. The 15m timeframe shows an impulsive expansion to $76,350 followed by a healthy corrective consolidation. Market structure remains bullish as price forms higher lows above previous resistance turned support. Confluence is established through the 20-period EMA providing dynamic support and the RSI cooling from overbought levels, suggesting a trend continuation. Key liquidity resides at $75,400. A break above $76,350 targets Fibonacci extension levels near $77,500.',
-          response: {
-            signal: {
-              type: OrderSideEnum.BUY,
-              entryZone: [75500, 75700],
-              sl: 74950,
-              tp: 77200,
-              leverage: 35,
-              riskReward: 2.46,
-              reasoning:
-                'Strong bullish expansion past $76k followed by high-volume consolidation. Retest of the breakout zone coincides with the 15m 50-EMA and structural support. Confidence is high due to the alignment of daily and intraday trends.',
-              confidence: {
-                score: 86,
-                components: {
-                  trend: 92,
-                  momentum: 85,
-                  volume: 80,
-                  structure: 88,
-                },
-              },
-            },
-            buy: [
-              {
-                indicators: ['EMA 50', 'RSI'],
-                pattern: ['Bullish Flag'],
-                leverage: 5,
-                entryZone: [75200, 75500],
-                sl: 74200,
-                tp: 77500,
-                riskReward: 2.3,
-              },
-              {
-                indicators: ['EMA 20', 'VWAP'],
-                pattern: ['Break of Structure'],
-                leverage: 15,
-                entryZone: [75500, 75700],
-                sl: 74950,
-                tp: 77200,
-                riskReward: 2.46,
-              },
-              {
-                indicators: ['Stochastic RSI', 'Bollinger Bands'],
-                pattern: ['Bullish Engulfing'],
-                leverage: 35,
-                entryZone: [75650, 75750],
-                sl: 75300,
-                tp: 76800,
-                riskReward: 2.56,
-              },
-            ],
-            sell: [
-              {
-                indicators: ['RSI Divergence', 'EMA 20'],
-                pattern: ['Double Top'],
-                leverage: 5,
-                entryZone: [76200, 76350],
-                sl: 76850,
-                tp: 75200,
-                riskReward: 1.54,
-              },
-              {
-                indicators: ['MACD Histogram', 'Volume Profile'],
-                pattern: ['Rising Wedge'],
-                leverage: 15,
-                entryZone: [76100, 76250],
-                sl: 76600,
-                tp: 74800,
-                riskReward: 2.88,
-              },
-              {
-                indicators: ['Bollinger Bands', 'RSI Overbought'],
-                pattern: ['M-Top'],
-                leverage: 35,
-                entryZone: [76300, 76350],
-                sl: 76550,
-                tp: 75800,
-                riskReward: 2.2,
-              },
-            ],
-          },
-        },
-      },
     ];
     this.conversation.push(...convo);
 
@@ -202,7 +204,7 @@ export class ChatComponent {
 
   openChat(): void {
     this.chatOpen.set(!this.chatOpen());
-    this.scrollToBottom();
+    this.chatScrollToBottom();
   }
 
   closeChat(): void {
@@ -215,6 +217,8 @@ export class ChatComponent {
   }
 
   analyze(): void {
+    if (this.isAnalyzing()) return;
+    
     this.isAnalyzing.set(true);
 
     this.aiService
@@ -222,46 +226,30 @@ export class ChatComponent {
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
         next: (res: AIResponse) => {
-          if (res.status === 'accepted') {
-            this.conversation.push({
-              sender: 'bot',
-              message: res.message,
-              timestamp: new Date().toLocaleTimeString(),
-              isError: false,
-              data: res,
-            });
-          } else {
-            this.conversation.push({
-              sender: 'bot',
-              message: res.message,
-              timestamp: new Date().toLocaleTimeString(),
-              isError: true,
-            });
-          }
+          this.analyzeSignals.push({
+            ...res,
+            timestamp: new Date().toLocaleTimeString(),
+          });
 
-          this.message = '';
-          this.isLoading.set(false);
           this.isAnalyzing.set(false);
-          this.scrollToBottom();
+          this.anaylzeScrollToBottom();
         },
         error: (err: any) => {
-          this.message = '';
-          this.conversation.push({
-            sender: 'bot',
+          this.analyzeSignals.push({
+            status: 'rejected',
             message: 'Something went wrong. Please try again.',
             timestamp: new Date().toLocaleTimeString(),
-            isError: true,
+            response: null
           });
           console.error(err);
-          this.isLoading.set(false);
           this.isAnalyzing.set(false);
-          this.scrollToBottom();
+          this.anaylzeScrollToBottom();
         },
       });
   }
 
   chatBot(): void {
-    if (!this.message || this.message.length < 3) return;
+    if (!this.message || this.message.length < 3 || this.isLoading()) return;
     this.isLoading.set(true);
 
     this.conversation.push({
@@ -312,10 +300,10 @@ export class ChatComponent {
     this.message = '';
     this.isLoading.set(false);
     this.isAnalyzing.set(false);
-    this.scrollToBottom();
+    this.chatScrollToBottom();
   }
 
-  scrollToBottom(): void {
+  chatScrollToBottom(): void {
     setTimeout(() => {
       const container = this.chatScrollPanel?.contentViewChild?.nativeElement;
       if (container) {
@@ -325,5 +313,25 @@ export class ChatComponent {
         });
       }
     }, 0);
+  }
+
+  anaylzeScrollToBottom(): void {
+    setTimeout(() => {
+      const container = this.analyzeScrollPanel?.contentViewChild?.nativeElement;
+      if (container) {
+        container.scrollTo({
+          top: container.scrollHeight,
+          behavior: 'smooth',
+        });
+      }
+    }, 0);
+  }
+
+  onTabChange(event: any): void {
+    if (event === 0) {
+      this.chatScrollToBottom();
+    } else {
+      this.anaylzeScrollToBottom();
+    }
   }
 }
