@@ -5,22 +5,18 @@ export interface ChatResponse {
   message: string;
   timestamp: string;
   isError: boolean;
-  data?: AIResponse | null;
 }
 
 export interface AIResponse {
   status: string;
   message: string;
-  response: AIResponseData | null;
-}
-
-interface AIResponseData {
-  signal: AISignal;
-  buy: AIResponseDataEntry[];
-  sell: AIResponseDataEntry[];
+  timestamp: string;
+  response: AISignal | null;
 }
 
 interface AISignal {
+  indicators: string[];
+  pattern: string[];
   type: OrderSideEnum;
   entryZone: number[];
   sl: number;
@@ -39,14 +35,4 @@ interface AIConfidence {
     volume: number;
     structure: number;
   };
-}
-
-interface AIResponseDataEntry {
-  indicators: string[];
-  pattern: string[];
-  entryZone: number[];
-  sl: number;
-  tp: number;
-  leverage: number;
-  riskReward: number;
 }
