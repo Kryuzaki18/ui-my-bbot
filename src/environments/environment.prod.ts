@@ -1,22 +1,20 @@
-//https://developers.binance.com/docs/derivatives/usds-margined-futures/websocket-market-streams/Important-WebSocket-Change-Notice
-const binanceWSBaseUrl = 'wss://fstream.binance.com';
-const binanceTestnetWSBaseUrl = 'wss://fstream.binancefuture.com';
-
+// In prod, all Binance traffic is proxied through the backend to avoid browser CORS restrictions.
+// WS paths are relative — AppSettingsService resolves them to absolute wss:// URLs at runtime.
 export const prodEnv = {
-  binanceFutureRestBaseUrl: 'https://fapi.binance.com',
-  binanceWSBaseUrl: `${binanceWSBaseUrl}/ws`,
-  binancePublicWSBaseUrl: `${binanceWSBaseUrl}/public/ws`, // Public (high-frequency public market data)
-  binanceMarketWSBaseUrl: `${binanceWSBaseUrl}/market/ws`, // Market (regular market data)
-  binancePrivateWSBaseUrl: `${binanceWSBaseUrl}/private/ws`, // Private (user data)
+  binanceFutureRestBaseUrl: '',
+  binanceWSBaseUrl: '/fstream-proxy/ws',
+  binancePublicWSBaseUrl: '/fstream-proxy/public/ws',
+  binanceMarketWSBaseUrl: '/fstream-proxy/market/ws',
+  binancePrivateWSBaseUrl: '/fstream-proxy/private/ws',
   apiBaseUrl: '',
 };
 
 export const testnetEnv = {
-  binanceFutureRestBaseUrl: 'https://demo-fapi.binance.com',
-  binanceWSBaseUrl: `${binanceTestnetWSBaseUrl}/ws`,
-  binancePublicWSBaseUrl: `${binanceTestnetWSBaseUrl}/public/ws`,
-  binanceMarketWSBaseUrl: `${binanceTestnetWSBaseUrl}/market/ws`,
-  binancePrivateWSBaseUrl: `${binanceTestnetWSBaseUrl}/private/ws`,
+  binanceFutureRestBaseUrl: '/demo-fapi',
+  binanceWSBaseUrl: '/fstream-testnet-proxy/ws',
+  binancePublicWSBaseUrl: '/fstream-testnet-proxy/public/ws',
+  binanceMarketWSBaseUrl: '/fstream-testnet-proxy/market/ws',
+  binancePrivateWSBaseUrl: '/fstream-testnet-proxy/private/ws',
   apiBaseUrl: '',
 };
 

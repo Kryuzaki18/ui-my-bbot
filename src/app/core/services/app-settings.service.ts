@@ -24,7 +24,22 @@ export class AppSettingsService implements OnDestroy {
   readonly isLoadingPendingTpSl$ = this.isLoadingPendingTpSlSubject.asObservable();
 
   readonly isTestnet = this.localStorageService.getLocalStorageSignal<boolean>(STORAGE.TESTNET, false);
-  readonly env = computed(() => this.isTestnet() ? testnetEnv : prodEnv);
+  readonly env = computed(() => this.resolveWsUrls(this.isTestnet() ? testnetEnv : prodEnv));
+
+  private resolveWsUrls(config: typeof prodEnv): typeof prodEnv {
+    if (config.binanceWSBaseUrl.startsWith('wss://') || config.binanceWSBaseUrl.startsWith('ws://')) {
+      return config;
+    }
+    const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+    const base = `${protocol}//${window.location.host}`;
+    return {
+      ...config,
+      binanceWSBaseUrl: `${base}${config.binanceWSBaseUrl}`,
+      binancePublicWSBaseUrl: `${base}${config.binancePublicWSBaseUrl}`,
+      binanceMarketWSBaseUrl: `${base}${config.binanceMarketWSBaseUrl}`,
+      binancePrivateWSBaseUrl: `${base}${config.binancePrivateWSBaseUrl}`,
+    };
+  }
 
   readonly appName = "Bbot";
 
