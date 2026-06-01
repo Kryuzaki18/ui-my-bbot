@@ -8,7 +8,7 @@ export const prodEnv = {
   binancePublicWSBaseUrl: `${binanceWSBaseUrl}/public/ws`, // Public (high-frequency public market data)
   binanceMarketWSBaseUrl: `${binanceWSBaseUrl}/market/ws`, // Market (regular market data)
   binancePrivateWSBaseUrl: `${binanceWSBaseUrl}/private/ws`, // Private (user data)
-  apiBaseUrl: 'https://api-trading-bot-e5wc.onrender.com',
+  apiBaseUrl: '',
 };
 
 export const testnetEnv = {
@@ -17,7 +17,7 @@ export const testnetEnv = {
   binancePublicWSBaseUrl: `${binanceTestnetWSBaseUrl}/public/ws`,
   binanceMarketWSBaseUrl: `${binanceTestnetWSBaseUrl}/market/ws`,
   binancePrivateWSBaseUrl: `${binanceTestnetWSBaseUrl}/private/ws`,
-  apiBaseUrl: 'https://api-trading-bot-e5wc.onrender.com',
+  apiBaseUrl: '',
 };
 
 export const BINANCE_PUBLIC_API_ROUTES = {
