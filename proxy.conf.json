@@ -3,6 +3,6 @@
     "target": "https://api-trading-bot-e5wc.onrender.com",
     "changeOrigin": true,
     "secure": true,
-    "pathRewrite": { "^/api": "/api" }
+    "logLevel": "debug"
   }
 }
