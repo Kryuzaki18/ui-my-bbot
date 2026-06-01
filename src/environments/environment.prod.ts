@@ -3,7 +3,7 @@ const binanceWSBaseUrl = 'wss://fstream.binance.com';
 const binanceTestnetWSBaseUrl = 'wss://fstream.binancefuture.com';
 
 export const prodEnv = {
-  binanceFutureRestBaseUrl: 'https://fapi.binance.com',
+  binanceFutureRestBaseUrl: '',
   binanceWSBaseUrl: `${binanceWSBaseUrl}/ws`,
   binancePublicWSBaseUrl: `${binanceWSBaseUrl}/public/ws`, // Public (high-frequency public market data)
   binanceMarketWSBaseUrl: `${binanceWSBaseUrl}/market/ws`, // Market (regular market data)
