@@ -12,7 +12,7 @@ export const prodEnv = {
 };
 
 export const testnetEnv = {
-  binanceFutureRestBaseUrl: 'https://demo-fapi.binance.com',
+  binanceFutureRestBaseUrl: '',
   binanceWSBaseUrl: `${binanceTestnetWSBaseUrl}/ws`,
   binancePublicWSBaseUrl: `${binanceTestnetWSBaseUrl}/public/ws`,
   binanceMarketWSBaseUrl: `${binanceTestnetWSBaseUrl}/market/ws`,
