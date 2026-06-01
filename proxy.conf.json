@@ -4,11 +4,5 @@
     "changeOrigin": true,
     "secure": true,
     "logLevel": "debug"
-  },
-  "/fapi": {
-    "target": "https://fapi.binance.com",
-    "changeOrigin": true,
-    "secure": true,
-    "logLevel": "debug"
   }
 }
