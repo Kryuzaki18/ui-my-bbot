@@ -49,7 +49,6 @@ export class ChatComponent {
   }
 
   chatOpen = signal<boolean>(false);
-  isMaximized = signal<boolean>(false);
   isLoading = signal<boolean>(false);
   isAnalyzing = signal<boolean>(false);
   chatTabIndex: number = 0;
@@ -209,11 +208,6 @@ export class ChatComponent {
 
   closeChat(): void {
     this.chatOpen.set(false);
-    this.isMaximized.set(false);
-  }
-
-  toggleMaximize(): void {
-    this.isMaximized.set(!this.isMaximized());
   }
 
   analyze(): void {
