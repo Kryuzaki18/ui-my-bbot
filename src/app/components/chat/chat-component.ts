@@ -56,7 +56,7 @@ export class ChatComponent {
   conversation: ChatResponse[] = [
     {
       sender: 'bot',
-      message: 'Hi! 👋 Thanks for reaching out. How can I help you?',
+      message: 'Hi! I\'m Bbot, your crypto trading AI. Ask me anything about markets, technical analysis, or trading strategies.',
       timestamp: new Date().toLocaleTimeString(),
       isError: false,
     },

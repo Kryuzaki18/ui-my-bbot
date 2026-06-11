@@ -34,8 +34,8 @@ export const BINANCE_PUBLIC_API_ROUTES = {
 
 export const API_ROUTES = {
   ai: {
-    chat: '/api/chat',
-    analyzeMarket: '/api/analyze-market',
+    chat: '/api/claude/chat',
+    analyzeMarket: '/api/claude/analyze-market',
     tradeBot: '/api/trade-bot',
   },
   auth: {
