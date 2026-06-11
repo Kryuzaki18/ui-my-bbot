@@ -40,12 +40,22 @@
                   [ngClass]="isMaximized() ? 'pi-window-minimize' : 'pi-window-maximize'"
                 ></span>
               </button> -->
-              <button
-                (click)="closeChat()"
-                class="hover:bg-white/10 rounded-full h-8 w-8 transition-colors cursor-pointer flex items-center justify-center"
-              >
-                <span class="pi pi-times text-xs"></span>
-              </button>
+              <div class="flex items-center gap-1">
+                <button
+                  (click)="clearHistory()"
+                  [disabled]="isClearingHistory()"
+                  title="Clear chat history"
+                  class="hover:bg-white/10 rounded-full h-8 w-8 transition-colors cursor-pointer flex items-center justify-center disabled:opacity-40 disabled:cursor-not-allowed"
+                >
+                  <span class="pi pi-trash text-xs"></span>
+                </button>
+                <button
+                  (click)="closeChat()"
+                  class="hover:bg-white/10 rounded-full h-8 w-8 transition-colors cursor-pointer flex items-center justify-center"
+                >
+                  <span class="pi pi-times text-xs"></span>
+                </button>
+              </div>
             <!-- </div> -->
           </div>
 

@@ -9,7 +9,7 @@ import { AIService } from '../../core/services/ai.service';
 import { ChartService } from '../../core/services/chart/chart.service';
 
 // Models
-import { AIResponse, ChatResponse, ConversationMessage } from '../../core/models/ai.model';
+import { AIResponse, ChatResponse, ConversationHistoryMessage } from '../../core/models/ai.model';
 import { OrderSideEnum } from '../../core/models/trades.model';
 
 // PrimeNG Modules
@@ -48,25 +48,25 @@ export class ChatComponent {
     return this.chartService.selectedTimeframe();
   }
 
+  readonly INITIAL_MESSAGE: ChatResponse = {
+    sender: 'bot',
+    message: 'Hi! I\'m Bbot, your crypto trading AI. Ask me anything about markets, technical analysis, or trading strategies.',
+    timestamp: new Date().toLocaleTimeString(),
+    isError: false,
+  };
+
   chatOpen = signal<boolean>(false);
   isLoading = signal<boolean>(false);
   isAnalyzing = signal<boolean>(false);
+  isClearingHistory = signal<boolean>(false);
   chatTabIndex: number = 0;
   message: string = '';
-  conversation: ChatResponse[] = [
-    {
-      sender: 'bot',
-      message: 'Hi! I\'m Bbot, your crypto trading AI. Ask me anything about markets, technical analysis, or trading strategies.',
-      timestamp: new Date().toLocaleTimeString(),
-      isError: false,
-    },
-  ];
+  conversation: ChatResponse[] = [{ ...this.INITIAL_MESSAGE }];
 
   analyzeSignals: AIResponse[] = [];
 
   ngOnInit(): void {
-    // this.sampleConversation();
-    // this.sampleSignals();
+    this.loadHistory();
   }
 
   sampleSignals(): void {
@@ -242,46 +242,72 @@ export class ChatComponent {
       });
   }
 
+  loadHistory(): void {
+    this.aiService
+      .getHistory()
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: (messages: ConversationHistoryMessage[]) => {
+          if (messages.length > 0) {
+            const history: ChatResponse[] = messages.map((m) => ({
+              sender: m.role === 'user' ? 'user' : 'bot',
+              message: m.content,
+              timestamp: m.createdAt ? new Date(m.createdAt).toLocaleTimeString() : '',
+              isError: false,
+            }));
+            this.conversation = [{ ...this.INITIAL_MESSAGE }, ...history];
+            this.chatScrollToBottom();
+          }
+        },
+        error: () => {},
+      });
+  }
+
+  clearHistory(): void {
+    if (this.isClearingHistory()) return;
+    this.isClearingHistory.set(true);
+
+    this.aiService
+      .clearHistory()
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: () => {
+          this.conversation = [{ ...this.INITIAL_MESSAGE }];
+          this.isClearingHistory.set(false);
+          this.chatScrollToBottom();
+        },
+        error: () => {
+          this.isClearingHistory.set(false);
+        },
+      });
+  }
+
   chatBot(): void {
     if (!this.message || this.message.length < 3 || this.isLoading()) return;
     this.isLoading.set(true);
 
-    const history: ConversationMessage[] = this.conversation.map((c) => ({
-      role: c.sender === 'user' ? 'user' : 'assistant',
-      content: c.message,
-    }));
+    const userMessage = this.message;
 
     this.conversation.push({
       sender: 'user',
-      message: this.message,
+      message: userMessage,
       timestamp: new Date().toLocaleTimeString(),
       isError: false,
     });
 
     this.aiService
-      .chatBot(this.message, history)
+      .chatBot(userMessage)
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
         next: (res: AIResponse) => {
-          if (res.status === 'accepted') {
-            this.conversation.push({
-              sender: 'bot',
-              message: res.message,
-              timestamp: new Date().toLocaleTimeString(),
-              isError: false,
-            });
-          } else {
-            this.conversation.push({
-              sender: 'bot',
-              message: res.message,
-              timestamp: new Date().toLocaleTimeString(),
-              isError: true,
-            });
-          }
-
+          this.conversation.push({
+            sender: 'bot',
+            message: res.message,
+            timestamp: new Date().toLocaleTimeString(),
+            isError: res.status !== 'accepted',
+          });
           this.reset();
         },
-
         error: (err: any) => {
           this.conversation.push({
             sender: 'bot',

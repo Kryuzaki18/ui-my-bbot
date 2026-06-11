@@ -36,6 +36,7 @@ export const API_ROUTES = {
   ai: {
     chat: '/api/claude/chat',
     analyzeMarket: '/api/claude/analyze-market',
+    history: '/api/claude/history',
     tradeBot: '/api/trade-bot',
   },
   auth: {

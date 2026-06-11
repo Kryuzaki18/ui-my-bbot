@@ -12,6 +12,12 @@ export interface ConversationMessage {
   content: string;
 }
 
+export interface ConversationHistoryMessage {
+  role: 'user' | 'assistant';
+  content: string;
+  createdAt: string;
+}
+
 export interface AIResponse {
   status: string;
   message: string;
