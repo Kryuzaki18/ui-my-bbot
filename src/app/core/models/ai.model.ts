@@ -7,6 +7,11 @@ export interface ChatResponse {
   isError: boolean;
 }
 
+export interface ConversationMessage {
+  role: 'user' | 'assistant';
+  content: string;
+}
+
 export interface AIResponse {
   status: string;
   message: string;

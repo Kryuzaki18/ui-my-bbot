@@ -9,7 +9,7 @@ import { inject, Injectable } from '@angular/core';
 import { AppSettingsService } from './app-settings.service';
 
 // Models
-import { AIResponse } from '../models/ai.model';
+import { AIResponse, ConversationMessage } from '../models/ai.model';
 import { TradeBotPayload, TradeBotResponse } from '../models/trades.model';
 
 @Injectable({
@@ -20,8 +20,8 @@ export class AIService {
   private readonly appSettingsService = inject(AppSettingsService);
   private readonly apiBaseUrl = this.appSettingsService.env().apiBaseUrl;
 
-  chatBot(message: string): Observable<AIResponse> {
-    return this.http.post<AIResponse>(`${this.apiBaseUrl}${API_ROUTES.ai.chat}`, { message });
+  chatBot(message: string, history: ConversationMessage[]): Observable<AIResponse> {
+    return this.http.post<AIResponse>(`${this.apiBaseUrl}${API_ROUTES.ai.chat}`, { message, history });
   }
 
   analyzeMarket(symbol: string, interval: string): Observable<AIResponse> {

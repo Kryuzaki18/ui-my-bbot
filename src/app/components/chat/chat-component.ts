@@ -9,7 +9,7 @@ import { AIService } from '../../core/services/ai.service';
 import { ChartService } from '../../core/services/chart/chart.service';
 
 // Models
-import { AIResponse, ChatResponse } from '../../core/models/ai.model';
+import { AIResponse, ChatResponse, ConversationMessage } from '../../core/models/ai.model';
 import { OrderSideEnum } from '../../core/models/trades.model';
 
 // PrimeNG Modules
@@ -246,6 +246,11 @@ export class ChatComponent {
     if (!this.message || this.message.length < 3 || this.isLoading()) return;
     this.isLoading.set(true);
 
+    const history: ConversationMessage[] = this.conversation.map((c) => ({
+      role: c.sender === 'user' ? 'user' : 'assistant',
+      content: c.message,
+    }));
+
     this.conversation.push({
       sender: 'user',
       message: this.message,
@@ -254,7 +259,7 @@ export class ChatComponent {
     });
 
     this.aiService
-      .chatBot(this.message)
+      .chatBot(this.message, history)
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
         next: (res: AIResponse) => {
