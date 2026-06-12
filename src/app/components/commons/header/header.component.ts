@@ -3,29 +3,29 @@ import { Router } from '@angular/router';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
 // Components
-import { SigninComponent } from '../../components/signin/signin.component';
-import { AccountBalanceComponent } from '../../components/account-balance/account-balance.component';
-import { TradeFormComponent } from '../../components/trade-form/trades-form.component';
+import { SigninComponent } from '../../../components/signin/signin.component';
+import { AccountBalanceComponent } from '../../../components/account-balance/account-balance.component';
+import { TradeFormComponent } from '../../../components/trade-form/trades-form.component';
 
 // Constants
-import { STORAGE } from '../../core/constants/binance.constant';
+import { STORAGE } from '../../../core/constants/binance.constant';
 
 // Services
-import { AppSettingsService } from '../../core/services/app-settings.service';
-import { ChartService } from '../../core/services/chart/chart.service';
-import { BinanceRestService } from '../../core/services/binance-rest.service';
-import { LocalStorageService } from '../../core/services/local-storage.service';
+import { AppSettingsService } from '../../../core/services/app-settings.service';
+import { ChartService } from '../../../core/services/chart/chart.service';
+import { BinanceRestService } from '../../../core/services/binance-rest.service';
+import { LocalStorageService } from '../../../core/services/local-storage.service';
+import { AuthService } from '../../../core/services/auth.service';
+import { ToastMessageService } from '../../../core/services/toast-message.service';
 
 //PrimeNG Modules
 import { ButtonModule } from 'primeng/button';
 import { DialogModule } from 'primeng/dialog';
-import { AuthService } from '../../core/services/auth.service';
 import { DialogService, DynamicDialogModule } from 'primeng/dynamicdialog';
 import { MenuModule } from 'primeng/menu';
 import { MenuItem } from 'primeng/api';
 import { SkeletonModule } from 'primeng/skeleton';
 import { TooltipModule } from 'primeng/tooltip';
-import { ToastMessageService } from '../../core/services/toast-message.service';
 
 @Component({
   selector: 'app-header',

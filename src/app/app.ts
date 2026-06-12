@@ -3,8 +3,8 @@ import { RouterModule } from '@angular/router';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
 // Components
-import { HeaderComponent } from './commons/header/header.component';
-import { FooterComponent } from './commons/footer/footer.component';
+import { HeaderComponent } from './components/commons/header/header.component';
+import { FooterComponent } from './components/commons/footer/footer.component';
 import { ChatComponent } from './components/chat/chat-component';
 
 //Services
