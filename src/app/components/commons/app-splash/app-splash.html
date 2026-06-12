@@ -1,5 +1,5 @@
 @if (splashService.isRendered()) {
-  <div class="splash-overlay" [class.is-exiting]="splashService.phase() === 'exiting'">
+  <div class="splash-overlay" [class.is-exiting]="splashService.phase() === 'done'">
     <div class="splash-bg">
       <div class="splash-grid"></div>
       <div class="glow-orb glow-orb-1"></div>
@@ -26,23 +26,6 @@
         </div>
         <h1 class="brand-name">Bbot</h1>
       </div>
-      <p class="brand-subtitle">Futures Trading Bot</p>
-
-      <div class="brand-divider">
-        <span class="divider-line"></span>
-        <span class="divider-diamond"></span>
-        <span class="divider-line right"></span>
-      </div>
-
-      @if (splashService.phase() === 'loading') {
-        <div class="loading-area">
-          <div class="loading-dots">
-            <span class="dot"></span>
-            <span class="dot"></span>
-            <span class="dot"></span>
-          </div>
-        </div>
-      }
     </div>
   </div>
 }

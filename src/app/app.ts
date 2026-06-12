@@ -14,7 +14,6 @@ import { AppSplash } from './components/commons/app-splash/app-splash';
 import { AuthService } from './core/services/auth.service';
 import { BinanceRestService } from './core/services/binance-rest.service';
 import { ToastMessageService } from './core/services/toast-message.service';
-import { SplashService } from './core/services/splash.service';
 
 // PrimeNG Modules
 import { ConfirmDialogModule } from 'primeng/confirmdialog';
@@ -44,7 +43,6 @@ export class App implements OnInit {
   private readonly binanceRestService = inject(BinanceRestService);
   private readonly toastMessageService = inject(ToastMessageService);
   private readonly authService = inject(AuthService);
-  private readonly splashService = inject(SplashService);
   private readonly router = inject(Router);
   private readonly document = inject(DOCUMENT);
   private readonly destroyRef = inject(DestroyRef);
@@ -53,10 +51,7 @@ export class App implements OnInit {
     this.authService
       .checkAuth()
       .pipe(takeUntilDestroyed(this.destroyRef))
-      .subscribe({
-        next: (isAuth) => this.splashService.complete(isAuth),
-        error: () => this.splashService.complete(false),
-      });
+      .subscribe();
 
     this.router.events
       .pipe(
