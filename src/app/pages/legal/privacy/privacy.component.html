@@ -1,0 +1,437 @@
+<div class="min-h-screen bg-gray-950 flex flex-col">
+
+  <!-- Top navigation bar -->
+  <div class="bg-gray-900 border-b border-gray-800 sticky top-[50px] z-50">
+    <div class="max-w-6xl mx-auto px-4 sm:px-6 py-3 flex items-center justify-between gap-4">
+      <p-button
+        routerLink="/home"
+        variant="text"
+        severity="secondary"
+        size="small"
+        icon="pi pi-arrow-left"
+        label="Back to App"
+      />
+      <div class="flex items-center gap-2 shrink-0">
+        <span class="hidden sm:inline text-gray-600 text-xs">Effective:</span>
+        <p-tag [value]="effectiveDate" severity="secondary" />
+        <p-tag [value]="'v' + version" severity="success" />
+      </div>
+    </div>
+  </div>
+
+  <!-- Hero section -->
+  <div class="bg-gray-900 border-b border-gray-800">
+    <div class="max-w-6xl mx-auto px-4 sm:px-6 py-12 sm:py-16">
+      <div class="flex items-center gap-3 mb-5">
+        <div class="h-10 w-10 rounded-lg bg-blue-500/10 border border-blue-500/20 flex items-center justify-center shrink-0">
+          <span class="pi pi-shield text-blue-400"></span>
+        </div>
+        <p-tag value="Legal" severity="success" [rounded]="true" />
+      </div>
+      <h1 class="text-2xl sm:text-3xl lg:text-4xl font-bold text-white mb-4 jetbrains-bold">
+        Privacy Policy
+      </h1>
+      <p class="text-gray-400 text-sm sm:text-base leading-7 max-w-2xl mb-6">
+        Your privacy is important to us. This policy explains what data we collect, how we use it,
+        and the choices you have regarding your information.
+      </p>
+      <div class="flex flex-wrap items-center gap-2">
+        <p-chip label="GDPR Aware" icon="pi pi-verified" />
+        <p-chip label="No Data Selling" icon="pi pi-ban" />
+        <p-chip label="Encrypted Storage" icon="pi pi-lock" />
+        <p-chip label="Anonymous Sessions" icon="pi pi-user" />
+      </div>
+    </div>
+  </div>
+
+  <!-- Main content area -->
+  <div class="flex-1 max-w-6xl mx-auto w-full px-4 sm:px-6 py-10">
+    <div class="grid grid-cols-1 lg:grid-cols-4 gap-8 lg:gap-12">
+
+      <!-- Sticky TOC sidebar — desktop only -->
+      <aside class="hidden lg:block col-span-1">
+        <div class="sticky top-[106px] bg-gray-900 border border-gray-800 rounded-xl p-5">
+          <p class="text-gray-500 text-[11px] uppercase tracking-widest jetbrains-bold mb-4">
+            Contents
+          </p>
+          <nav class="flex flex-col gap-0.5">
+            @for (section of sections; track section.id) {
+              <button
+                type="button"
+                (click)="scrollTo(section.id)"
+                class="relative w-full text-left text-xs py-2 pl-4 pr-3 rounded-lg transition-all duration-200 cursor-pointer"
+                [ngClass]="activeSection() === section.id
+                  ? 'text-emerald-500 bg-emerald-500/10 font-medium'
+                  : 'text-gray-500 hover:text-emerald-400 hover:bg-gray-800'"
+              >
+                <span
+                  class="absolute left-0 top-1/2 -translate-y-1/2 w-0.5 rounded-r-full bg-emerald-500 transition-all duration-200"
+                  [ngClass]="activeSection() === section.id ? 'h-4 opacity-100' : 'h-0 opacity-0'"
+                ></span>
+                {{ section.label }}
+              </button>
+            }
+          </nav>
+        </div>
+
+        <!-- Data types quick reference -->
+        <div class="mt-4 bg-gray-900 border border-gray-800 rounded-xl p-5">
+          <p class="text-gray-500 text-[11px] uppercase tracking-widest jetbrains-bold mb-4">
+            We Collect
+          </p>
+          <div class="flex flex-col gap-2">
+            @for (item of collectItems; track $index) {
+              <div class="flex items-center gap-2">
+                <span class="pi {{ item.icon }} {{ item.color }} text-xs"></span>
+                <span class="text-gray-500 text-xs">{{ item.label }}</span>
+              </div>
+            }
+          </div>
+        </div>
+      </aside>
+
+      <!-- Article content -->
+      <article class="lg:col-span-3 flex flex-col gap-10">
+
+        <!-- 1. Information We Collect -->
+        <section class="scroll-mt-28" id="collect">
+          <div class="flex items-center gap-3 mb-5">
+            <div class="h-8 w-8 rounded-lg bg-blue-500/10 border border-blue-500/20 flex items-center justify-center shrink-0">
+              <span class="pi pi-database text-blue-400 text-sm"></span>
+            </div>
+            <h2 class="text-white font-bold text-lg jetbrains-bold">1. Information We Collect</h2>
+          </div>
+          <div class="pl-11 flex flex-col gap-6">
+
+            <div>
+              <h3 class="text-gray-300 text-sm font-semibold mb-3 flex items-center gap-2">
+                <span class="pi pi-user text-emerald-500 text-xs"></span>
+                Account Information
+              </h3>
+              <ul class="flex flex-col gap-2.5">
+                @for (item of accountItems; track $index) {
+                  <li class="flex items-start gap-3">
+                    <span class="pi pi-angle-right text-emerald-500 text-xs mt-1 shrink-0"></span>
+                    <span class="text-gray-400 text-sm leading-6">{{ item }}</span>
+                  </li>
+                }
+              </ul>
+            </div>
+
+            <div>
+              <h3 class="text-gray-300 text-sm font-semibold mb-3 flex items-center gap-2">
+                <span class="pi pi-comments text-blue-400 text-xs"></span>
+                Usage Data
+              </h3>
+              <ul class="flex flex-col gap-2.5">
+                @for (item of usageItems; track $index) {
+                  <li class="flex items-start gap-3">
+                    <span class="pi pi-angle-right text-blue-400 text-xs mt-1 shrink-0"></span>
+                    <span class="text-gray-400 text-sm leading-6">{{ item }}</span>
+                  </li>
+                }
+              </ul>
+            </div>
+
+            <div class="bg-emerald-500/5 border border-emerald-500/20 rounded-xl p-5">
+              <div class="flex items-center gap-2 mb-2">
+                <span class="pi pi-info-circle text-emerald-500 text-sm"></span>
+                <span class="text-emerald-500 text-xs font-bold uppercase tracking-wide jetbrains-bold">Anonymous Users</span>
+              </div>
+              <p class="text-gray-400 text-sm leading-6">
+                Visitors without accounts receive an anonymous session UUID stored in a secure
+                cookie. This allows chat history to persist across page visits without requiring
+                registration. No personally identifiable information is collected for anonymous users.
+              </p>
+            </div>
+          </div>
+          <p-divider />
+        </section>
+
+        <!-- 2. How We Use Your Data -->
+        <section class="scroll-mt-28" id="use">
+          <div class="flex items-center gap-3 mb-5">
+            <div class="h-8 w-8 rounded-lg bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center shrink-0">
+              <span class="pi pi-cog text-emerald-500 text-sm"></span>
+            </div>
+            <h2 class="text-white font-bold text-lg jetbrains-bold">2. How We Use Your Data</h2>
+          </div>
+          <div class="pl-11 flex flex-col gap-4">
+            <p class="text-gray-400 text-sm leading-7">
+              We use the information we collect exclusively to provide and improve the Service:
+            </p>
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              @for (item of useCards; track $index) {
+                <div class="border rounded-xl p-4 flex flex-col gap-2 {{ item.bg }}">
+                  <div class="flex items-center gap-2">
+                    <span class="pi {{ item.icon }} {{ item.color }} text-sm"></span>
+                    <span class="text-white text-xs font-semibold">{{ item.label }}</span>
+                  </div>
+                  <span class="text-gray-500 text-xs leading-5">{{ item.desc }}</span>
+                </div>
+              }
+            </div>
+            <p class="text-gray-400 text-sm leading-7">
+              We do <strong class="text-white">not</strong> sell, rent, or share your personal
+              information with third parties for marketing purposes.
+            </p>
+          </div>
+          <p-divider />
+        </section>
+
+        <!-- 3. Data Storage & Security -->
+        <section class="scroll-mt-28" id="storage">
+          <div class="flex items-center gap-3 mb-5">
+            <div class="h-8 w-8 rounded-lg bg-purple-500/10 border border-purple-500/20 flex items-center justify-center shrink-0">
+              <span class="pi pi-lock text-purple-400 text-sm"></span>
+            </div>
+            <h2 class="text-white font-bold text-lg jetbrains-bold">3. Data Storage &amp; Security</h2>
+          </div>
+          <div class="pl-11 flex flex-col gap-4">
+            <p class="text-gray-400 text-sm leading-7">
+              Your data is stored on MongoDB Atlas with industry-standard security measures:
+            </p>
+            <ul class="flex flex-col gap-3">
+              @for (item of storageItems; track $index) {
+                <li class="flex items-start gap-3">
+                  <span class="pi pi-lock text-purple-400/70 text-xs mt-1 shrink-0"></span>
+                  <span class="text-gray-400 text-sm leading-6">{{ item }}</span>
+                </li>
+              }
+            </ul>
+            <div class="bg-gray-800/50 border border-gray-700 rounded-xl p-5 grid grid-cols-2 sm:grid-cols-4 gap-4">
+              @for (item of techStack; track $index) {
+                <div class="flex flex-col gap-1 items-center text-center">
+                  <span class="text-white text-sm font-bold jetbrains-bold">{{ item.label }}</span>
+                  <span class="text-gray-500 text-xs">{{ item.desc }}</span>
+                </div>
+              }
+            </div>
+          </div>
+          <p-divider />
+        </section>
+
+        <!-- 4. Third-Party Services -->
+        <section class="scroll-mt-28" id="third-party">
+          <div class="flex items-center gap-3 mb-5">
+            <div class="h-8 w-8 rounded-lg bg-yellow-500/10 border border-yellow-500/20 flex items-center justify-center shrink-0">
+              <span class="pi pi-share-alt text-yellow-500 text-sm"></span>
+            </div>
+            <h2 class="text-white font-bold text-lg jetbrains-bold">4. Third-Party Services</h2>
+          </div>
+          <div class="pl-11 flex flex-col gap-5">
+            <p class="text-gray-400 text-sm leading-7">
+              Bbot integrates with the following third-party services:
+            </p>
+            <div class="flex flex-col gap-3">
+              @for (item of thirdParty; track $index) {
+                <div class="border rounded-xl p-5 flex flex-col gap-3 {{ item.bg }}">
+                  <div class="flex items-center gap-3">
+                    <span class="pi {{ item.icon }} {{ item.color }} text-base"></span>
+                    <div>
+                      <span class="text-white text-sm font-semibold">{{ item.name }}</span>
+                      <span class="text-gray-500 text-xs ml-2">{{ item.role }}</span>
+                    </div>
+                  </div>
+                  <p class="text-gray-400 text-xs leading-6">{{ item.desc }}</p>
+                </div>
+              }
+            </div>
+          </div>
+          <p-divider />
+        </section>
+
+        <!-- 5. Cookies & Sessions -->
+        <section class="scroll-mt-28" id="cookies">
+          <div class="flex items-center gap-3 mb-5">
+            <div class="h-8 w-8 rounded-lg bg-orange-500/10 border border-orange-500/20 flex items-center justify-center shrink-0">
+              <span class="pi pi-bookmark text-orange-400 text-sm"></span>
+            </div>
+            <h2 class="text-white font-bold text-lg jetbrains-bold">5. Cookies &amp; Sessions</h2>
+          </div>
+          <div class="pl-11 flex flex-col gap-4">
+            <p class="text-gray-400 text-sm leading-7">
+              We use the following cookies to operate the Service:
+            </p>
+            <div class="overflow-x-auto rounded-xl border border-gray-800">
+              <table class="w-full text-xs">
+                <thead>
+                  <tr class="bg-gray-800/60 border-b border-gray-700">
+                    <th class="text-left text-gray-400 font-semibold px-4 py-3">Cookie</th>
+                    <th class="text-left text-gray-400 font-semibold px-4 py-3">Purpose</th>
+                    <th class="text-left text-gray-400 font-semibold px-4 py-3">Duration</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  @for (row of cookies; track $index) {
+                    <tr class="border-b border-gray-800 last:border-0 hover:bg-gray-900/60 transition-colors">
+                      <td class="px-4 py-3 text-emerald-500 jetbrains-bold">{{ row.name }}</td>
+                      <td class="px-4 py-3 text-gray-400">{{ row.purpose }}</td>
+                      <td class="px-4 py-3 text-gray-500">{{ row.duration }}</td>
+                    </tr>
+                  }
+                </tbody>
+              </table>
+            </div>
+            <p class="text-gray-400 text-sm leading-7">
+              All cookies are <strong class="text-white">httpOnly</strong> and
+              <strong class="text-white">Secure</strong>, meaning they cannot be accessed
+              by JavaScript and are only transmitted over HTTPS. We do not use tracking or
+              advertising cookies.
+            </p>
+          </div>
+          <p-divider />
+        </section>
+
+        <!-- 6. Data Retention -->
+        <section class="scroll-mt-28" id="retention">
+          <div class="flex items-center gap-3 mb-5">
+            <div class="h-8 w-8 rounded-lg bg-gray-500/10 border border-gray-500/20 flex items-center justify-center shrink-0">
+              <span class="pi pi-calendar text-gray-400 text-sm"></span>
+            </div>
+            <h2 class="text-white font-bold text-lg jetbrains-bold">6. Data Retention</h2>
+          </div>
+          <div class="pl-11 flex flex-col gap-4">
+            <ul class="flex flex-col gap-3">
+              @for (item of retentionItems; track $index) {
+                <li class="flex items-start gap-3">
+                  <span class="pi pi-calendar text-gray-500 text-xs mt-1 shrink-0"></span>
+                  <span class="text-gray-400 text-sm leading-6">{{ item }}</span>
+                </li>
+              }
+            </ul>
+          </div>
+          <p-divider />
+        </section>
+
+        <!-- 7. Your Rights -->
+        <section class="scroll-mt-28" id="rights">
+          <div class="flex items-center gap-3 mb-5">
+            <div class="h-8 w-8 rounded-lg bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center shrink-0">
+              <span class="pi pi-verified text-emerald-500 text-sm"></span>
+            </div>
+            <h2 class="text-white font-bold text-lg jetbrains-bold">7. Your Rights</h2>
+          </div>
+          <div class="pl-11 flex flex-col gap-4">
+            <p class="text-gray-400 text-sm leading-7">
+              You have the following rights with respect to your personal data:
+            </p>
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              @for (item of rightsCards; track $index) {
+                <div class="bg-gray-900 border border-gray-800 rounded-xl p-4 flex flex-col gap-2">
+                  <div class="flex items-center gap-2">
+                    <span class="pi {{ item.icon }} text-emerald-500 text-sm"></span>
+                    <span class="text-white text-xs font-semibold">{{ item.label }}</span>
+                  </div>
+                  <span class="text-gray-500 text-xs leading-5">{{ item.desc }}</span>
+                </div>
+              }
+            </div>
+            <p class="text-gray-400 text-sm leading-7">
+              To exercise any of these rights, please contact us. We will respond to your request
+              within 30 days. Chat history can be cleared at any time directly within the app.
+            </p>
+          </div>
+          <p-divider />
+        </section>
+
+        <!-- 8. Children's Privacy -->
+        <section class="scroll-mt-28" id="children">
+          <div class="flex items-center gap-3 mb-5">
+            <div class="h-8 w-8 rounded-lg bg-red-500/10 border border-red-500/20 flex items-center justify-center shrink-0">
+              <span class="pi pi-exclamation-triangle text-red-400 text-sm"></span>
+            </div>
+            <h2 class="text-white font-bold text-lg jetbrains-bold">8. Children's Privacy</h2>
+          </div>
+          <div class="pl-11 flex flex-col gap-4">
+            <p class="text-gray-400 text-sm leading-7">
+              The Service is not directed to, and we do not knowingly collect personal information
+              from, individuals under the age of 18. If we become aware that we have collected
+              personal data from a minor, we will take steps to delete that information promptly.
+            </p>
+          </div>
+          <p-divider />
+        </section>
+
+        <!-- 9. Changes to Policy -->
+        <section class="scroll-mt-28" id="changes">
+          <div class="flex items-center gap-3 mb-5">
+            <div class="h-8 w-8 rounded-lg bg-blue-500/10 border border-blue-500/20 flex items-center justify-center shrink-0">
+              <span class="pi pi-refresh text-blue-400 text-sm"></span>
+            </div>
+            <h2 class="text-white font-bold text-lg jetbrains-bold">9. Changes to This Policy</h2>
+          </div>
+          <div class="pl-11 flex flex-col gap-4">
+            <p class="text-gray-400 text-sm leading-7">
+              We may update this Privacy Policy from time to time to reflect changes in our
+              practices, technology, or legal requirements. We will notify you of material changes
+              by updating the "Effective Date" at the top of this page.
+            </p>
+            <p class="text-gray-400 text-sm leading-7">
+              We encourage you to review this policy periodically. Your continued use of the
+              Service after changes are posted constitutes your acceptance of the updated policy.
+            </p>
+          </div>
+          <p-divider />
+        </section>
+
+        <!-- 10. Contact -->
+        <section class="scroll-mt-28" id="contact">
+          <div class="flex items-center gap-3 mb-5">
+            <div class="h-8 w-8 rounded-lg bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center shrink-0">
+              <span class="pi pi-envelope text-emerald-500 text-sm"></span>
+            </div>
+            <h2 class="text-white font-bold text-lg jetbrains-bold">10. Contact Us</h2>
+          </div>
+          <div class="pl-11 flex flex-col gap-4">
+            <p class="text-gray-400 text-sm leading-7">
+              If you have questions about this Privacy Policy, wish to exercise your data rights,
+              or have a privacy concern, please contact us. We take all privacy inquiries seriously
+              and will respond promptly.
+            </p>
+            <div class="bg-gray-900 border border-gray-800 rounded-xl p-5 flex flex-col sm:flex-row sm:items-center gap-4">
+              <div class="h-10 w-10 rounded-lg bg-blue-500/10 border border-blue-500/20 flex items-center justify-center shrink-0">
+                <span class="pi pi-shield text-blue-400"></span>
+              </div>
+              <div class="flex flex-col gap-1">
+                <span class="text-white text-sm font-semibold">Privacy Officer</span>
+                <span class="text-gray-400 text-xs">For all data protection and privacy inquiries</span>
+              </div>
+              <div class="sm:ml-auto">
+                <p-button
+                  label="Contact Privacy"
+                  icon="pi pi-send"
+                  severity="success"
+                  variant="outlined"
+                  size="small"
+                />
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- Quick navigation at bottom -->
+        <div class="flex flex-col sm:flex-row gap-3 pt-4">
+          <p-button
+            routerLink="/home"
+            label="Back to App"
+            icon="pi pi-arrow-left"
+            severity="secondary"
+            variant="outlined"
+            size="small"
+          />
+          <p-button
+            routerLink="/terms"
+            label="Terms of Service"
+            icon="pi pi-file-edit"
+            severity="success"
+            variant="text"
+            size="small"
+          />
+        </div>
+
+      </article>
+    </div>
+  </div>
+
+</div>

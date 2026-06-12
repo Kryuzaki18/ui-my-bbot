@@ -24,7 +24,7 @@
                 ></span>
               </div>
               <div class="flex flex-col">
-                <span class="text-sm font-bold leading-tight">BBot Agent</span>
+                <span class="text-sm font-bold leading-tight">Claude AI</span>
                 <span class="text-[10px] text-blue-100 flex items-center gap-1">
                   Online now • replies in minutes
                 </span>
@@ -40,12 +40,22 @@
                   [ngClass]="isMaximized() ? 'pi-window-minimize' : 'pi-window-maximize'"
                 ></span>
               </button> -->
-              <button
-                (click)="closeChat()"
-                class="hover:bg-white/10 rounded-full h-8 w-8 transition-colors cursor-pointer flex items-center justify-center"
-              >
-                <span class="pi pi-times text-xs"></span>
-              </button>
+              <div class="flex items-center gap-1">
+                <button
+                  (click)="clearHistory()"
+                  [disabled]="isClearingHistory()"
+                  title="Clear chat history"
+                  class="hover:bg-white/10 rounded-full h-8 w-8 transition-colors cursor-pointer flex items-center justify-center disabled:opacity-40 disabled:cursor-not-allowed"
+                >
+                  <span class="pi pi-trash text-xs"></span>
+                </button>
+                <button
+                  (click)="closeChat()"
+                  class="hover:bg-white/10 rounded-full h-8 w-8 transition-colors cursor-pointer flex items-center justify-center"
+                >
+                  <span class="pi pi-times text-xs"></span>
+                </button>
+              </div>
             <!-- </div> -->
           </div>
 
@@ -63,16 +73,7 @@
                 >
                   <div class="space-y-1 px-3">
                     @for (item of conversation; track $index) {
-                      @if (item.isError) {
-                        <div class="flex flex-col space-y-1 py-2 max-w-[80%]">
-                          <div
-                            class="text-red-500 rounded-2xl text-[10px] shadow-sm break-words whitespace-pre-wrap"
-                          >
-                            {{ item.message }}
-                          </div>
-                          <span class="text-[9px] text-slate-500 ml-1">{{ item.timestamp }}</span>
-                        </div>
-                      } @else if (item.sender === 'bot') {
+                      @if (item.sender === 'assistant') {
                         <div class="flex flex-col space-y-1 py-2 max-w-[80%]">
                           <div
                             class="bg-slate-800 text-slate-200 p-2 rounded-2xl rounded-tl-none text-xs border border-slate-700 shadow-sm break-words whitespace-pre-wrap"
@@ -104,7 +105,7 @@
                           ></span>
                           <span class="w-1.5 h-1.5 bg-slate-500 rounded-full animate-bounce"></span>
                         </div>
-                        <span class="text-[10px] text-slate-500 italic ml-1">Agent is typing</span>
+                        <span class="text-[10px] text-slate-500 italic ml-1">Agent is thinking</span>
                       </div>
                     }
                   </div>

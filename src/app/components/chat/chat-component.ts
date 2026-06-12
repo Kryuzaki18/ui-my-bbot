@@ -9,7 +9,7 @@ import { AIService } from '../../core/services/ai.service';
 import { ChartService } from '../../core/services/chart/chart.service';
 
 // Models
-import { AIResponse, ChatResponse } from '../../core/models/ai.model';
+import { AIResponse, ChatResponse, ConversationHistoryMessage } from '../../core/models/ai.model';
 import { OrderSideEnum } from '../../core/models/trades.model';
 
 // PrimeNG Modules
@@ -48,25 +48,25 @@ export class ChatComponent {
     return this.chartService.selectedTimeframe();
   }
 
+  readonly INITIAL_MESSAGE: ChatResponse = {
+    sender: 'assistant',
+    message:
+      "Hi! I'm Bbot, your crypto trading AI. Ask me anything about markets, technical analysis, or trading strategies.",
+    timestamp: new Date().toLocaleTimeString(),
+  };
+
   chatOpen = signal<boolean>(false);
   isLoading = signal<boolean>(false);
   isAnalyzing = signal<boolean>(false);
+  isClearingHistory = signal<boolean>(false);
   chatTabIndex: number = 0;
   message: string = '';
-  conversation: ChatResponse[] = [
-    {
-      sender: 'bot',
-      message: 'Hi! 👋 Thanks for reaching out. How can I help you?',
-      timestamp: new Date().toLocaleTimeString(),
-      isError: false,
-    },
-  ];
+  conversation: ChatResponse[] = [{ ...this.INITIAL_MESSAGE }];
 
   analyzeSignals: AIResponse[] = [];
 
   ngOnInit(): void {
-    // this.sampleConversation();
-    // this.sampleSignals();
+    this.loadHistory();
   }
 
   sampleSignals(): void {
@@ -161,39 +161,33 @@ export class ChatComponent {
         sender: 'user',
         message: 'What is the current price of BTC?',
         timestamp: new Date().toLocaleTimeString(),
-        isError: false,
       },
       {
-        sender: 'bot',
+        sender: 'assistant',
         message: 'The current price of BTC is 100000.',
         timestamp: new Date().toLocaleTimeString(),
-        isError: false,
       },
       {
         sender: 'user',
         message: 'What is the current price of ETH',
         timestamp: new Date().toLocaleTimeString(),
         isSuggestion: false,
-        isError: false,
       },
       {
-        sender: 'bot',
+        sender: 'assistant',
         message: 'The current price of ETH is 3000.',
         timestamp: new Date().toLocaleTimeString(),
-        isError: false,
       },
       {
         sender: 'user',
         message: 'Any coming event that affects BTC?',
         timestamp: new Date().toLocaleTimeString(),
-        isError: false,
       },
       {
-        sender: 'bot',
+        sender: 'assistant',
         message:
           'Yes, there is an event coming up that may affect BTC. It is a news event that is scheduled to happen in 2 hours.',
         timestamp: new Date().toLocaleTimeString(),
-        isError: false,
       },
     ];
     this.conversation.push(...convo);
@@ -212,7 +206,7 @@ export class ChatComponent {
 
   analyze(): void {
     if (this.isAnalyzing()) return;
-    
+
     this.isAnalyzing.set(true);
 
     this.aiService
@@ -233,7 +227,7 @@ export class ChatComponent {
             status: 'rejected',
             message: 'Something went wrong. Please try again.',
             timestamp: new Date().toLocaleTimeString(),
-            response: null
+            response: null,
           });
           console.error(err);
           this.isAnalyzing.set(false);
@@ -242,47 +236,74 @@ export class ChatComponent {
       });
   }
 
+  loadHistory(): void {
+    this.aiService
+      .getHistory()
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: (messages: ConversationHistoryMessage[]) => {
+          if (messages.length > 0) {
+            const history: ChatResponse[] = messages.map((m) => ({
+              sender: m.role,
+              message: m.content,
+              timestamp: m.createdAt ? new Date(m.createdAt).toLocaleTimeString() : '',
+            }));
+            this.conversation = [{ ...this.INITIAL_MESSAGE }, ...history];
+            this.chatScrollToBottom();
+          }
+        },
+        error: () => {},
+      });
+  }
+
+  clearHistory(): void {
+    if (this.isClearingHistory()) return;
+    this.isClearingHistory.set(true);
+
+    this.aiService
+      .clearHistory()
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: () => {
+          this.conversation = [{ ...this.INITIAL_MESSAGE }];
+          this.isClearingHistory.set(false);
+          this.chatScrollToBottom();
+        },
+        error: () => {
+          this.isClearingHistory.set(false);
+        },
+      });
+  }
+
   chatBot(): void {
     if (!this.message || this.message.length < 3 || this.isLoading()) return;
     this.isLoading.set(true);
 
+    const userMessage = this.message;
+
     this.conversation.push({
       sender: 'user',
-      message: this.message,
+      message: userMessage,
       timestamp: new Date().toLocaleTimeString(),
-      isError: false,
     });
 
     this.aiService
-      .chatBot(this.message)
+      .chatBot(userMessage)
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
         next: (res: AIResponse) => {
-          if (res.status === 'accepted') {
-            this.conversation.push({
-              sender: 'bot',
-              message: res.message,
-              timestamp: new Date().toLocaleTimeString(),
-              isError: false,
-            });
-          } else {
-            this.conversation.push({
-              sender: 'bot',
-              message: res.message,
-              timestamp: new Date().toLocaleTimeString(),
-              isError: true,
-            });
-          }
-
+          this.conversation.push({
+            sender: 'assistant',
+            message: res.message,
+            timestamp: new Date().toLocaleTimeString(),
+          });
           this.reset();
         },
-
         error: (err: any) => {
           this.conversation.push({
-            sender: 'bot',
+            sender: 'assistant',
             message: 'Something went wrong. Please try again.',
             timestamp: new Date().toLocaleTimeString(),
-            isError: true,
           });
           console.error(err);
           this.reset();
