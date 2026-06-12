@@ -5,6 +5,20 @@ import { ButtonModule } from 'primeng/button';
 import { TagModule } from 'primeng/tag';
 import { DividerModule } from 'primeng/divider';
 import { ChipModule } from 'primeng/chip';
+import {
+  PRIVACY_META,
+  PRIVACY_SECTIONS,
+  PRIVACY_COLLECT_ITEMS,
+  PRIVACY_ACCOUNT_ITEMS,
+  PRIVACY_USAGE_ITEMS,
+  PRIVACY_USE_CARDS,
+  PRIVACY_STORAGE_ITEMS,
+  PRIVACY_TECH_STACK,
+  PRIVACY_THIRD_PARTY,
+  PRIVACY_COOKIES,
+  PRIVACY_RETENTION_ITEMS,
+  PRIVACY_RIGHTS_CARDS,
+} from '../../../core/data/privacy-policy.data';
 
 @Component({
   selector: 'app-privacy',
@@ -17,23 +31,22 @@ export class PrivacyComponent implements AfterViewInit {
   private readonly el = inject(ElementRef);
   private readonly destroyRef = inject(DestroyRef);
 
-  readonly effectiveDate = 'June 12, 2025';
-  readonly version = '1.0';
+  readonly effectiveDate = PRIVACY_META.effectiveDate;
+  readonly version = PRIVACY_META.version;
 
   readonly activeSection = signal<string>('collect');
 
-  readonly sections = [
-    { id: 'collect', label: '1. Information We Collect' },
-    { id: 'use', label: '2. How We Use Your Data' },
-    { id: 'storage', label: '3. Data Storage & Security' },
-    { id: 'third-party', label: '4. Third-Party Services' },
-    { id: 'cookies', label: '5. Cookies & Sessions' },
-    { id: 'retention', label: '6. Data Retention' },
-    { id: 'rights', label: '7. Your Rights' },
-    { id: 'children', label: '8. Children\'s Privacy' },
-    { id: 'changes', label: '9. Changes to Policy' },
-    { id: 'contact', label: '10. Contact Us' },
-  ];
+  readonly sections = PRIVACY_SECTIONS;
+  readonly collectItems = PRIVACY_COLLECT_ITEMS;
+  readonly accountItems = PRIVACY_ACCOUNT_ITEMS;
+  readonly usageItems = PRIVACY_USAGE_ITEMS;
+  readonly useCards = PRIVACY_USE_CARDS;
+  readonly storageItems = PRIVACY_STORAGE_ITEMS;
+  readonly techStack = PRIVACY_TECH_STACK;
+  readonly thirdParty = PRIVACY_THIRD_PARTY;
+  readonly cookies = PRIVACY_COOKIES;
+  readonly retentionItems = PRIVACY_RETENTION_ITEMS;
+  readonly rightsCards = PRIVACY_RIGHTS_CARDS;
 
   scrollTo(id: string): void {
     const target = this.el.nativeElement.querySelector(`#${id}`) as HTMLElement | null;

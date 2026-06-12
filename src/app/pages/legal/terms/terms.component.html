@@ -114,13 +114,7 @@
               To use this Service you must meet all of the following requirements:
             </p>
             <ul class="flex flex-col gap-3">
-              @for (item of [
-                'Be at least 18 years of age or the legal age of majority in your jurisdiction',
-                'Have the legal capacity to enter into a binding agreement',
-                'Not be prohibited by applicable law from using cryptocurrency trading services',
-                'Comply with all applicable local, national, and international laws and regulations',
-                'Not be located in a jurisdiction where cryptocurrency trading is restricted or prohibited'
-              ]; track $index) {
+              @for (item of eligibilityItems; track $index) {
                 <li class="flex items-start gap-3">
                   <span class="pi pi-angle-right text-emerald-500 text-xs mt-1 shrink-0"></span>
                   <span class="text-gray-400 text-sm leading-6">{{ item }}</span>
@@ -186,14 +180,7 @@
               By using this Service you acknowledge that:
             </p>
             <ul class="flex flex-col gap-3">
-              @for (item of [
-                'Cryptocurrency markets are highly volatile and prices can change dramatically',
-                'Leveraged trading amplifies both gains and losses',
-                'AI-generated signals and analysis are not guarantees of profit',
-                'Past performance of signals does not indicate future results',
-                'You are solely responsible for your trading decisions and outcomes',
-                'You should never trade with funds you cannot afford to lose'
-              ]; track $index) {
+              @for (item of riskItems; track $index) {
                 <li class="flex items-start gap-3">
                   <span class="pi pi-minus-circle text-red-500/70 text-xs mt-1 shrink-0"></span>
                   <span class="text-gray-400 text-sm leading-6">{{ item }}</span>
@@ -218,13 +205,7 @@
               You are solely responsible for:
             </p>
             <ul class="flex flex-col gap-3">
-              @for (item of [
-                'Keeping your API keys confidential and secure',
-                'Restricting API key permissions to only what is necessary',
-                'Enabling IP whitelisting on your Binance API keys where possible',
-                'Immediately revoking compromised API keys via Binance',
-                'All trades and actions executed using your API keys'
-              ]; track $index) {
+              @for (item of apiKeyItems; track $index) {
                 <li class="flex items-start gap-3">
                   <span class="pi pi-lock text-purple-400/70 text-xs mt-1 shrink-0"></span>
                   <span class="text-gray-400 text-sm leading-6">{{ item }}</span>
@@ -251,16 +232,7 @@
           <div class="pl-11 flex flex-col gap-4">
             <p class="text-gray-400 text-sm leading-7">You agree not to:</p>
             <ul class="flex flex-col gap-3">
-              @for (item of [
-                'Reverse engineer, decompile, or disassemble any part of the Service',
-                'Use the Service for any unlawful purpose or in violation of any regulations',
-                'Attempt to gain unauthorized access to any part of the Service or its servers',
-                'Use automated bots or scripts to abuse the Service beyond its intended use',
-                'Transmit viruses, malware, or any other harmful code',
-                'Use the Service to manipulate cryptocurrency markets',
-                'Resell, sublicense, or commercially exploit the Service without written consent',
-                'Interfere with or disrupt the integrity or performance of the Service'
-              ]; track $index) {
+              @for (item of conductItems; track $index) {
                 <li class="flex items-start gap-3">
                   <span class="pi pi-times-circle text-red-500/70 text-xs mt-1 shrink-0"></span>
                   <span class="text-gray-400 text-sm leading-6">{{ item }}</span>
@@ -336,13 +308,7 @@
               damages, including without limitation:
             </p>
             <ul class="flex flex-col gap-3">
-              @for (item of [
-                'Trading losses or missed opportunities arising from use of the Service',
-                'Loss of data, revenue, profits, or business opportunities',
-                'Damages resulting from unauthorized access to your account or API keys',
-                'Service interruptions, system failures, or API connectivity issues',
-                'Errors or inaccuracies in AI-generated analysis or market data'
-              ]; track $index) {
+              @for (item of liabilityItems; track $index) {
                 <li class="flex items-start gap-3">
                   <span class="pi pi-angle-right text-orange-400/70 text-xs mt-1 shrink-0"></span>
                   <span class="text-gray-400 text-sm leading-6">{{ item }}</span>

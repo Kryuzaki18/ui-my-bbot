@@ -5,6 +5,15 @@ import { ButtonModule } from 'primeng/button';
 import { TagModule } from 'primeng/tag';
 import { DividerModule } from 'primeng/divider';
 import { ChipModule } from 'primeng/chip';
+import {
+  TERMS_META,
+  TERMS_SECTIONS,
+  TERMS_ELIGIBILITY_ITEMS,
+  TERMS_RISK_ITEMS,
+  TERMS_API_KEY_ITEMS,
+  TERMS_CONDUCT_ITEMS,
+  TERMS_LIABILITY_ITEMS,
+} from '../../../core/data/terms-of-service.data';
 
 @Component({
   selector: 'app-terms',
@@ -17,25 +26,17 @@ export class TermsComponent implements AfterViewInit {
   private readonly el = inject(ElementRef);
   private readonly destroyRef = inject(DestroyRef);
 
-  readonly effectiveDate = 'June 12, 2025';
-  readonly version = '1.0';
+  readonly effectiveDate = TERMS_META.effectiveDate;
+  readonly version = TERMS_META.version;
 
   readonly activeSection = signal<string>('acceptance');
 
-  readonly sections = [
-    { id: 'acceptance', label: '1. Acceptance of Terms' },
-    { id: 'eligibility', label: '2. Eligibility' },
-    { id: 'service', label: '3. Use of Service' },
-    { id: 'risks', label: '4. Trading Risks' },
-    { id: 'api-keys', label: '5. API Key Security' },
-    { id: 'conduct', label: '6. Prohibited Conduct' },
-    { id: 'ip', label: '7. Intellectual Property' },
-    { id: 'disclaimer', label: '8. Disclaimer of Warranties' },
-    { id: 'liability', label: '9. Limitation of Liability' },
-    { id: 'termination', label: '10. Termination' },
-    { id: 'changes', label: '11. Changes to Terms' },
-    { id: 'contact', label: '12. Contact Us' },
-  ];
+  readonly sections = TERMS_SECTIONS;
+  readonly eligibilityItems = TERMS_ELIGIBILITY_ITEMS;
+  readonly riskItems = TERMS_RISK_ITEMS;
+  readonly apiKeyItems = TERMS_API_KEY_ITEMS;
+  readonly conductItems = TERMS_CONDUCT_ITEMS;
+  readonly liabilityItems = TERMS_LIABILITY_ITEMS;
 
   scrollTo(id: string): void {
     const target = this.el.nativeElement.querySelector(`#${id}`) as HTMLElement | null;
@@ -47,8 +48,6 @@ export class TermsComponent implements AfterViewInit {
       .map(s => this.el.nativeElement.querySelector(`#${s.id}`) as HTMLElement | null)
       .filter((el): el is HTMLElement => el !== null);
 
-    // rootMargin: ignore the top ~112px (app header + legal nav) and only
-    // consider sections in the upper-middle band of the visible area.
     const observer = new IntersectionObserver(
       (entries) => {
         const visible = entries

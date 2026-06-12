@@ -80,12 +80,7 @@
             We Collect
           </p>
           <div class="flex flex-col gap-2">
-            @for (item of [
-              { icon: 'pi-envelope', label: 'Email', color: 'text-blue-400' },
-              { icon: 'pi-key', label: 'API Keys', color: 'text-purple-400' },
-              { icon: 'pi-comments', label: 'Chat History', color: 'text-emerald-500' },
-              { icon: 'pi-user', label: 'Session ID', color: 'text-yellow-500' }
-            ]; track $index) {
+            @for (item of collectItems; track $index) {
               <div class="flex items-center gap-2">
                 <span class="pi {{ item.icon }} {{ item.color }} text-xs"></span>
                 <span class="text-gray-500 text-xs">{{ item.label }}</span>
@@ -114,11 +109,7 @@
                 Account Information
               </h3>
               <ul class="flex flex-col gap-2.5">
-                @for (item of [
-                  'Email address (for registered accounts)',
-                  'Hashed password (never stored in plaintext)',
-                  'Binance API key and API secret (stored encrypted)'
-                ]; track $index) {
+                @for (item of accountItems; track $index) {
                   <li class="flex items-start gap-3">
                     <span class="pi pi-angle-right text-emerald-500 text-xs mt-1 shrink-0"></span>
                     <span class="text-gray-400 text-sm leading-6">{{ item }}</span>
@@ -133,12 +124,7 @@
                 Usage Data
               </h3>
               <ul class="flex flex-col gap-2.5">
-                @for (item of [
-                  'AI chat conversation history (keyed to your session or account)',
-                  'Anonymous session UUID (auto-generated for visitors without accounts)',
-                  'Session authentication tokens (stored as httpOnly cookies)',
-                  'General usage patterns to improve the Service'
-                ]; track $index) {
+                @for (item of usageItems; track $index) {
                   <li class="flex items-start gap-3">
                     <span class="pi pi-angle-right text-blue-400 text-xs mt-1 shrink-0"></span>
                     <span class="text-gray-400 text-sm leading-6">{{ item }}</span>
@@ -175,12 +161,7 @@
               We use the information we collect exclusively to provide and improve the Service:
             </p>
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-              @for (item of [
-                { icon: 'pi-user-plus', label: 'Account Management', desc: 'Create and maintain your account', color: 'text-blue-400', bg: 'bg-blue-500/5 border-blue-500/20' },
-                { icon: 'pi-chart-line', label: 'Trading Execution', desc: 'Process orders via Binance API', color: 'text-yellow-500', bg: 'bg-yellow-500/5 border-yellow-500/20' },
-                { icon: 'pi-comments', label: 'AI Chat History', desc: 'Load and save your conversations', color: 'text-emerald-500', bg: 'bg-emerald-500/5 border-emerald-500/20' },
-                { icon: 'pi-shield', label: 'Security', desc: 'Detect and prevent unauthorized access', color: 'text-red-400', bg: 'bg-red-500/5 border-red-500/20' }
-              ]; track $index) {
+              @for (item of useCards; track $index) {
                 <div class="border rounded-xl p-4 flex flex-col gap-2 {{ item.bg }}">
                   <div class="flex items-center gap-2">
                     <span class="pi {{ item.icon }} {{ item.color }} text-sm"></span>
@@ -211,13 +192,7 @@
               Your data is stored on MongoDB Atlas with industry-standard security measures:
             </p>
             <ul class="flex flex-col gap-3">
-              @for (item of [
-                'Passwords are hashed using bcrypt with 12 salt rounds — never stored in plaintext',
-                'Session tokens are signed JWTs transmitted only via httpOnly, Secure, SameSite cookies',
-                'All communication between client and server uses HTTPS/TLS encryption',
-                'API keys are stored with encryption at rest on MongoDB Atlas',
-                'Rate limiting is applied to authentication endpoints to prevent brute-force attacks'
-              ]; track $index) {
+              @for (item of storageItems; track $index) {
                 <li class="flex items-start gap-3">
                   <span class="pi pi-lock text-purple-400/70 text-xs mt-1 shrink-0"></span>
                   <span class="text-gray-400 text-sm leading-6">{{ item }}</span>
@@ -225,12 +200,7 @@
               }
             </ul>
             <div class="bg-gray-800/50 border border-gray-700 rounded-xl p-5 grid grid-cols-2 sm:grid-cols-4 gap-4">
-              @for (item of [
-                { label: 'bcrypt', desc: 'Password hashing' },
-                { label: 'JWT', desc: 'Session tokens' },
-                { label: 'HTTPS', desc: 'Transport security' },
-                { label: 'Atlas', desc: 'Cloud database' }
-              ]; track $index) {
+              @for (item of techStack; track $index) {
                 <div class="flex flex-col gap-1 items-center text-center">
                   <span class="text-white text-sm font-bold jetbrains-bold">{{ item.label }}</span>
                   <span class="text-gray-500 text-xs">{{ item.desc }}</span>
@@ -254,32 +224,7 @@
               Bbot integrates with the following third-party services:
             </p>
             <div class="flex flex-col gap-3">
-              @for (item of [
-                {
-                  name: 'Binance',
-                  role: 'Exchange Integration',
-                  desc: 'Your API keys are used to authenticate with Binance to retrieve account data and execute trades. Subject to Binance\'s own Privacy Policy.',
-                  color: 'text-yellow-500',
-                  bg: 'bg-yellow-500/5 border-yellow-500/20',
-                  icon: 'pi-chart-bar'
-                },
-                {
-                  name: 'Anthropic Claude',
-                  role: 'AI Analysis Engine',
-                  desc: 'Chat messages and market data are sent to Claude\'s API to generate analysis and responses. Conversation context may be included. Subject to Anthropic\'s Privacy Policy.',
-                  color: 'text-purple-400',
-                  bg: 'bg-purple-500/5 border-purple-500/20',
-                  icon: 'pi-sparkles'
-                },
-                {
-                  name: 'MongoDB Atlas',
-                  role: 'Database Provider',
-                  desc: 'User accounts, API keys, and chat history are stored in MongoDB Atlas cloud infrastructure. Subject to MongoDB\'s Privacy Policy.',
-                  color: 'text-emerald-500',
-                  bg: 'bg-emerald-500/5 border-emerald-500/20',
-                  icon: 'pi-database'
-                }
-              ]; track $index) {
+              @for (item of thirdParty; track $index) {
                 <div class="border rounded-xl p-5 flex flex-col gap-3 {{ item.bg }}">
                   <div class="flex items-center gap-3">
                     <span class="pi {{ item.icon }} {{ item.color }} text-base"></span>
@@ -318,10 +263,7 @@
                   </tr>
                 </thead>
                 <tbody>
-                  @for (row of [
-                    { name: 'session', purpose: 'Authenticated user session JWT', duration: '7 days' },
-                    { name: 'anon_session', purpose: 'Anonymous visitor session UUID', duration: '30 days' }
-                  ]; track $index) {
+                  @for (row of cookies; track $index) {
                     <tr class="border-b border-gray-800 last:border-0 hover:bg-gray-900/60 transition-colors">
                       <td class="px-4 py-3 text-emerald-500 jetbrains-bold">{{ row.name }}</td>
                       <td class="px-4 py-3 text-gray-400">{{ row.purpose }}</td>
@@ -351,13 +293,7 @@
           </div>
           <div class="pl-11 flex flex-col gap-4">
             <ul class="flex flex-col gap-3">
-              @for (item of [
-                'Account data is retained for as long as your account is active',
-                'Chat history is capped at the last 100 messages per session',
-                'Anonymous session data expires after 30 days of inactivity',
-                'Session cookies expire after 7 days (authenticated) or 30 days (anonymous)',
-                'You may request deletion of your account and all associated data at any time'
-              ]; track $index) {
+              @for (item of retentionItems; track $index) {
                 <li class="flex items-start gap-3">
                   <span class="pi pi-calendar text-gray-500 text-xs mt-1 shrink-0"></span>
                   <span class="text-gray-400 text-sm leading-6">{{ item }}</span>
@@ -381,12 +317,7 @@
               You have the following rights with respect to your personal data:
             </p>
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-              @for (item of [
-                { icon: 'pi-eye', label: 'Access', desc: 'Request a copy of the data we hold about you' },
-                { icon: 'pi-pencil', label: 'Rectification', desc: 'Request correction of inaccurate data' },
-                { icon: 'pi-trash', label: 'Deletion', desc: 'Request deletion of your account and data' },
-                { icon: 'pi-ban', label: 'Restriction', desc: 'Request restriction of data processing' }
-              ]; track $index) {
+              @for (item of rightsCards; track $index) {
                 <div class="bg-gray-900 border border-gray-800 rounded-xl p-4 flex flex-col gap-2">
                   <div class="flex items-center gap-2">
                     <span class="pi {{ item.icon }} text-emerald-500 text-sm"></span>
