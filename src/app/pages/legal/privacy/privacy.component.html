@@ -1,7 +1,7 @@
 <div class="min-h-screen bg-gray-950 flex flex-col">
 
   <!-- Top navigation bar -->
-  <div class="bg-gray-900 border-b border-gray-800 sticky top-0 z-50">
+  <div class="bg-gray-900 border-b border-gray-800 sticky top-[50px] z-50">
     <div class="max-w-6xl mx-auto px-4 sm:px-6 py-3 flex items-center justify-between gap-4">
       <p-button
         routerLink="/home"
@@ -50,18 +50,26 @@
 
       <!-- Sticky TOC sidebar — desktop only -->
       <aside class="hidden lg:block col-span-1">
-        <div class="sticky top-20 bg-gray-900 border border-gray-800 rounded-xl p-5">
+        <div class="sticky top-[106px] bg-gray-900 border border-gray-800 rounded-xl p-5">
           <p class="text-gray-500 text-[11px] uppercase tracking-widest jetbrains-bold mb-4">
             Contents
           </p>
           <nav class="flex flex-col gap-0.5">
             @for (section of sections; track section.id) {
-              <a
-                [href]="'#' + section.id"
-                class="text-gray-500 hover:text-emerald-500 hover:bg-gray-800 text-xs py-2 px-3 rounded-lg transition-all duration-150 block"
+              <button
+                type="button"
+                (click)="scrollTo(section.id)"
+                class="relative w-full text-left text-xs py-2 pl-4 pr-3 rounded-lg transition-all duration-200 cursor-pointer"
+                [ngClass]="activeSection() === section.id
+                  ? 'text-emerald-500 bg-emerald-500/10 font-medium'
+                  : 'text-gray-500 hover:text-emerald-400 hover:bg-gray-800'"
               >
+                <span
+                  class="absolute left-0 top-1/2 -translate-y-1/2 w-0.5 rounded-r-full bg-emerald-500 transition-all duration-200"
+                  [ngClass]="activeSection() === section.id ? 'h-4 opacity-100' : 'h-0 opacity-0'"
+                ></span>
                 {{ section.label }}
-              </a>
+              </button>
             }
           </nav>
         </div>
@@ -91,7 +99,7 @@
       <article class="lg:col-span-3 flex flex-col gap-10">
 
         <!-- 1. Information We Collect -->
-        <section id="collect">
+        <section class="scroll-mt-28" id="collect">
           <div class="flex items-center gap-3 mb-5">
             <div class="h-8 w-8 rounded-lg bg-blue-500/10 border border-blue-500/20 flex items-center justify-center shrink-0">
               <span class="pi pi-database text-blue-400 text-sm"></span>
@@ -155,7 +163,7 @@
         </section>
 
         <!-- 2. How We Use Your Data -->
-        <section id="use">
+        <section class="scroll-mt-28" id="use">
           <div class="flex items-center gap-3 mb-5">
             <div class="h-8 w-8 rounded-lg bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center shrink-0">
               <span class="pi pi-cog text-emerald-500 text-sm"></span>
@@ -191,7 +199,7 @@
         </section>
 
         <!-- 3. Data Storage & Security -->
-        <section id="storage">
+        <section class="scroll-mt-28" id="storage">
           <div class="flex items-center gap-3 mb-5">
             <div class="h-8 w-8 rounded-lg bg-purple-500/10 border border-purple-500/20 flex items-center justify-center shrink-0">
               <span class="pi pi-lock text-purple-400 text-sm"></span>
@@ -234,7 +242,7 @@
         </section>
 
         <!-- 4. Third-Party Services -->
-        <section id="third-party">
+        <section class="scroll-mt-28" id="third-party">
           <div class="flex items-center gap-3 mb-5">
             <div class="h-8 w-8 rounded-lg bg-yellow-500/10 border border-yellow-500/20 flex items-center justify-center shrink-0">
               <span class="pi pi-share-alt text-yellow-500 text-sm"></span>
@@ -289,7 +297,7 @@
         </section>
 
         <!-- 5. Cookies & Sessions -->
-        <section id="cookies">
+        <section class="scroll-mt-28" id="cookies">
           <div class="flex items-center gap-3 mb-5">
             <div class="h-8 w-8 rounded-lg bg-orange-500/10 border border-orange-500/20 flex items-center justify-center shrink-0">
               <span class="pi pi-bookmark text-orange-400 text-sm"></span>
@@ -334,7 +342,7 @@
         </section>
 
         <!-- 6. Data Retention -->
-        <section id="retention">
+        <section class="scroll-mt-28" id="retention">
           <div class="flex items-center gap-3 mb-5">
             <div class="h-8 w-8 rounded-lg bg-gray-500/10 border border-gray-500/20 flex items-center justify-center shrink-0">
               <span class="pi pi-calendar text-gray-400 text-sm"></span>
@@ -361,7 +369,7 @@
         </section>
 
         <!-- 7. Your Rights -->
-        <section id="rights">
+        <section class="scroll-mt-28" id="rights">
           <div class="flex items-center gap-3 mb-5">
             <div class="h-8 w-8 rounded-lg bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center shrink-0">
               <span class="pi pi-verified text-emerald-500 text-sm"></span>
@@ -397,7 +405,7 @@
         </section>
 
         <!-- 8. Children's Privacy -->
-        <section id="children">
+        <section class="scroll-mt-28" id="children">
           <div class="flex items-center gap-3 mb-5">
             <div class="h-8 w-8 rounded-lg bg-red-500/10 border border-red-500/20 flex items-center justify-center shrink-0">
               <span class="pi pi-exclamation-triangle text-red-400 text-sm"></span>
@@ -415,7 +423,7 @@
         </section>
 
         <!-- 9. Changes to Policy -->
-        <section id="changes">
+        <section class="scroll-mt-28" id="changes">
           <div class="flex items-center gap-3 mb-5">
             <div class="h-8 w-8 rounded-lg bg-blue-500/10 border border-blue-500/20 flex items-center justify-center shrink-0">
               <span class="pi pi-refresh text-blue-400 text-sm"></span>
@@ -437,7 +445,7 @@
         </section>
 
         <!-- 10. Contact -->
-        <section id="contact">
+        <section class="scroll-mt-28" id="contact">
           <div class="flex items-center gap-3 mb-5">
             <div class="h-8 w-8 rounded-lg bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center shrink-0">
               <span class="pi pi-envelope text-emerald-500 text-sm"></span>
