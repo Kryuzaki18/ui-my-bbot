@@ -4,11 +4,10 @@ import { ButtonModule } from 'primeng/button';
 import { TagModule } from 'primeng/tag';
 import { DividerModule } from 'primeng/divider';
 import { ChipModule } from 'primeng/chip';
-import { FooterComponent } from '../../../commons/footer/footer.component';
 
 @Component({
   selector: 'app-terms',
-  imports: [RouterModule, ButtonModule, TagModule, DividerModule, ChipModule, FooterComponent],
+  imports: [RouterModule, ButtonModule, TagModule, DividerModule, ChipModule],
   templateUrl: './terms.component.html',
   styleUrl: './terms.component.scss',
   standalone: true,
