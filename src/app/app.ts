@@ -1,6 +1,8 @@
 import { Component, DestroyRef, inject, OnInit } from '@angular/core';
-import { RouterModule } from '@angular/router';
+import { NavigationEnd, Router, RouterModule } from '@angular/router';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { filter } from 'rxjs';
+import { DOCUMENT } from '@angular/common';
 
 // Components
 import { HeaderComponent } from './components/commons/header/header.component';
@@ -43,6 +45,8 @@ export class App implements OnInit {
   private readonly toastMessageService = inject(ToastMessageService);
   private readonly authService = inject(AuthService);
   private readonly splashService = inject(SplashService);
+  private readonly router = inject(Router);
+  private readonly document = inject(DOCUMENT);
   private readonly destroyRef = inject(DestroyRef);
 
   ngOnInit(): void {
@@ -52,6 +56,15 @@ export class App implements OnInit {
       .subscribe({
         next: (isAuth) => this.splashService.complete(isAuth),
         error: () => this.splashService.complete(false),
+      });
+
+    this.router.events
+      .pipe(
+        filter((e) => e instanceof NavigationEnd),
+        takeUntilDestroyed(this.destroyRef),
+      )
+      .subscribe(() => {
+        this.document.querySelector('.p-scrollpanel-content')?.scrollTo({ top: 0, behavior: 'smooth' });
       });
 
     this.getSymbolTickSize();
