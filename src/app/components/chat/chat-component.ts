@@ -164,7 +164,7 @@ export class ChatComponent {
         isError: false,
       },
       {
-        sender: 'bot',
+        sender: 'assistant',
         message: 'The current price of BTC is 100000.',
         timestamp: new Date().toLocaleTimeString(),
         isError: false,
@@ -177,7 +177,7 @@ export class ChatComponent {
         isError: false,
       },
       {
-        sender: 'bot',
+        sender: 'assistant',
         message: 'The current price of ETH is 3000.',
         timestamp: new Date().toLocaleTimeString(),
         isError: false,
@@ -189,7 +189,7 @@ export class ChatComponent {
         isError: false,
       },
       {
-        sender: 'bot',
+        sender: 'assistant',
         message:
           'Yes, there is an event coming up that may affect BTC. It is a news event that is scheduled to happen in 2 hours.',
         timestamp: new Date().toLocaleTimeString(),
@@ -301,7 +301,7 @@ export class ChatComponent {
       .subscribe({
         next: (res: AIResponse) => {
           this.conversation.push({
-            sender: 'bot',
+            sender: 'assistant',
             message: res.message,
             timestamp: new Date().toLocaleTimeString(),
             isError: res.status !== 'accepted',
@@ -310,7 +310,7 @@ export class ChatComponent {
         },
         error: (err: any) => {
           this.conversation.push({
-            sender: 'bot',
+            sender: 'assistant',
             message: 'Something went wrong. Please try again.',
             timestamp: new Date().toLocaleTimeString(),
             isError: true,
