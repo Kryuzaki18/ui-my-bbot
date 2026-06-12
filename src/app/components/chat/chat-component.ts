@@ -49,7 +49,7 @@ export class ChatComponent {
   }
 
   readonly INITIAL_MESSAGE: ChatResponse = {
-    sender: 'bot',
+    sender: 'assistant',
     message: 'Hi! I\'m Bbot, your crypto trading AI. Ask me anything about markets, technical analysis, or trading strategies.',
     timestamp: new Date().toLocaleTimeString(),
     isError: false,
@@ -250,10 +250,10 @@ export class ChatComponent {
         next: (messages: ConversationHistoryMessage[]) => {
           if (messages.length > 0) {
             const history: ChatResponse[] = messages.map((m) => ({
-              sender: m.role === 'user' ? 'user' : 'bot',
+              sender: m.role,
               message: m.content,
               timestamp: m.createdAt ? new Date(m.createdAt).toLocaleTimeString() : '',
-              isError: false,
+              isError: m.status === 'rejected' && m.role === 'assistant',
             }));
             this.conversation = [{ ...this.INITIAL_MESSAGE }, ...history];
             this.chatScrollToBottom();

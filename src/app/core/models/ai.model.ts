@@ -14,6 +14,7 @@ export interface ConversationMessage {
 
 export interface ConversationHistoryMessage {
   role: 'user' | 'assistant';
+  status: 'accepted' | 'rejected';
   content: string;
   createdAt: string;
 }
