@@ -6,11 +6,13 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { HeaderComponent } from './components/commons/header/header.component';
 import { FooterComponent } from './components/commons/footer/footer.component';
 import { ChatComponent } from './components/chat/chat-component';
+import { AppSplash } from './components/commons/app-splash/app-splash';
 
 //Services
 import { AuthService } from './core/services/auth.service';
 import { BinanceRestService } from './core/services/binance-rest.service';
 import { ToastMessageService } from './core/services/toast-message.service';
+import { SplashService } from './core/services/splash.service';
 
 // PrimeNG Modules
 import { ConfirmDialogModule } from 'primeng/confirmdialog';
@@ -31,6 +33,7 @@ import { DialogModule } from 'primeng/dialog';
     HeaderComponent,
     FooterComponent,
     ChatComponent,
+    AppSplash,
   ],
   templateUrl: './app.html',
   styleUrl: './app.scss',
@@ -39,11 +42,19 @@ export class App implements OnInit {
   private readonly binanceRestService = inject(BinanceRestService);
   private readonly toastMessageService = inject(ToastMessageService);
   private readonly authService = inject(AuthService);
+  private readonly splashService = inject(SplashService);
   private readonly destroyRef = inject(DestroyRef);
 
   ngOnInit(): void {
+    this.authService
+      .checkAuth()
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: (isAuth) => this.splashService.complete(isAuth),
+        error: () => this.splashService.complete(false),
+      });
+
     this.getSymbolTickSize();
-    this.authService.checkAuth().pipe(takeUntilDestroyed(this.destroyRef)).subscribe();
   }
 
   close(): void {

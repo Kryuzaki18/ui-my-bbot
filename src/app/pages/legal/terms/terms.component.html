@@ -1,5 +1,4 @@
 <div class="min-h-screen bg-gray-950 flex flex-col">
-
   <!-- Top navigation bar -->
   <div class="bg-gray-900 border-b border-gray-800 sticky top-[50px] z-50">
     <div class="max-w-6xl mx-auto px-4 sm:px-6 py-3 flex items-center justify-between gap-4">
@@ -23,17 +22,19 @@
   <div class="bg-gray-900 border-b border-gray-800">
     <div class="max-w-6xl mx-auto px-4 sm:px-6 py-12 sm:py-16">
       <div class="flex items-center gap-3 mb-5">
-        <div class="h-10 w-10 rounded-lg bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center shrink-0">
+        <div
+          class="h-10 w-10 rounded-lg bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center shrink-0"
+        >
           <span class="pi pi-file-edit text-emerald-500"></span>
         </div>
-        <p-tag value="Legal" severity="success" [rounded]="true" />
+        <h1 class="text-2xl sm:text-3xl lg:text-4xl font-bold text-white etbrains-bold">
+          Terms of Service
+        </h1>
       </div>
-      <h1 class="text-2xl sm:text-3xl lg:text-4xl font-bold text-white mb-4 jetbrains-bold">
-        Terms of Service
-      </h1>
+
       <p class="text-gray-400 text-sm sm:text-base leading-7 max-w-2xl mb-6">
-        Please read these terms carefully before using Bbot. By accessing or using our platform,
-        you agree to be bound by these Terms of Service.
+        Please read these terms carefully before using Bbot. By accessing or using our platform, you
+        agree to be bound by these Terms of Service.
       </p>
       <div class="flex flex-wrap items-center gap-2">
         <p-chip label="Crypto Trading" icon="pi pi-chart-line" />
@@ -47,7 +48,6 @@
   <!-- Main content area -->
   <div class="flex-1 max-w-6xl mx-auto w-full px-4 sm:px-6 py-10">
     <div class="grid grid-cols-1 lg:grid-cols-4 gap-8 lg:gap-12">
-
       <!-- Sticky TOC sidebar — desktop only -->
       <aside class="hidden lg:block col-span-1">
         <div class="sticky top-[106px] bg-gray-900 border border-gray-800 rounded-xl p-5">
@@ -60,9 +60,11 @@
                 type="button"
                 (click)="scrollTo(section.id)"
                 class="relative w-full text-left text-xs py-2 pl-4 pr-3 rounded-lg transition-all duration-200 cursor-pointer"
-                [ngClass]="activeSection() === section.id
-                  ? 'text-emerald-500 bg-emerald-500/10 font-medium'
-                  : 'text-gray-500 hover:text-emerald-400 hover:bg-gray-800'"
+                [ngClass]="
+                  activeSection() === section.id
+                    ? 'text-emerald-500 bg-emerald-500/10 font-medium'
+                    : 'text-gray-500 hover:text-emerald-400 hover:bg-gray-800'
+                "
               >
                 <span
                   class="absolute left-0 top-1/2 -translate-y-1/2 w-0.5 rounded-r-full bg-emerald-500 transition-all duration-200"
@@ -77,11 +79,12 @@
 
       <!-- Article content -->
       <article class="lg:col-span-3 flex flex-col gap-10">
-
         <!-- 1. Acceptance of Terms -->
         <section class="scroll-mt-28" id="acceptance">
           <div class="flex items-center gap-3 mb-5">
-            <div class="h-8 w-8 rounded-lg bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center shrink-0">
+            <div
+              class="h-8 w-8 rounded-lg bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center shrink-0"
+            >
               <span class="pi pi-check-circle text-emerald-500 text-sm"></span>
             </div>
             <h2 class="text-white font-bold text-lg jetbrains-bold">1. Acceptance of Terms</h2>
@@ -93,8 +96,8 @@
               and our Privacy Policy.
             </p>
             <p class="text-gray-400 text-sm leading-7">
-              If you do not agree to these Terms, you must not use the Service. Continued use of
-              the platform after any modification to these Terms constitutes your acceptance of the
+              If you do not agree to these Terms, you must not use the Service. Continued use of the
+              platform after any modification to these Terms constitutes your acceptance of the
               revised Terms.
             </p>
           </div>
@@ -104,7 +107,9 @@
         <!-- 2. Eligibility -->
         <section class="scroll-mt-28" id="eligibility">
           <div class="flex items-center gap-3 mb-5">
-            <div class="h-8 w-8 rounded-lg bg-yellow-500/10 border border-yellow-500/20 flex items-center justify-center shrink-0">
+            <div
+              class="h-8 w-8 rounded-lg bg-yellow-500/10 border border-yellow-500/20 flex items-center justify-center shrink-0"
+            >
               <span class="pi pi-user-plus text-yellow-500 text-sm"></span>
             </div>
             <h2 class="text-white font-bold text-lg jetbrains-bold">2. Eligibility</h2>
@@ -128,7 +133,9 @@
         <!-- 3. Use of Service -->
         <section class="scroll-mt-28" id="service">
           <div class="flex items-center gap-3 mb-5">
-            <div class="h-8 w-8 rounded-lg bg-blue-500/10 border border-blue-500/20 flex items-center justify-center shrink-0">
+            <div
+              class="h-8 w-8 rounded-lg bg-blue-500/10 border border-blue-500/20 flex items-center justify-center shrink-0"
+            >
               <span class="pi pi-desktop text-blue-400 text-sm"></span>
             </div>
             <h2 class="text-white font-bold text-lg jetbrains-bold">3. Use of Service</h2>
@@ -143,7 +150,10 @@
             <div class="bg-yellow-500/5 border border-yellow-500/20 rounded-xl p-5">
               <div class="flex items-center gap-2 mb-3">
                 <span class="pi pi-exclamation-triangle text-yellow-500 text-sm"></span>
-                <span class="text-yellow-500 text-xs font-bold uppercase tracking-wide jetbrains-bold">Important</span>
+                <span
+                  class="text-yellow-500 text-xs font-bold uppercase tracking-wide jetbrains-bold"
+                  >Important</span
+                >
               </div>
               <p class="text-gray-400 text-sm leading-6">
                 Bbot is a tool to assist your trading decisions — not a substitute for independent
@@ -159,7 +169,9 @@
         <!-- 4. Trading Risks -->
         <section class="scroll-mt-28" id="risks">
           <div class="flex items-center gap-3 mb-5">
-            <div class="h-8 w-8 rounded-lg bg-red-500/10 border border-red-500/20 flex items-center justify-center shrink-0">
+            <div
+              class="h-8 w-8 rounded-lg bg-red-500/10 border border-red-500/20 flex items-center justify-center shrink-0"
+            >
               <span class="pi pi-chart-bar text-red-400 text-sm"></span>
             </div>
             <h2 class="text-white font-bold text-lg jetbrains-bold">4. Trading Risks</h2>
@@ -168,10 +180,13 @@
             <div class="bg-red-500/5 border border-red-500/20 rounded-xl p-5">
               <div class="flex items-center gap-2 mb-3">
                 <span class="pi pi-exclamation-circle text-red-400 text-sm"></span>
-                <span class="text-red-400 text-xs font-bold uppercase tracking-wide jetbrains-bold">Risk Warning</span>
+                <span class="text-red-400 text-xs font-bold uppercase tracking-wide jetbrains-bold"
+                  >Risk Warning</span
+                >
               </div>
               <p class="text-gray-400 text-sm leading-6">
-                Cryptocurrency futures trading involves a <strong class="text-white">substantial risk of loss</strong>
+                Cryptocurrency futures trading involves a
+                <strong class="text-white">substantial risk of loss</strong>
                 and is not suitable for all investors. The high degree of leverage available can
                 work against you as well as for you. You may lose all of your deposited funds.
               </p>
@@ -194,7 +209,9 @@
         <!-- 5. API Key Security -->
         <section class="scroll-mt-28" id="api-keys">
           <div class="flex items-center gap-3 mb-5">
-            <div class="h-8 w-8 rounded-lg bg-purple-500/10 border border-purple-500/20 flex items-center justify-center shrink-0">
+            <div
+              class="h-8 w-8 rounded-lg bg-purple-500/10 border border-purple-500/20 flex items-center justify-center shrink-0"
+            >
               <span class="pi pi-key text-purple-400 text-sm"></span>
             </div>
             <h2 class="text-white font-bold text-lg jetbrains-bold">5. API Key Security</h2>
@@ -213,9 +230,9 @@
               }
             </ul>
             <p class="text-gray-400 text-sm leading-7">
-              Bbot stores your API keys encrypted in transit and at rest. We recommend using
-              API keys with trading permissions only — do not grant withdrawal permissions to
-              any third-party application.
+              Bbot stores your API keys encrypted in transit and at rest. We recommend using API
+              keys with trading permissions only — do not grant withdrawal permissions to any
+              third-party application.
             </p>
           </div>
           <p-divider />
@@ -224,7 +241,9 @@
         <!-- 6. Prohibited Conduct -->
         <section class="scroll-mt-28" id="conduct">
           <div class="flex items-center gap-3 mb-5">
-            <div class="h-8 w-8 rounded-lg bg-red-500/10 border border-red-500/20 flex items-center justify-center shrink-0">
+            <div
+              class="h-8 w-8 rounded-lg bg-red-500/10 border border-red-500/20 flex items-center justify-center shrink-0"
+            >
               <span class="pi pi-ban text-red-400 text-sm"></span>
             </div>
             <h2 class="text-white font-bold text-lg jetbrains-bold">6. Prohibited Conduct</h2>
@@ -246,22 +265,24 @@
         <!-- 7. Intellectual Property -->
         <section class="scroll-mt-28" id="ip">
           <div class="flex items-center gap-3 mb-5">
-            <div class="h-8 w-8 rounded-lg bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center shrink-0">
+            <div
+              class="h-8 w-8 rounded-lg bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center shrink-0"
+            >
               <span class="pi pi-star text-emerald-500 text-sm"></span>
             </div>
             <h2 class="text-white font-bold text-lg jetbrains-bold">7. Intellectual Property</h2>
           </div>
           <div class="pl-11 flex flex-col gap-4">
             <p class="text-gray-400 text-sm leading-7">
-              All content, features, and functionality of the Service — including but not limited
-              to text, graphics, user interfaces, visual interfaces, code, and trade algorithms —
-              are owned by or licensed to Bbot and are protected by applicable intellectual
-              property laws.
+              All content, features, and functionality of the Service — including but not limited to
+              text, graphics, user interfaces, visual interfaces, code, and trade algorithms — are
+              owned by or licensed to Bbot and are protected by applicable intellectual property
+              laws.
             </p>
             <p class="text-gray-400 text-sm leading-7">
-              You are granted a limited, non-exclusive, non-transferable license to access and
-              use the Service for your personal, non-commercial trading purposes, subject to
-              these Terms.
+              You are granted a limited, non-exclusive, non-transferable license to access and use
+              the Service for your personal, non-commercial trading purposes, subject to these
+              Terms.
             </p>
           </div>
           <p-divider />
@@ -270,7 +291,9 @@
         <!-- 8. Disclaimer of Warranties -->
         <section class="scroll-mt-28" id="disclaimer">
           <div class="flex items-center gap-3 mb-5">
-            <div class="h-8 w-8 rounded-lg bg-gray-500/10 border border-gray-500/20 flex items-center justify-center shrink-0">
+            <div
+              class="h-8 w-8 rounded-lg bg-gray-500/10 border border-gray-500/20 flex items-center justify-center shrink-0"
+            >
               <span class="pi pi-info-circle text-gray-400 text-sm"></span>
             </div>
             <h2 class="text-white font-bold text-lg jetbrains-bold">8. Disclaimer of Warranties</h2>
@@ -286,8 +309,8 @@
             </div>
             <p class="text-gray-400 text-sm leading-7">
               AI-generated analysis and trading signals are provided for informational purposes
-              only. They do not constitute investment advice and may not be accurate, timely,
-              or appropriate for your individual circumstances.
+              only. They do not constitute investment advice and may not be accurate, timely, or
+              appropriate for your individual circumstances.
             </p>
           </div>
           <p-divider />
@@ -296,16 +319,18 @@
         <!-- 9. Limitation of Liability -->
         <section class="scroll-mt-28" id="liability">
           <div class="flex items-center gap-3 mb-5">
-            <div class="h-8 w-8 rounded-lg bg-orange-500/10 border border-orange-500/20 flex items-center justify-center shrink-0">
+            <div
+              class="h-8 w-8 rounded-lg bg-orange-500/10 border border-orange-500/20 flex items-center justify-center shrink-0"
+            >
               <span class="pi pi-shield text-orange-400 text-sm"></span>
             </div>
             <h2 class="text-white font-bold text-lg jetbrains-bold">9. Limitation of Liability</h2>
           </div>
           <div class="pl-11 flex flex-col gap-4">
             <p class="text-gray-400 text-sm leading-7">
-              To the maximum extent permitted by applicable law, Bbot and its operators shall
-              not be liable for any indirect, incidental, special, consequential, or punitive
-              damages, including without limitation:
+              To the maximum extent permitted by applicable law, Bbot and its operators shall not be
+              liable for any indirect, incidental, special, consequential, or punitive damages,
+              including without limitation:
             </p>
             <ul class="flex flex-col gap-3">
               @for (item of liabilityItems; track $index) {
@@ -322,7 +347,9 @@
         <!-- 10. Termination -->
         <section class="scroll-mt-28" id="termination">
           <div class="flex items-center gap-3 mb-5">
-            <div class="h-8 w-8 rounded-lg bg-red-500/10 border border-red-500/20 flex items-center justify-center shrink-0">
+            <div
+              class="h-8 w-8 rounded-lg bg-red-500/10 border border-red-500/20 flex items-center justify-center shrink-0"
+            >
               <span class="pi pi-sign-out text-red-400 text-sm"></span>
             </div>
             <h2 class="text-white font-bold text-lg jetbrains-bold">10. Termination</h2>
@@ -345,7 +372,9 @@
         <!-- 11. Changes to Terms -->
         <section class="scroll-mt-28" id="changes">
           <div class="flex items-center gap-3 mb-5">
-            <div class="h-8 w-8 rounded-lg bg-blue-500/10 border border-blue-500/20 flex items-center justify-center shrink-0">
+            <div
+              class="h-8 w-8 rounded-lg bg-blue-500/10 border border-blue-500/20 flex items-center justify-center shrink-0"
+            >
               <span class="pi pi-refresh text-blue-400 text-sm"></span>
             </div>
             <h2 class="text-white font-bold text-lg jetbrains-bold">11. Changes to Terms</h2>
@@ -354,8 +383,8 @@
             <p class="text-gray-400 text-sm leading-7">
               We reserve the right to modify these Terms at any time. We will notify users of
               material changes by updating the "Effective Date" at the top of this page. Your
-              continued use of the Service after any changes constitutes your acceptance of the
-              new Terms.
+              continued use of the Service after any changes constitutes your acceptance of the new
+              Terms.
             </p>
             <p class="text-gray-400 text-sm leading-7">
               We encourage you to review these Terms periodically to stay informed of any updates.
@@ -367,23 +396,31 @@
         <!-- 12. Contact -->
         <section class="scroll-mt-28" id="contact">
           <div class="flex items-center gap-3 mb-5">
-            <div class="h-8 w-8 rounded-lg bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center shrink-0">
+            <div
+              class="h-8 w-8 rounded-lg bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center shrink-0"
+            >
               <span class="pi pi-envelope text-emerald-500 text-sm"></span>
             </div>
             <h2 class="text-white font-bold text-lg jetbrains-bold">12. Contact Us</h2>
           </div>
           <div class="pl-11 flex flex-col gap-4">
             <p class="text-gray-400 text-sm leading-7">
-              If you have any questions or concerns about these Terms of Service, please reach
-              out to us. We aim to respond to all inquiries within 48 hours.
+              If you have any questions or concerns about these Terms of Service, please reach out
+              to us. We aim to respond to all inquiries within 48 hours.
             </p>
-            <div class="bg-gray-900 border border-gray-800 rounded-xl p-5 flex flex-col sm:flex-row sm:items-center gap-4">
-              <div class="h-10 w-10 rounded-lg bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center shrink-0">
+            <div
+              class="bg-gray-900 border border-gray-800 rounded-xl p-5 flex flex-col sm:flex-row sm:items-center gap-4"
+            >
+              <div
+                class="h-10 w-10 rounded-lg bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center shrink-0"
+              >
                 <span class="pi pi-envelope text-emerald-500"></span>
               </div>
               <div class="flex flex-col gap-1">
                 <span class="text-white text-sm font-semibold">Legal Inquiries</span>
-                <span class="text-gray-400 text-xs">For all questions regarding these Terms of Service</span>
+                <span class="text-gray-400 text-xs"
+                  >For all questions regarding these Terms of Service</span
+                >
               </div>
               <div class="sm:ml-auto">
                 <p-button
@@ -417,9 +454,7 @@
             size="small"
           />
         </div>
-
       </article>
     </div>
   </div>
-
 </div>

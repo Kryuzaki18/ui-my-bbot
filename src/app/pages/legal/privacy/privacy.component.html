@@ -1,5 +1,4 @@
 <div class="min-h-screen bg-gray-950 flex flex-col">
-
   <!-- Top navigation bar -->
   <div class="bg-gray-900 border-b border-gray-800 sticky top-[50px] z-50">
     <div class="max-w-6xl mx-auto px-4 sm:px-6 py-3 flex items-center justify-between gap-4">
@@ -23,14 +22,17 @@
   <div class="bg-gray-900 border-b border-gray-800">
     <div class="max-w-6xl mx-auto px-4 sm:px-6 py-12 sm:py-16">
       <div class="flex items-center gap-3 mb-5">
-        <div class="h-10 w-10 rounded-lg bg-blue-500/10 border border-blue-500/20 flex items-center justify-center shrink-0">
+        <div
+          class="h-10 w-10 rounded-lg bg-blue-500/10 border border-blue-500/20 flex items-center justify-center shrink-0"
+        >
           <span class="pi pi-shield text-blue-400"></span>
         </div>
-        <p-tag value="Legal" severity="success" [rounded]="true" />
+
+        <h1 class="text-2xl sm:text-3xl lg:text-4xl font-bold text-white jetbrains-bold">
+          Privacy Policy
+        </h1>
       </div>
-      <h1 class="text-2xl sm:text-3xl lg:text-4xl font-bold text-white mb-4 jetbrains-bold">
-        Privacy Policy
-      </h1>
+
       <p class="text-gray-400 text-sm sm:text-base leading-7 max-w-2xl mb-6">
         Your privacy is important to us. This policy explains what data we collect, how we use it,
         and the choices you have regarding your information.
@@ -47,7 +49,6 @@
   <!-- Main content area -->
   <div class="flex-1 max-w-6xl mx-auto w-full px-4 sm:px-6 py-10">
     <div class="grid grid-cols-1 lg:grid-cols-4 gap-8 lg:gap-12">
-
       <!-- Sticky TOC sidebar — desktop only -->
       <aside class="hidden lg:block col-span-1">
         <div class="sticky top-[106px] bg-gray-900 border border-gray-800 rounded-xl p-5">
@@ -60,9 +61,11 @@
                 type="button"
                 (click)="scrollTo(section.id)"
                 class="relative w-full text-left text-xs py-2 pl-4 pr-3 rounded-lg transition-all duration-200 cursor-pointer"
-                [ngClass]="activeSection() === section.id
-                  ? 'text-emerald-500 bg-emerald-500/10 font-medium'
-                  : 'text-gray-500 hover:text-emerald-400 hover:bg-gray-800'"
+                [ngClass]="
+                  activeSection() === section.id
+                    ? 'text-emerald-500 bg-emerald-500/10 font-medium'
+                    : 'text-gray-500 hover:text-emerald-400 hover:bg-gray-800'
+                "
               >
                 <span
                   class="absolute left-0 top-1/2 -translate-y-1/2 w-0.5 rounded-r-full bg-emerald-500 transition-all duration-200"
@@ -92,17 +95,17 @@
 
       <!-- Article content -->
       <article class="lg:col-span-3 flex flex-col gap-10">
-
         <!-- 1. Information We Collect -->
         <section class="scroll-mt-28" id="collect">
           <div class="flex items-center gap-3 mb-5">
-            <div class="h-8 w-8 rounded-lg bg-blue-500/10 border border-blue-500/20 flex items-center justify-center shrink-0">
+            <div
+              class="h-8 w-8 rounded-lg bg-blue-500/10 border border-blue-500/20 flex items-center justify-center shrink-0"
+            >
               <span class="pi pi-database text-blue-400 text-sm"></span>
             </div>
             <h2 class="text-white font-bold text-lg jetbrains-bold">1. Information We Collect</h2>
           </div>
           <div class="pl-11 flex flex-col gap-6">
-
             <div>
               <h3 class="text-gray-300 text-sm font-semibold mb-3 flex items-center gap-2">
                 <span class="pi pi-user text-emerald-500 text-xs"></span>
@@ -136,12 +139,16 @@
             <div class="bg-emerald-500/5 border border-emerald-500/20 rounded-xl p-5">
               <div class="flex items-center gap-2 mb-2">
                 <span class="pi pi-info-circle text-emerald-500 text-sm"></span>
-                <span class="text-emerald-500 text-xs font-bold uppercase tracking-wide jetbrains-bold">Anonymous Users</span>
+                <span
+                  class="text-emerald-500 text-xs font-bold uppercase tracking-wide jetbrains-bold"
+                  >Anonymous Users</span
+                >
               </div>
               <p class="text-gray-400 text-sm leading-6">
                 Visitors without accounts receive an anonymous session UUID stored in a secure
                 cookie. This allows chat history to persist across page visits without requiring
-                registration. No personally identifiable information is collected for anonymous users.
+                registration. No personally identifiable information is collected for anonymous
+                users.
               </p>
             </div>
           </div>
@@ -151,7 +158,9 @@
         <!-- 2. How We Use Your Data -->
         <section class="scroll-mt-28" id="use">
           <div class="flex items-center gap-3 mb-5">
-            <div class="h-8 w-8 rounded-lg bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center shrink-0">
+            <div
+              class="h-8 w-8 rounded-lg bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center shrink-0"
+            >
               <span class="pi pi-cog text-emerald-500 text-sm"></span>
             </div>
             <h2 class="text-white font-bold text-lg jetbrains-bold">2. How We Use Your Data</h2>
@@ -182,10 +191,14 @@
         <!-- 3. Data Storage & Security -->
         <section class="scroll-mt-28" id="storage">
           <div class="flex items-center gap-3 mb-5">
-            <div class="h-8 w-8 rounded-lg bg-purple-500/10 border border-purple-500/20 flex items-center justify-center shrink-0">
+            <div
+              class="h-8 w-8 rounded-lg bg-purple-500/10 border border-purple-500/20 flex items-center justify-center shrink-0"
+            >
               <span class="pi pi-lock text-purple-400 text-sm"></span>
             </div>
-            <h2 class="text-white font-bold text-lg jetbrains-bold">3. Data Storage &amp; Security</h2>
+            <h2 class="text-white font-bold text-lg jetbrains-bold">
+              3. Data Storage &amp; Security
+            </h2>
           </div>
           <div class="pl-11 flex flex-col gap-4">
             <p class="text-gray-400 text-sm leading-7">
@@ -199,7 +212,9 @@
                 </li>
               }
             </ul>
-            <div class="bg-gray-800/50 border border-gray-700 rounded-xl p-5 grid grid-cols-2 sm:grid-cols-4 gap-4">
+            <div
+              class="bg-gray-800/50 border border-gray-700 rounded-xl p-5 grid grid-cols-2 sm:grid-cols-4 gap-4"
+            >
               @for (item of techStack; track $index) {
                 <div class="flex flex-col gap-1 items-center text-center">
                   <span class="text-white text-sm font-bold jetbrains-bold">{{ item.label }}</span>
@@ -214,7 +229,9 @@
         <!-- 4. Third-Party Services -->
         <section class="scroll-mt-28" id="third-party">
           <div class="flex items-center gap-3 mb-5">
-            <div class="h-8 w-8 rounded-lg bg-yellow-500/10 border border-yellow-500/20 flex items-center justify-center shrink-0">
+            <div
+              class="h-8 w-8 rounded-lg bg-yellow-500/10 border border-yellow-500/20 flex items-center justify-center shrink-0"
+            >
               <span class="pi pi-share-alt text-yellow-500 text-sm"></span>
             </div>
             <h2 class="text-white font-bold text-lg jetbrains-bold">4. Third-Party Services</h2>
@@ -244,7 +261,9 @@
         <!-- 5. Cookies & Sessions -->
         <section class="scroll-mt-28" id="cookies">
           <div class="flex items-center gap-3 mb-5">
-            <div class="h-8 w-8 rounded-lg bg-orange-500/10 border border-orange-500/20 flex items-center justify-center shrink-0">
+            <div
+              class="h-8 w-8 rounded-lg bg-orange-500/10 border border-orange-500/20 flex items-center justify-center shrink-0"
+            >
               <span class="pi pi-bookmark text-orange-400 text-sm"></span>
             </div>
             <h2 class="text-white font-bold text-lg jetbrains-bold">5. Cookies &amp; Sessions</h2>
@@ -264,7 +283,9 @@
                 </thead>
                 <tbody>
                   @for (row of cookies; track $index) {
-                    <tr class="border-b border-gray-800 last:border-0 hover:bg-gray-900/60 transition-colors">
+                    <tr
+                      class="border-b border-gray-800 last:border-0 hover:bg-gray-900/60 transition-colors"
+                    >
                       <td class="px-4 py-3 text-emerald-500 jetbrains-bold">{{ row.name }}</td>
                       <td class="px-4 py-3 text-gray-400">{{ row.purpose }}</td>
                       <td class="px-4 py-3 text-gray-500">{{ row.duration }}</td>
@@ -275,9 +296,9 @@
             </div>
             <p class="text-gray-400 text-sm leading-7">
               All cookies are <strong class="text-white">httpOnly</strong> and
-              <strong class="text-white">Secure</strong>, meaning they cannot be accessed
-              by JavaScript and are only transmitted over HTTPS. We do not use tracking or
-              advertising cookies.
+              <strong class="text-white">Secure</strong>, meaning they cannot be accessed by
+              JavaScript and are only transmitted over HTTPS. We do not use tracking or advertising
+              cookies.
             </p>
           </div>
           <p-divider />
@@ -286,7 +307,9 @@
         <!-- 6. Data Retention -->
         <section class="scroll-mt-28" id="retention">
           <div class="flex items-center gap-3 mb-5">
-            <div class="h-8 w-8 rounded-lg bg-gray-500/10 border border-gray-500/20 flex items-center justify-center shrink-0">
+            <div
+              class="h-8 w-8 rounded-lg bg-gray-500/10 border border-gray-500/20 flex items-center justify-center shrink-0"
+            >
               <span class="pi pi-calendar text-gray-400 text-sm"></span>
             </div>
             <h2 class="text-white font-bold text-lg jetbrains-bold">6. Data Retention</h2>
@@ -307,7 +330,9 @@
         <!-- 7. Your Rights -->
         <section class="scroll-mt-28" id="rights">
           <div class="flex items-center gap-3 mb-5">
-            <div class="h-8 w-8 rounded-lg bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center shrink-0">
+            <div
+              class="h-8 w-8 rounded-lg bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center shrink-0"
+            >
               <span class="pi pi-verified text-emerald-500 text-sm"></span>
             </div>
             <h2 class="text-white font-bold text-lg jetbrains-bold">7. Your Rights</h2>
@@ -338,7 +363,9 @@
         <!-- 8. Children's Privacy -->
         <section class="scroll-mt-28" id="children">
           <div class="flex items-center gap-3 mb-5">
-            <div class="h-8 w-8 rounded-lg bg-red-500/10 border border-red-500/20 flex items-center justify-center shrink-0">
+            <div
+              class="h-8 w-8 rounded-lg bg-red-500/10 border border-red-500/20 flex items-center justify-center shrink-0"
+            >
               <span class="pi pi-exclamation-triangle text-red-400 text-sm"></span>
             </div>
             <h2 class="text-white font-bold text-lg jetbrains-bold">8. Children's Privacy</h2>
@@ -356,7 +383,9 @@
         <!-- 9. Changes to Policy -->
         <section class="scroll-mt-28" id="changes">
           <div class="flex items-center gap-3 mb-5">
-            <div class="h-8 w-8 rounded-lg bg-blue-500/10 border border-blue-500/20 flex items-center justify-center shrink-0">
+            <div
+              class="h-8 w-8 rounded-lg bg-blue-500/10 border border-blue-500/20 flex items-center justify-center shrink-0"
+            >
               <span class="pi pi-refresh text-blue-400 text-sm"></span>
             </div>
             <h2 class="text-white font-bold text-lg jetbrains-bold">9. Changes to This Policy</h2>
@@ -368,8 +397,8 @@
               by updating the "Effective Date" at the top of this page.
             </p>
             <p class="text-gray-400 text-sm leading-7">
-              We encourage you to review this policy periodically. Your continued use of the
-              Service after changes are posted constitutes your acceptance of the updated policy.
+              We encourage you to review this policy periodically. Your continued use of the Service
+              after changes are posted constitutes your acceptance of the updated policy.
             </p>
           </div>
           <p-divider />
@@ -378,24 +407,32 @@
         <!-- 10. Contact -->
         <section class="scroll-mt-28" id="contact">
           <div class="flex items-center gap-3 mb-5">
-            <div class="h-8 w-8 rounded-lg bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center shrink-0">
+            <div
+              class="h-8 w-8 rounded-lg bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center shrink-0"
+            >
               <span class="pi pi-envelope text-emerald-500 text-sm"></span>
             </div>
             <h2 class="text-white font-bold text-lg jetbrains-bold">10. Contact Us</h2>
           </div>
           <div class="pl-11 flex flex-col gap-4">
             <p class="text-gray-400 text-sm leading-7">
-              If you have questions about this Privacy Policy, wish to exercise your data rights,
-              or have a privacy concern, please contact us. We take all privacy inquiries seriously
-              and will respond promptly.
+              If you have questions about this Privacy Policy, wish to exercise your data rights, or
+              have a privacy concern, please contact us. We take all privacy inquiries seriously and
+              will respond promptly.
             </p>
-            <div class="bg-gray-900 border border-gray-800 rounded-xl p-5 flex flex-col sm:flex-row sm:items-center gap-4">
-              <div class="h-10 w-10 rounded-lg bg-blue-500/10 border border-blue-500/20 flex items-center justify-center shrink-0">
+            <div
+              class="bg-gray-900 border border-gray-800 rounded-xl p-5 flex flex-col sm:flex-row sm:items-center gap-4"
+            >
+              <div
+                class="h-10 w-10 rounded-lg bg-blue-500/10 border border-blue-500/20 flex items-center justify-center shrink-0"
+              >
                 <span class="pi pi-shield text-blue-400"></span>
               </div>
               <div class="flex flex-col gap-1">
                 <span class="text-white text-sm font-semibold">Privacy Officer</span>
-                <span class="text-gray-400 text-xs">For all data protection and privacy inquiries</span>
+                <span class="text-gray-400 text-xs"
+                  >For all data protection and privacy inquiries</span
+                >
               </div>
               <div class="sm:ml-auto">
                 <p-button
@@ -429,9 +466,7 @@
             size="small"
           />
         </div>
-
       </article>
     </div>
   </div>
-
 </div>

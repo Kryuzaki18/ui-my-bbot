@@ -30,33 +30,22 @@
                 </span>
               </div>
             </div>
-            <!-- <div class="flex items-center gap-1"> -->
-              <!-- <button
-                (click)="toggleMaximize()"
+            <div class="flex items-center gap-1">
+              <button
+                (click)="clearHistory()"
+                [disabled]="isClearingHistory()"
+                title="Clear chat history"
+                class="hover:bg-white/10 rounded-full h-8 w-8 transition-colors cursor-pointer flex items-center justify-center disabled:opacity-40 disabled:cursor-not-allowed"
+              >
+                <span class="pi pi-trash text-xs"></span>
+              </button>
+              <button
+                (click)="closeChat()"
                 class="hover:bg-white/10 rounded-full h-8 w-8 transition-colors cursor-pointer flex items-center justify-center"
               >
-                <span
-                  class="pi text-xs transition-transform duration-300"
-                  [ngClass]="isMaximized() ? 'pi-window-minimize' : 'pi-window-maximize'"
-                ></span>
-              </button> -->
-              <div class="flex items-center gap-1">
-                <button
-                  (click)="clearHistory()"
-                  [disabled]="isClearingHistory()"
-                  title="Clear chat history"
-                  class="hover:bg-white/10 rounded-full h-8 w-8 transition-colors cursor-pointer flex items-center justify-center disabled:opacity-40 disabled:cursor-not-allowed"
-                >
-                  <span class="pi pi-trash text-xs"></span>
-                </button>
-                <button
-                  (click)="closeChat()"
-                  class="hover:bg-white/10 rounded-full h-8 w-8 transition-colors cursor-pointer flex items-center justify-center"
-                >
-                  <span class="pi pi-times text-xs"></span>
-                </button>
-              </div>
-            <!-- </div> -->
+                <span class="pi pi-times text-xs"></span>
+              </button>
+            </div>
           </div>
 
           <p-tabs [(value)]="chatTabIndex" class="h-full" (valueChange)="onTabChange($event)">
@@ -67,10 +56,7 @@
 
             <p-tabpanels class="!p-0">
               <p-tabpanel [value]="0">
-                <p-scrollpanel
-                  #chatScrollPanel
-                  class="h-[300px]"
-                >
+                <p-scrollpanel #chatScrollPanel class="h-[300px]">
                   <div class="space-y-1 px-3">
                     @for (item of conversation; track $index) {
                       @if (item.sender === 'assistant') {
@@ -105,7 +91,9 @@
                           ></span>
                           <span class="w-1.5 h-1.5 bg-slate-500 rounded-full animate-bounce"></span>
                         </div>
-                        <span class="text-[10px] text-slate-500 italic ml-1">Agent is thinking</span>
+                        <span class="text-[10px] text-slate-500 italic ml-1"
+                          >Agent is thinking</span
+                        >
                       </div>
                     }
                   </div>
@@ -114,9 +102,7 @@
 
               <p-tabpanel [value]="1">
                 <p-scrollpanel #analyzeScrollPanel>
-                  <div
-                    class="space-y-1 p-3 h-[300px]"
-                  >
+                  <div class="space-y-1 p-3 h-[300px]">
                     @for (item of analyzeSignals; track $index) {
                       @if (item.status === 'rejected') {
                         <div class="pb-6">
