@@ -1,0 +1,73 @@
+<footer class="bg-gray-900 border-t border-gray-800 w-full">
+  <div class="max-w-6xl mx-auto px-6 py-10">
+
+    <!-- Three-column grid: stacked on mobile, side-by-side on md+ -->
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-10 mb-8">
+
+      <!-- Brand -->
+      <div class="flex flex-col gap-4">
+        <div class="flex items-center gap-2">
+          <img src="/binance_logo.svg" alt="Bbot" width="18" />
+          <span class="text-emerald-500 font-bold jetbrains-bold text-sm tracking-wide">Bbot</span>
+          <p-tag value="Beta" severity="warn" [rounded]="true" />
+        </div>
+        <p class="text-gray-400 text-xs leading-6">
+          AI-powered cryptocurrency futures trading terminal with real-time market
+          analysis, automated signals, and direct Binance integration.
+        </p>
+        <div class="flex items-center gap-2">
+          <span class="relative flex h-1.5 w-1.5">
+            <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+            <span class="relative inline-flex rounded-full h-1.5 w-1.5 bg-emerald-500"></span>
+          </span>
+          <span class="text-gray-500 text-xs">All systems operational</span>
+        </div>
+      </div>
+
+      <!-- Legal links -->
+      <div class="flex flex-col gap-4">
+        <span class="text-gray-500 text-[11px] uppercase tracking-widest jetbrains-bold">Legal</span>
+        <nav class="flex flex-col gap-3">
+          <a
+            routerLink="/terms"
+            class="group flex items-center gap-2 text-gray-400 hover:text-emerald-500 text-xs transition-colors duration-200"
+          >
+            <span class="pi pi-file-edit text-[11px] text-gray-600 group-hover:text-emerald-500 transition-colors duration-200"></span>
+            Terms of Service
+          </a>
+          <a
+            routerLink="/privacy"
+            class="group flex items-center gap-2 text-gray-400 hover:text-emerald-500 text-xs transition-colors duration-200"
+          >
+            <span class="pi pi-shield text-[11px] text-gray-600 group-hover:text-emerald-500 transition-colors duration-200"></span>
+            Privacy Policy
+          </a>
+        </nav>
+      </div>
+
+      <!-- Risk disclaimer -->
+      <div class="flex flex-col gap-4 sm:col-span-2 lg:col-span-1">
+        <span class="text-gray-500 text-[11px] uppercase tracking-widest jetbrains-bold">Risk Disclosure</span>
+        <p class="text-gray-500 text-xs leading-6">
+          Trading cryptocurrency futures involves substantial risk of loss and is not
+          suitable for all investors. This platform does not constitute financial advice.
+          Past performance is not indicative of future results.
+        </p>
+      </div>
+    </div>
+
+    <p-divider />
+
+    <!-- Bottom bar: copyright + quick links -->
+    <div class="flex flex-col sm:flex-row items-center justify-between gap-3 pt-1">
+      <span class="text-gray-600 text-xs order-2 sm:order-1">
+        © {{ currentYear }} Bbot. All rights reserved.
+      </span>
+      <div class="flex items-center gap-4 order-1 sm:order-2">
+        <a routerLink="/terms" class="text-gray-600 hover:text-gray-400 text-xs transition-colors duration-200">Terms</a>
+        <span class="text-gray-700 select-none">·</span>
+        <a routerLink="/privacy" class="text-gray-600 hover:text-gray-400 text-xs transition-colors duration-200">Privacy</a>
+      </div>
+    </div>
+  </div>
+</footer>
