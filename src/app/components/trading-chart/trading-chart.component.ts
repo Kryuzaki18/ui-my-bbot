@@ -74,6 +74,7 @@ import { ScrollPanelModule } from 'primeng/scrollpanel';
 import { PopoverModule } from 'primeng/popover';
 import { DividerModule } from 'primeng/divider';
 import { TooltipModule } from 'primeng/tooltip';
+import { ProgressBarModule } from 'primeng/progressbar';
 
 @Component({
   selector: 'app-trading-chart',
@@ -87,6 +88,7 @@ import { TooltipModule } from 'primeng/tooltip';
     PopoverModule,
     DividerModule,
     TooltipModule,
+    ProgressBarModule,
     TradingSymbolsPopoverComponent,
   ],
   templateUrl: './trading-chart.component.html',
@@ -143,6 +145,13 @@ export class TradingChartComponent implements OnInit, OnDestroy {
   private editingPoint: { item: DrawnItem; pointIndex: 1 | 2 | 'horizontal' } | null = null;
 
   private readonly initCandles = signal<CandleData[]>([]);
+
+  readonly isChartLoading = signal<boolean>(true);
+  readonly chartHasError = signal<boolean>(false);
+  readonly hasEverLoadedData = signal<boolean>(false);
+
+  protected readonly chartSkeletonBars = [30, 55, 40, 75, 60, 35, 70, 45, 80, 50, 25, 65, 55, 40, 70];
+
   readonly aggTrades = signal<AggTradeWsMessage[]>([]);
   readonly wsStatus = signal<WsStatus>('connecting');
   readonly orderBook = signal<OrderBookData | null>(null);
@@ -862,7 +871,14 @@ export class TradingChartComponent implements OnInit, OnDestroy {
     return Math.sqrt(dx * dx + dy * dy);
   }
 
+  loadChart(): void {
+    this.fetchKlines(this.selectedTimeframe);
+  }
+
   private fetchKlines(tf: Timeframe): void {
+    this.isChartLoading.set(true);
+    this.chartHasError.set(false);
+
     this.binanceRestService
       .getKlines(this.selectedSymbol, tf, 1500)
       .pipe(takeUntilDestroyed(this.destroyRef))
@@ -871,12 +887,16 @@ export class TradingChartComponent implements OnInit, OnDestroy {
           this.applyKlineData(candles);
         },
         error: () => {
-          setTimeout(() => this.fetchKlines(tf), 500);
+          this.isChartLoading.set(false);
+          this.chartHasError.set(true);
         },
       });
   }
 
   private applyKlineData(candles: CandleData[]): void {
+    this.isChartLoading.set(false);
+    this.chartHasError.set(false);
+    this.hasEverLoadedData.set(true);
     this.initCandles.set(candles);
     const theme = this.chartService.currentTheme;
 

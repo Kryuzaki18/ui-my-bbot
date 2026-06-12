@@ -326,7 +326,78 @@
       </p-button>
     </div>
 
-    <div class="flex flex-col flex-auto chart-wrapper overflow-hidden pb-1">
+    <div class="flex flex-col flex-auto chart-wrapper overflow-hidden pb-1 relative">
+
+      <!-- ── Chart loading / error overlay ──────────────────────────────── -->
+      @if ((isChartLoading() && !hasEverLoadedData()) || chartHasError()) {
+        <div class="absolute inset-0 z-50 flex flex-col items-center justify-center bg-gray-950 gap-6">
+
+          @if (isChartLoading()) {
+            <!-- Loading state -->
+            <div class="flex flex-col items-center gap-5">
+              <!-- Skeleton candlestick bars -->
+              <div class="flex items-end gap-[5px]" style="height: 64px">
+                @for (bar of chartSkeletonBars; track $index) {
+                  <p-skeleton
+                    [style]="{ width: '7px', height: bar + '%', flex: 'none', borderRadius: '2px' }"
+                  ></p-skeleton>
+                }
+              </div>
+
+              <!-- Skeleton price axis -->
+              <div class="flex flex-col gap-1.5 w-[140px]">
+                <p-skeleton height="1px" borderRadius="0"></p-skeleton>
+                <div class="flex gap-2 justify-between">
+                  @for (t of [1, 2, 3, 4]; track t) {
+                    <p-skeleton width="24px" height="6px" borderRadius="2px"></p-skeleton>
+                  }
+                </div>
+              </div>
+
+              <!-- Indeterminate progress bar -->
+              <div class="w-[140px]">
+                <p-progressbar mode="indeterminate" [style]="{ height: '2px' }"></p-progressbar>
+              </div>
+
+              <!-- Status label -->
+              <div class="flex items-center gap-2">
+                <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse flex-none"></span>
+                <span class="text-[10px] text-gray-600 tracking-widest uppercase jetbrains-regular">
+                  Fetching chart data
+                </span>
+              </div>
+            </div>
+          } @else {
+            <!-- Error / empty state -->
+            <div class="flex flex-col items-center gap-4 text-center px-6">
+              <div
+                class="w-14 h-14 rounded-full bg-gray-900 border border-gray-800 flex items-center justify-center"
+              >
+                <i class="pi pi-chart-bar text-2xl text-gray-600"></i>
+              </div>
+
+              <div class="flex flex-col gap-1">
+                <p class="text-sm text-gray-400 jetbrains-bold">Chart data unavailable</p>
+                <p class="text-[11px] text-gray-600">
+                  Failed to fetch candlestick data. Please try again.
+                </p>
+              </div>
+
+              <p-button
+                label="Load Chart"
+                icon="pi pi-refresh"
+                size="small"
+                severity="secondary"
+                [outlined]="true"
+                (onClick)="loadChart()"
+              ></p-button>
+            </div>
+          }
+
+        </div>
+      }
+      <!-- ───────────────────────────────────────────────────────────────── -->
+
       <div #chartContainer class="chart-container flex-auto min-h-0 w-full relative z-0"></div>
 
       <div
