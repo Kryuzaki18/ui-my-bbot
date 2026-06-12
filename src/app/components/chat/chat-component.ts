@@ -50,9 +50,9 @@ export class ChatComponent {
 
   readonly INITIAL_MESSAGE: ChatResponse = {
     sender: 'assistant',
-    message: 'Hi! I\'m Bbot, your crypto trading AI. Ask me anything about markets, technical analysis, or trading strategies.',
+    message:
+      "Hi! I'm Bbot, your crypto trading AI. Ask me anything about markets, technical analysis, or trading strategies.",
     timestamp: new Date().toLocaleTimeString(),
-    isError: false,
   };
 
   chatOpen = signal<boolean>(false);
@@ -161,39 +161,33 @@ export class ChatComponent {
         sender: 'user',
         message: 'What is the current price of BTC?',
         timestamp: new Date().toLocaleTimeString(),
-        isError: false,
       },
       {
         sender: 'assistant',
         message: 'The current price of BTC is 100000.',
         timestamp: new Date().toLocaleTimeString(),
-        isError: false,
       },
       {
         sender: 'user',
         message: 'What is the current price of ETH',
         timestamp: new Date().toLocaleTimeString(),
         isSuggestion: false,
-        isError: false,
       },
       {
         sender: 'assistant',
         message: 'The current price of ETH is 3000.',
         timestamp: new Date().toLocaleTimeString(),
-        isError: false,
       },
       {
         sender: 'user',
         message: 'Any coming event that affects BTC?',
         timestamp: new Date().toLocaleTimeString(),
-        isError: false,
       },
       {
         sender: 'assistant',
         message:
           'Yes, there is an event coming up that may affect BTC. It is a news event that is scheduled to happen in 2 hours.',
         timestamp: new Date().toLocaleTimeString(),
-        isError: false,
       },
     ];
     this.conversation.push(...convo);
@@ -212,7 +206,7 @@ export class ChatComponent {
 
   analyze(): void {
     if (this.isAnalyzing()) return;
-    
+
     this.isAnalyzing.set(true);
 
     this.aiService
@@ -233,7 +227,7 @@ export class ChatComponent {
             status: 'rejected',
             message: 'Something went wrong. Please try again.',
             timestamp: new Date().toLocaleTimeString(),
-            response: null
+            response: null,
           });
           console.error(err);
           this.isAnalyzing.set(false);
@@ -253,7 +247,6 @@ export class ChatComponent {
               sender: m.role,
               message: m.content,
               timestamp: m.createdAt ? new Date(m.createdAt).toLocaleTimeString() : '',
-              isError: m.status === 'rejected' && m.role === 'assistant',
             }));
             this.conversation = [{ ...this.INITIAL_MESSAGE }, ...history];
             this.chatScrollToBottom();
@@ -292,7 +285,6 @@ export class ChatComponent {
       sender: 'user',
       message: userMessage,
       timestamp: new Date().toLocaleTimeString(),
-      isError: false,
     });
 
     this.aiService
@@ -304,7 +296,6 @@ export class ChatComponent {
             sender: 'assistant',
             message: res.message,
             timestamp: new Date().toLocaleTimeString(),
-            isError: res.status !== 'accepted',
           });
           this.reset();
         },
@@ -313,7 +304,6 @@ export class ChatComponent {
             sender: 'assistant',
             message: 'Something went wrong. Please try again.',
             timestamp: new Date().toLocaleTimeString(),
-            isError: true,
           });
           console.error(err);
           this.reset();

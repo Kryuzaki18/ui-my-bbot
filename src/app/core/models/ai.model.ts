@@ -4,7 +4,6 @@ export interface ChatResponse {
   sender: string;
   message: string;
   timestamp: string;
-  isError: boolean;
 }
 
 export interface ConversationMessage {
