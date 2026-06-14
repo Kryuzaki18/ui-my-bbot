@@ -33,7 +33,7 @@
             <div class="flex items-center gap-1">
               <button
                 (click)="clearHistory()"
-                [disabled]="isClearingHistory()"
+                [disabled]="isClearingHistory() || conversation.length <= 1"
                 title="Clear chat history"
                 class="hover:bg-white/10 rounded-full h-8 w-8 transition-colors cursor-pointer flex items-center justify-center disabled:opacity-40 disabled:cursor-not-allowed"
               >

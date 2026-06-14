@@ -257,7 +257,7 @@ export class ChatComponent {
   }
 
   clearHistory(): void {
-    if (this.isClearingHistory()) return;
+    if (this.isClearingHistory() || this.conversation.length <= 1) return;
     this.isClearingHistory.set(true);
 
     this.aiService
