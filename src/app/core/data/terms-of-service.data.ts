@@ -1,11 +1,7 @@
-// ─── Meta ────────────────────────────────────────────────────────────────────
-
 export const TERMS_META = {
   effectiveDate: 'June 12, 2025',
   version: '1.0',
 } as const;
-
-// ─── Table of Contents ───────────────────────────────────────────────────────
 
 export interface LegalTocItem {
   id: string;
@@ -27,8 +23,6 @@ export const TERMS_SECTIONS: LegalTocItem[] = [
   { id: 'contact',     label: '12. Contact Us'              },
 ];
 
-// ─── Section 2 — Eligibility ─────────────────────────────────────────────────
-
 export const TERMS_ELIGIBILITY_ITEMS: string[] = [
   'Be at least 18 years of age or the legal age of majority in your jurisdiction',
   'Have the legal capacity to enter into a binding agreement',
@@ -36,8 +30,6 @@ export const TERMS_ELIGIBILITY_ITEMS: string[] = [
   'Comply with all applicable local, national, and international laws and regulations',
   'Not be located in a jurisdiction where cryptocurrency trading is restricted or prohibited',
 ];
-
-// ─── Section 4 — Trading Risks ───────────────────────────────────────────────
 
 export const TERMS_RISK_ITEMS: string[] = [
   'Cryptocurrency markets are highly volatile and prices can change dramatically',
@@ -48,8 +40,6 @@ export const TERMS_RISK_ITEMS: string[] = [
   'You should never trade with funds you cannot afford to lose',
 ];
 
-// ─── Section 5 — API Key Security ────────────────────────────────────────────
-
 export const TERMS_API_KEY_ITEMS: string[] = [
   'Keeping your API keys confidential and secure',
   'Restricting API key permissions to only what is necessary',
@@ -57,8 +47,6 @@ export const TERMS_API_KEY_ITEMS: string[] = [
   'Immediately revoking compromised API keys via Binance',
   'All trades and actions executed using your API keys',
 ];
-
-// ─── Section 6 — Prohibited Conduct ──────────────────────────────────────────
 
 export const TERMS_CONDUCT_ITEMS: string[] = [
   'Reverse engineer, decompile, or disassemble any part of the Service',
@@ -70,8 +58,6 @@ export const TERMS_CONDUCT_ITEMS: string[] = [
   'Resell, sublicense, or commercially exploit the Service without written consent',
   'Interfere with or disrupt the integrity or performance of the Service',
 ];
-
-// ─── Section 9 — Limitation of Liability ─────────────────────────────────────
 
 export const TERMS_LIABILITY_ITEMS: string[] = [
   'Trading losses or missed opportunities arising from use of the Service',

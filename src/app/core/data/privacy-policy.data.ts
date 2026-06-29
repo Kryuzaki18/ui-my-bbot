@@ -1,11 +1,7 @@
-// ─── Meta ────────────────────────────────────────────────────────────────────
-
 export const PRIVACY_META = {
   effectiveDate: 'June 12, 2025',
   version: '1.0',
 } as const;
-
-// ─── Table of Contents ───────────────────────────────────────────────────────
 
 export interface LegalTocItem {
   id: string;
@@ -13,19 +9,17 @@ export interface LegalTocItem {
 }
 
 export const PRIVACY_SECTIONS: LegalTocItem[] = [
-  { id: 'collect',     label: '1. Information We Collect' },
-  { id: 'use',         label: '2. How We Use Your Data'   },
-  { id: 'storage',     label: '3. Data Storage & Security' },
-  { id: 'third-party', label: '4. Third-Party Services'   },
-  { id: 'cookies',     label: '5. Cookies & Sessions'     },
-  { id: 'retention',   label: '6. Data Retention'         },
-  { id: 'rights',      label: '7. Your Rights'            },
-  { id: 'children',    label: '8. Children\'s Privacy'    },
-  { id: 'changes',     label: '9. Changes to Policy'      },
-  { id: 'contact',     label: '10. Contact Us'            },
+  { id: 'collect', label: '1. Information We Collect' },
+  { id: 'use', label: '2. How We Use Your Data' },
+  { id: 'storage', label: '3. Data Storage & Security' },
+  { id: 'third-party', label: '4. Third-Party Services' },
+  { id: 'cookies', label: '5. Cookies & Sessions' },
+  { id: 'retention', label: '6. Data Retention' },
+  { id: 'rights', label: '7. Your Rights' },
+  { id: 'children', label: "8. Children's Privacy" },
+  { id: 'changes', label: '9. Changes to Policy' },
+  { id: 'contact', label: '10. Contact Us' },
 ];
-
-// ─── Sidebar — We Collect quick reference ────────────────────────────────────
 
 export interface CollectItem {
   icon: string;
@@ -34,13 +28,11 @@ export interface CollectItem {
 }
 
 export const PRIVACY_COLLECT_ITEMS: CollectItem[] = [
-  { icon: 'pi-envelope', label: 'Email',        color: 'text-blue-400'    },
-  { icon: 'pi-key',      label: 'API Keys',     color: 'text-purple-400'  },
+  { icon: 'pi-envelope', label: 'Email', color: 'text-blue-400' },
+  { icon: 'pi-key', label: 'API Keys', color: 'text-purple-400' },
   { icon: 'pi-comments', label: 'Chat History', color: 'text-emerald-500' },
-  { icon: 'pi-user',     label: 'Session ID',   color: 'text-yellow-500'  },
+  { icon: 'pi-user', label: 'Session ID', color: 'text-yellow-500' },
 ];
-
-// ─── Section 1 — Account Information ─────────────────────────────────────────
 
 export const PRIVACY_ACCOUNT_ITEMS: string[] = [
   'Email address (for registered accounts)',
@@ -48,16 +40,12 @@ export const PRIVACY_ACCOUNT_ITEMS: string[] = [
   'Binance API key and API secret (stored encrypted)',
 ];
 
-// ─── Section 1 — Usage Data ───────────────────────────────────────────────────
-
 export const PRIVACY_USAGE_ITEMS: string[] = [
   'AI chat conversation history (keyed to your session or account)',
   'Anonymous session UUID (auto-generated for visitors without accounts)',
   'Session authentication tokens (stored as httpOnly cookies)',
   'General usage patterns to improve the Service',
 ];
-
-// ─── Section 2 — How We Use Your Data ────────────────────────────────────────
 
 export interface UseCard {
   icon: string;
@@ -68,13 +56,35 @@ export interface UseCard {
 }
 
 export const PRIVACY_USE_CARDS: UseCard[] = [
-  { icon: 'pi-user-plus',   label: 'Account Management', desc: 'Create and maintain your account',        color: 'text-blue-400',    bg: 'bg-blue-500/5 border-blue-500/20'     },
-  { icon: 'pi-chart-line',  label: 'Trading Execution',  desc: 'Process orders via Binance API',           color: 'text-yellow-500',  bg: 'bg-yellow-500/5 border-yellow-500/20' },
-  { icon: 'pi-comments',    label: 'AI Chat History',    desc: 'Load and save your conversations',          color: 'text-emerald-500', bg: 'bg-emerald-500/5 border-emerald-500/20' },
-  { icon: 'pi-shield',      label: 'Security',           desc: 'Detect and prevent unauthorized access',   color: 'text-red-400',     bg: 'bg-red-500/5 border-red-500/20'       },
+  {
+    icon: 'pi-user-plus',
+    label: 'Account Management',
+    desc: 'Create and maintain your account',
+    color: 'text-blue-400',
+    bg: 'bg-blue-500/5 border-blue-500/20',
+  },
+  {
+    icon: 'pi-chart-line',
+    label: 'Trading Execution',
+    desc: 'Process orders via Binance API',
+    color: 'text-yellow-500',
+    bg: 'bg-yellow-500/5 border-yellow-500/20',
+  },
+  {
+    icon: 'pi-comments',
+    label: 'AI Chat History',
+    desc: 'Load and save your conversations',
+    color: 'text-emerald-500',
+    bg: 'bg-emerald-500/5 border-emerald-500/20',
+  },
+  {
+    icon: 'pi-shield',
+    label: 'Security',
+    desc: 'Detect and prevent unauthorized access',
+    color: 'text-red-400',
+    bg: 'bg-red-500/5 border-red-500/20',
+  },
 ];
-
-// ─── Section 3 — Data Storage & Security ─────────────────────────────────────
 
 export const PRIVACY_STORAGE_ITEMS: string[] = [
   'Passwords are hashed using bcrypt with 12 salt rounds — never stored in plaintext',
@@ -90,13 +100,11 @@ export interface TechStackItem {
 }
 
 export const PRIVACY_TECH_STACK: TechStackItem[] = [
-  { label: 'bcrypt', desc: 'Password hashing'   },
-  { label: 'JWT',    desc: 'Session tokens'      },
-  { label: 'HTTPS',  desc: 'Transport security'  },
-  { label: 'Atlas',  desc: 'Cloud database'      },
+  { label: 'bcrypt', desc: 'Password hashing' },
+  { label: 'JWT', desc: 'Session tokens' },
+  { label: 'HTTPS', desc: 'Transport security' },
+  { label: 'Atlas', desc: 'Cloud database' },
 ];
-
-// ─── Section 4 — Third-Party Services ────────────────────────────────────────
 
 export interface ThirdPartyService {
   name: string;
@@ -109,32 +117,30 @@ export interface ThirdPartyService {
 
 export const PRIVACY_THIRD_PARTY: ThirdPartyService[] = [
   {
-    name:  'Binance',
-    role:  'Exchange Integration',
-    desc:  'Your API keys are used to authenticate with Binance to retrieve account data and execute trades. Subject to Binance\'s own Privacy Policy.',
+    name: 'Binance',
+    role: 'Exchange Integration',
+    desc: "Your API keys are used to authenticate with Binance to retrieve account data and execute trades. Subject to Binance's own Privacy Policy.",
     color: 'text-yellow-500',
-    bg:    'bg-yellow-500/5 border-yellow-500/20',
-    icon:  'pi-chart-bar',
+    bg: 'bg-yellow-500/5 border-yellow-500/20',
+    icon: 'pi-chart-bar',
   },
   {
-    name:  'Anthropic Claude',
-    role:  'AI Analysis Engine',
-    desc:  'Chat messages and market data are sent to Claude\'s API to generate analysis and responses. Conversation context may be included. Subject to Anthropic\'s Privacy Policy.',
+    name: 'Anthropic Claude',
+    role: 'AI Analysis Engine',
+    desc: "Chat messages and market data are sent to Claude's API to generate analysis and responses. Conversation context may be included. Subject to Anthropic's Privacy Policy.",
     color: 'text-purple-400',
-    bg:    'bg-purple-500/5 border-purple-500/20',
-    icon:  'pi-sparkles',
+    bg: 'bg-purple-500/5 border-purple-500/20',
+    icon: 'pi-sparkles',
   },
   {
-    name:  'MongoDB Atlas',
-    role:  'Database Provider',
-    desc:  'User accounts, API keys, and chat history are stored in MongoDB Atlas cloud infrastructure. Subject to MongoDB\'s Privacy Policy.',
+    name: 'MongoDB Atlas',
+    role: 'Database Provider',
+    desc: "User accounts, API keys, and chat history are stored in MongoDB Atlas cloud infrastructure. Subject to MongoDB's Privacy Policy.",
     color: 'text-emerald-500',
-    bg:    'bg-emerald-500/5 border-emerald-500/20',
-    icon:  'pi-database',
+    bg: 'bg-emerald-500/5 border-emerald-500/20',
+    icon: 'pi-database',
   },
 ];
-
-// ─── Section 5 — Cookies ─────────────────────────────────────────────────────
 
 export interface CookieRow {
   name: string;
@@ -143,11 +149,9 @@ export interface CookieRow {
 }
 
 export const PRIVACY_COOKIES: CookieRow[] = [
-  { name: 'session',      purpose: 'Authenticated user session JWT',   duration: '7 days'  },
-  { name: 'anon_session', purpose: 'Anonymous visitor session UUID',    duration: '30 days' },
+  { name: 'session', purpose: 'Authenticated user session JWT', duration: '7 days' },
+  { name: 'anon_session', purpose: 'Anonymous visitor session UUID', duration: '30 days' },
 ];
-
-// ─── Section 6 — Retention ───────────────────────────────────────────────────
 
 export const PRIVACY_RETENTION_ITEMS: string[] = [
   'Account data is retained for as long as your account is active',
@@ -157,8 +161,6 @@ export const PRIVACY_RETENTION_ITEMS: string[] = [
   'You may request deletion of your account and all associated data at any time',
 ];
 
-// ─── Section 7 — Your Rights ──────────────────────────────────────────────────
-
 export interface RightsCard {
   icon: string;
   label: string;
@@ -166,8 +168,8 @@ export interface RightsCard {
 }
 
 export const PRIVACY_RIGHTS_CARDS: RightsCard[] = [
-  { icon: 'pi-eye',     label: 'Access',        desc: 'Request a copy of the data we hold about you' },
-  { icon: 'pi-pencil',  label: 'Rectification', desc: 'Request correction of inaccurate data'        },
-  { icon: 'pi-trash',   label: 'Deletion',      desc: 'Request deletion of your account and data'    },
-  { icon: 'pi-ban',     label: 'Restriction',   desc: 'Request restriction of data processing'       },
+  { icon: 'pi-eye', label: 'Access', desc: 'Request a copy of the data we hold about you' },
+  { icon: 'pi-pencil', label: 'Rectification', desc: 'Request correction of inaccurate data' },
+  { icon: 'pi-trash', label: 'Deletion', desc: 'Request deletion of your account and data' },
+  { icon: 'pi-ban', label: 'Restriction', desc: 'Request restriction of data processing' },
 ];
